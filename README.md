@@ -19,389 +19,389 @@
 
 
 
-[English](./README-EN.md) | [中文文档](./README.md)
+[English](./README-EN.md) | [Português](./README.md)
 
 </div>
 
-> [!IMPORTANT]  
-> 查看我们最新发布的预测引擎：[MiroFish-简洁通用的群体智能引擎，预测万物](https://github.com/666ghj/MiroFish)
-> 
+> [!IMPORTANT]
+> Confira nosso motor de previsão recém-lançado: [MiroFish - Motor de inteligência coletiva simples e universal para prever tudo](https://github.com/666ghj/MiroFish)
+>
 > <img src="static/image/MiroFish_logo_compressed.jpeg" alt="banner" width="300">
 >
-> “数据分析三板斧”全线贯通：我们激动的宣布 MiroFish 正式发布！随着最后一块版图补齐，我们构建了从 BettaFish（数据收集与分析）到 MiroFish（全景预测）的完整链路。至此，从原始数据到智能决策的闭环已成，让预见未来成为可能！
+> "Os três pilares da análise de dados" estão totalmente integrados: temos a alegria de anunciar o lançamento oficial do MiroFish! Com a última peça do quebra-cabeça encaixada, construímos o fluxo completo do BettaFish (coleta e análise de dados) ao MiroFish (previsão panorâmica). Assim, o ciclo completo dos dados brutos à tomada de decisão inteligente está concluído, tornando possível prever o futuro!
 
-## ⚡ 项目概述
+## ⚡ Visão Geral do Projeto
 
-“**微舆**” 是一个从0实现的创新型 多智能体 舆情分析系统，帮助大家破除信息茧房，还原舆情原貌，预测未来走向，辅助决策。用户只需像聊天一样提出分析需求，智能体开始全自动分析 国内外30+主流社媒 与 数百万条大众评论。
+"**WeiYu**" (Micro-Opinião) é um sistema inovador de análise de opinião pública baseado em multi-agentes, desenvolvido do zero, que ajuda os usuários a romper bolhas informacionais, restaurar o panorama real da opinião pública, prever tendências futuras e auxiliar na tomada de decisões. O usuário só precisa expressar sua necessidade de análise como em uma conversa, e os agentes iniciam automaticamente a análise de mais de 30 plataformas de mídia social nacionais e internacionais e de milhões de comentários do público.
 
-> “微舆”谐音“微鱼”，BettaFish是一种体型很小但非常好斗、漂亮的鱼，它象征着“小而强大，不畏挑战”
+> "WeiYu" é um trocadilho em chinês que soa como "peixinho". BettaFish é um peixe de corpo muito pequeno, mas extremamente combativo e bonito, simbolizando "pequeno mas poderoso, sem medo de desafios"
 
-查看系统以“武汉大学舆情”为例，生成的研究报告：[武汉大学品牌声誉深度分析报告](./final_reports/final_report__20250827_131630.html)
+Veja o relatório de pesquisa gerado pelo sistema usando "opinião pública da Universidade de Wuhan" como exemplo: [Relatório de Análise Aprofundada da Reputação da Marca da Universidade de Wuhan](./final_reports/final_report__20250827_131630.html)
 
-查看系统以“武汉大学舆情”为例，一次完整运行的视频：[视频-武汉大学品牌声誉深度分析报告](https://www.bilibili.com/video/BV1TH1WBxEWN/?vd_source=da3512187e242ce17dceee4c537ec7a6#reply279744466833)
+Veja o vídeo de uma execução completa do sistema usando "opinião pública da Universidade de Wuhan" como exemplo: [Vídeo - Relatório de Análise Aprofundada da Reputação da Marca da Universidade de Wuhan](https://www.bilibili.com/video/BV1TH1WBxEWN/?vd_source=da3512187e242ce17dceee4c537ec7a6#reply279744466833)
 
-不仅仅体现在报告质量上，相比同类产品，我们拥有🚀六大优势：
+Não apenas na qualidade dos relatórios, mas em comparação com produtos similares, possuímos 6 grandes vantagens:
 
-1. **AI驱动的全域监控**：AI爬虫集群7x24小时不间断作业，全面覆盖微博、小红书、抖音、快手等10+国内外关键社媒。不仅实时捕获热点内容，更能下钻至海量用户评论，让您听到最真实、最广泛的大众声音。
+1. **Monitoramento Global Impulsionado por IA**: Clusters de crawlers de IA operando 24/7, cobrindo integralmente mais de 10 plataformas de mídia social nacionais e internacionais como Weibo, Xiaohongshu, Douyin, Kuaishou, etc. Além de capturar conteúdo em alta em tempo real, consegue aprofundar-se em comentários massivos de usuários, permitindo ouvir a voz mais autêntica e abrangente do público.
 
-2. **超越LLM的复合分析引擎**：我们不仅依赖设计的5类专业Agent，更融合了微调模型、统计模型等中间件。通过多模型协同工作，确保了分析结果的深度、准度与多维视角。
+2. **Motor de Análise Composto que Vai Além dos LLMs**: Não dependemos apenas dos 5 tipos de Agents profissionais projetados, mas também integramos middlewares como modelos ajustados finamente e modelos estatísticos. Através da colaboração multi-modelo, garantimos profundidade, precisão e perspectivas multidimensionais nos resultados da análise.
 
-3. **强大的多模态能力**：突破图文限制，能深度解析抖音、快手等短视频内容，并精准提取现代搜索引擎中的天气、日历、股票等结构化多模态信息卡片，让您全面掌握舆情动态。
+3. **Poderosa Capacidade Multimodal**: Rompendo as limitações de texto e imagem, consegue analisar em profundidade conteúdo de vídeos curtos do Douyin, Kuaishou, entre outros, e extrair com precisão cartões de informação multimodal estruturada como clima, calendário e ações de motores de busca modernos, permitindo domínio completo das dinâmicas de opinião pública.
 
-4. **Agent“论坛”协作机制**：为不同Agent赋予独特的工具集与思维模式，引入辩论主持人模型，通过“论坛”机制进行链式思维碰撞与辩论。这不仅避免了单一模型的思维局限与交流导致的同质化，更催生出更高质量的集体智能与决策支持。
+4. **Mecanismo de Colaboração "Fórum" entre Agents**: Atribuindo a cada Agent um conjunto único de ferramentas e modos de pensamento, introduzimos um modelo de moderador de debates, permitindo colisão e debate de cadeias de pensamento através do mecanismo de "Fórum". Isso não apenas evita limitações de pensamento de um único modelo e a homogeneização causada pela comunicação, mas também gera inteligência coletiva e suporte à decisão de maior qualidade.
 
-5. **公私域数据无缝融合**：平台不仅分析公开舆情，还提供高安全性的接口，支持您将内部业务数据库与舆情数据无缝集成。打通数据壁垒，为垂直业务提供“外部趋势+内部洞察”的强大分析能力。
+5. **Integração Perfeita de Dados Públicos e Privados**: A plataforma não apenas analisa a opinião pública aberta, mas também fornece interfaces de alta segurança, permitindo integrar perfeitamente bancos de dados internos de negócios com dados de opinião pública. Quebrando barreiras de dados, oferece poderosa capacidade de análise de "tendências externas + insights internos" para negócios verticais.
 
-6. **轻量化与高扩展性框架**：基于纯Python模块化设计，实现轻量化、一键式部署。代码结构清晰，开发者可轻松集成自定义模型与业务逻辑，实现平台的快速扩展与深度定制。
+6. **Framework Leve e Altamente Extensível**: Baseado em design modular em Python puro, alcança implantação leve e com um único clique. A estrutura do código é clara, e desenvolvedores podem facilmente integrar modelos personalizados e lógica de negócios, permitindo expansão rápida e personalização profunda da plataforma.
 
-**始于舆情，而不止于舆情**。“微舆”的目标，是成为驱动一切业务场景的简洁通用的数据分析引擎。
+**Começa pela opinião pública, mas não se limita a ela**. O objetivo do "WeiYu" é tornar-se um motor de análise de dados simples e universal que impulsiona qualquer cenário de negócio.
 
-> 举个例子. 你只需简单修改Agent工具集的api参数与prompt，就可以把他变成一个金融领域的市场分析系统
+> Por exemplo, você só precisa modificar os parâmetros de API e prompts do conjunto de ferramentas do Agent para transformá-lo em um sistema de análise de mercado no setor financeiro
 >
-> 附一个比较活跃的L站项目讨论帖：https://linux.do/t/topic/1009280
+> Segue um tópico de discussão bastante ativo no fórum L: https://linux.do/t/topic/1009280
 >
-> 查看L站佬友做的测评 [开源项目(微舆)与manus|minimax|ChatGPT|Perplexity对比](https://linux.do/t/topic/1148040)
+> Veja a avaliação feita por um membro do fórum L [Comparação do projeto open source (WeiYu) com manus|minimax|ChatGPT|Perplexity](https://linux.do/t/topic/1148040)
 
 <div align="center">
 <img src="static/image/system_schematic.png" alt="banner" width="800">
 
-告别传统的数据看板，在“微舆”，一切由一个简单的问题开始，您只需像对话一样，提出您的分析需求
+Diga adeus aos painéis de dados tradicionais. No "WeiYu", tudo começa com uma simples pergunta - você só precisa expressar sua necessidade de análise como em uma conversa
 </div>
 
-## 🪄 赞助商
+## 🪄 Patrocinadores
 
-LLM模型API赞助：<a href="https://aihubmix.com/?aff=8Ds9" target="_blank"><img src="./static/image/logo_aihubmix.png" alt="666ghj%2FBettaFish | Trendshift" height="40"/></a>
+Patrocínio de API de modelos LLM: <a href="https://aihubmix.com/?aff=8Ds9" target="_blank"><img src="./static/image/logo_aihubmix.png" alt="666ghj%2FBettaFish | Trendshift" height="40"/></a>
 
 <details>
-<summary>AI联网搜索、文件解析及网页内容抓取等智能体核心能力提供商：</a><span style="margin-left: 10px"><a href="https://open.anspire.cn/?share_code=3E1FUOUH" target="_blank"><img src="./static/image/logo_anspire.png" alt="666ghj%2FBettaFish | Trendshift" height="50"/></a></summary>
-安思派开放平台(Anspire Open)是面向智能体时代的领先的基础设施提供商。我们为开发者提供构建强大智能体所需的核心能力栈，现已上线AI联网搜索【多版本，极具竞争力的价格】、文件解析【限免】及网页内容抓取【限免】、云端浏览器自动化（Anspire Browser Agent）【内测】、多轮改写等服务，持续为智能体连接并操作复杂的数字世界提供坚实基础。可无缝集成至Dify、Coze、元器等主流智能体平台。通过透明点数计费体系与模块化设计，为企业提供高效、低成本的定制化支持，加速智能化升级进程。
+<summary>Provedor de capacidades centrais de agentes inteligentes como busca conectada por IA, análise de arquivos e captura de conteúdo web:</a><span style="margin-left: 10px"><a href="https://open.anspire.cn/?share_code=3E1FUOUH" target="_blank"><img src="./static/image/logo_anspire.png" alt="666ghj%2FBettaFish | Trendshift" height="50"/></a></summary>
+A Plataforma Aberta Anspire (Anspire Open) é um provedor líder de infraestrutura para a era dos agentes inteligentes. Oferecemos aos desenvolvedores a pilha de capacidades centrais necessárias para construir agentes poderosos, com serviços já disponíveis como busca conectada por IA [múltiplas versões, preços extremamente competitivos], análise de arquivos [gratuita por tempo limitado] e captura de conteúdo web [gratuita por tempo limitado], automação de navegador em nuvem (Anspire Browser Agent) [em beta], reescrita em múltiplas rodadas e mais, fornecendo continuamente uma base sólida para que agentes inteligentes se conectem e operem no complexo mundo digital. Integração perfeita com plataformas de agentes populares como Dify, Coze, Yuanqi, entre outras. Através de um sistema de cobrança transparente por pontos e design modular, oferecemos suporte personalizado eficiente e de baixo custo para empresas, acelerando o processo de modernização inteligente.
 </details>
 
-## 🏗️ 系统架构
+## 🏗️ Arquitetura do Sistema
 
-### 整体架构图
+### Diagrama da Arquitetura Geral
 
-**Insight Agent** 私有数据库挖掘：私有舆情数据库深度分析AI代理
+**Insight Agent** Mineração de banco de dados privado: Agente de IA para análise aprofundada de bancos de dados privados de opinião pública
 
-**Media Agent** 多模态内容分析：具备强大多模态能力的AI代理
+**Media Agent** Análise de conteúdo multimodal: Agente de IA com poderosas capacidades multimodais
 
-**Query Agent** 精准信息搜索：具备国内外网页搜索能力的AI代理
+**Query Agent** Busca precisa de informações: Agente de IA com capacidade de busca web nacional e internacional
 
-**Report Agent** 智能报告生成：内置模板的多轮报告生成AI代理
+**Report Agent** Geração inteligente de relatórios: Agente de IA para geração de relatórios em múltiplas rodadas com templates integrados
 
 <div align="center">
 <img src="static/image/framework.png" alt="banner" width="800">
 </div>
 
-### 一次完整分析流程
+### Fluxo Completo de Uma Análise
 
-| 步骤 | 阶段名称 | 主要操作 | 参与组件 | 循环特性 |
+| Etapa | Nome da Fase | Operação Principal | Componentes Envolvidos | Características de Loop |
 |------|----------|----------|----------|----------|
-| 1 | 用户提问 | Flask主应用接收查询 | Flask主应用 | - |
-| 2 | 并行启动 | 三个Agent同时开始工作 | Query Agent、Media Agent、Insight Agent | - |
-| 3 | 初步分析 | 各Agent使用专属工具进行概览搜索 | 各Agent + 专属工具集 | - |
-| 4 | 策略制定 | 基于初步结果制定分块研究策略 | 各Agent内部决策模块 | - |
-| 5-N | **循环阶段** | **论坛协作 + 深度研究** | **ForumEngine + 所有Agent** | **多轮循环** |
-| 5.1 | 深度研究 | 各Agent基于论坛主持人引导进行专项搜索 | 各Agent + 反思机制 + 论坛引导 | 每轮循环 |
-| 5.2 | 论坛协作 | ForumEngine监控Agent发言并生成主持人引导 | ForumEngine + LLM主持人 | 每轮循环 |
-| 5.3 | 交流融合 | 各Agent根据讨论调整研究方向 | 各Agent + forum_reader工具 | 每轮循环 |
-| N+1 | 结果整合 | Report Agent收集所有分析结果和论坛内容 | Report Agent | - |
-| N+2 | IR中间表示 | 动态选择模板和样式，多轮生成元数据，装订为IR中间表示 | Report Agent + 模板引擎 | - |
-| N+3 | 报告生成 | 分块进行质量检测，基于IR渲染成交互式 HTML 报告 | Report Agent + 装订引擎 | - |
+| 1 | Pergunta do Usuário | Aplicação principal Flask recebe a consulta | Aplicação principal Flask | - |
+| 2 | Inicialização Paralela | Três Agents começam a trabalhar simultaneamente | Query Agent, Media Agent, Insight Agent | - |
+| 3 | Análise Preliminar | Cada Agent usa suas ferramentas exclusivas para busca geral | Cada Agent + conjunto de ferramentas exclusivo | - |
+| 4 | Formulação de Estratégia | Formulação de estratégia de pesquisa segmentada com base nos resultados preliminares | Módulo de decisão interno de cada Agent | - |
+| 5-N | **Fase de Loop** | **Colaboração no Fórum + Pesquisa Aprofundada** | **ForumEngine + Todos os Agents** | **Loop em múltiplas rodadas** |
+| 5.1 | Pesquisa Aprofundada | Cada Agent realiza busca especializada guiado pelo moderador do fórum | Cada Agent + mecanismo de reflexão + orientação do fórum | Cada rodada do loop |
+| 5.2 | Colaboração no Fórum | ForumEngine monitora falas dos Agents e gera orientação do moderador | ForumEngine + LLM moderador | Cada rodada do loop |
+| 5.3 | Troca e Fusão | Cada Agent ajusta sua direção de pesquisa com base na discussão | Cada Agent + ferramenta forum_reader | Cada rodada do loop |
+| N+1 | Integração de Resultados | Report Agent coleta todos os resultados de análise e conteúdo do fórum | Report Agent | - |
+| N+2 | Representação Intermediária IR | Seleção dinâmica de template e estilo, geração de metadados em múltiplas rodadas, montagem em representação intermediária IR | Report Agent + motor de templates | - |
+| N+3 | Geração do Relatório | Verificação de qualidade por blocos, renderização em relatório HTML interativo baseado em IR | Report Agent + motor de montagem | - |
 
-### 项目代码结构树
+### Estrutura de Código do Projeto
 
 ```
 BettaFish/
-├── QueryEngine/                            # 国内外新闻广度搜索Agent
-│   ├── agent.py                            # Agent主逻辑，协调搜索与分析流程
-│   ├── llms/                               # LLM接口封装
-│   ├── nodes/                              # 处理节点：搜索、格式化、总结等
-│   ├── tools/                              # 国内外新闻搜索工具集
-│   ├── utils/                              # 工具函数
-│   ├── state/                              # 状态管理
-│   ├── prompts/                            # 提示词模板
+├── QueryEngine/                            # Agent de busca ampla de notícias nacionais e internacionais
+│   ├── agent.py                            # Lógica principal do Agent, coordena fluxo de busca e análise
+│   ├── llms/                               # Encapsulamento de interface LLM
+│   ├── nodes/                              # Nós de processamento: busca, formatação, resumo, etc.
+│   ├── tools/                              # Conjunto de ferramentas de busca de notícias nacionais e internacionais
+│   ├── utils/                              # Funções utilitárias
+│   ├── state/                              # Gerenciamento de estado
+│   ├── prompts/                            # Templates de prompts
 │   └── ...
-├── MediaEngine/                            # 强大的多模态理解Agent
-│   ├── agent.py                            # Agent主逻辑，处理视频/图片等多模态内容
-│   ├── llms/                               # LLM接口封装
-│   ├── nodes/                              # 处理节点：搜索、格式化、总结等
-│   ├── tools/                              # 多模态搜索工具集
-│   ├── utils/                              # 工具函数
-│   ├── state/                              # 状态管理
-│   ├── prompts/                            # 提示词模板
+├── MediaEngine/                            # Agent de compreensão multimodal poderoso
+│   ├── agent.py                            # Lógica principal do Agent, processa conteúdo multimodal como vídeo/imagem
+│   ├── llms/                               # Encapsulamento de interface LLM
+│   ├── nodes/                              # Nós de processamento: busca, formatação, resumo, etc.
+│   ├── tools/                              # Conjunto de ferramentas de busca multimodal
+│   ├── utils/                              # Funções utilitárias
+│   ├── state/                              # Gerenciamento de estado
+│   ├── prompts/                            # Templates de prompts
 │   └── ...
-├── InsightEngine/                          # 私有数据库挖掘Agent
-│   ├── agent.py                            # Agent主逻辑，协调数据库查询与分析
-│   ├── llms/                               # LLM接口封装
-│   │   └── base.py                         # 统一的OpenAI兼容客户端
-│   ├── nodes/                              # 处理节点：搜索、格式化、总结等
-│   │   ├── base_node.py                    # 基础节点类
-│   │   ├── search_node.py                  # 搜索节点
-│   │   ├── formatting_node.py              # 格式化节点
-│   │   ├── report_structure_node.py        # 报告结构节点
-│   │   └── summary_node.py                 # 总结节点
-│   ├── tools/                              # 数据库查询和分析工具集
-│   │   ├── keyword_optimizer.py            # Qwen关键词优化中间件
-│   │   ├── search.py                       # 数据库操作工具集（话题搜索、评论获取等）
-│   │   └── sentiment_analyzer.py           # 情感分析集成工具
-│   ├── utils/                              # 工具函数
-│   │   ├── config.py                       # 配置管理
-│   │   ├── db.py                           # SQLAlchemy异步引擎与只读查询封装
-│   │   └── text_processing.py              # 文本处理工具
-│   ├── state/                              # 状态管理
-│   │   └── state.py                        # Agent状态定义
-│   ├── prompts/                            # 提示词模板
-│   │   └── prompts.py                      # 各类提示词
+├── InsightEngine/                          # Agent de mineração de banco de dados privado
+│   ├── agent.py                            # Lógica principal do Agent, coordena consulta e análise do banco de dados
+│   ├── llms/                               # Encapsulamento de interface LLM
+│   │   └── base.py                         # Cliente unificado compatível com OpenAI
+│   ├── nodes/                              # Nós de processamento: busca, formatação, resumo, etc.
+│   │   ├── base_node.py                    # Classe base de nó
+│   │   ├── search_node.py                  # Nó de busca
+│   │   ├── formatting_node.py              # Nó de formatação
+│   │   ├── report_structure_node.py        # Nó de estrutura de relatório
+│   │   └── summary_node.py                 # Nó de resumo
+│   ├── tools/                              # Conjunto de ferramentas de consulta e análise de banco de dados
+│   │   ├── keyword_optimizer.py            # Middleware de otimização de palavras-chave Qwen
+│   │   ├── search.py                       # Conjunto de ferramentas de operação de banco de dados (busca de tópicos, obtenção de comentários, etc.)
+│   │   └── sentiment_analyzer.py           # Ferramenta integrada de análise de sentimento
+│   ├── utils/                              # Funções utilitárias
+│   │   ├── config.py                       # Gerenciamento de configuração
+│   │   ├── db.py                           # Motor assíncrono SQLAlchemy e encapsulamento de consulta somente leitura
+│   │   └── text_processing.py              # Ferramentas de processamento de texto
+│   ├── state/                              # Gerenciamento de estado
+│   │   └── state.py                        # Definição de estado do Agent
+│   ├── prompts/                            # Templates de prompts
+│   │   └── prompts.py                      # Diversos prompts
 │   └── __init__.py
-├── ReportEngine/                           # 多轮报告生成Agent
-│   ├── agent.py                            # 总调度器：模板选择→布局→篇幅→章节→渲染
-│   ├── flask_interface.py                  # Flask/SSE入口，管理任务排队与流式事件
-│   ├── llms/                               # OpenAI兼容LLM封装
-│   │   └── base.py                         # 统一的流式/重试客户端
-│   ├── core/                               # 核心功能：模板解析、章节存储、文档装订
-│   │   ├── template_parser.py              # Markdown模板切片与slug生成
-│   │   ├── chapter_storage.py              # 章节run目录、manifest与raw流写入
-│   │   └── stitcher.py                     # Document IR装订器，补齐锚点/元数据
-│   ├── ir/                                 # 报告中间表示（IR）契约与校验
-│   │   ├── schema.py                       # 块/标记Schema常量定义
-│   │   └── validator.py                    # 章节JSON结构校验器
-│   ├── nodes/                              # 全流程推理节点
-│   │   ├── base_node.py                    # 节点基类+日志/状态钩子
-│   │   ├── template_selection_node.py      # 模板候选收集与LLM筛选
-│   │   ├── document_layout_node.py         # 标题/目录/主题设计
-│   │   ├── word_budget_node.py             # 篇幅规划与章节指令生成
-│   │   └── chapter_generation_node.py      # 章节级JSON生成+校验
-│   ├── prompts/                            # 提示词库与Schema说明
-│   │   └── prompts.py                      # 模板选择/布局/篇幅/章节提示词
-│   ├── renderers/                          # IR渲染器
-│   │   ├── html_renderer.py                # Document IR→交互式HTML
-│   │   ├── pdf_renderer.py                 # HTML→PDF导出（WeasyPrint）
-│   │   ├── pdf_layout_optimizer.py         # PDF布局优化器
-│   │   └── chart_to_svg.py                 # 图表转SVG工具
-│   ├── state/                              # 任务/元数据状态模型
-│   │   └── state.py                        # ReportState与序列化工具
-│   ├── utils/                              # 配置与辅助工具
-│   │   ├── config.py                       # Pydantic Settings与打印助手
-│   │   ├── dependency_check.py             # 依赖检查工具
-│   │   ├── json_parser.py                  # JSON解析工具
-│   │   ├── chart_validator.py              # 图表校验工具
-│   │   └── chart_repair_api.py             # 图表修复API
-│   ├── report_template/                    # Markdown模板库
+├── ReportEngine/                           # Agent de geração de relatórios em múltiplas rodadas
+│   ├── agent.py                            # Orquestrador geral: seleção de template→layout→extensão→capítulos→renderização
+│   ├── flask_interface.py                  # Entrada Flask/SSE, gerencia fila de tarefas e eventos de streaming
+│   ├── llms/                               # Encapsulamento de LLM compatível com OpenAI
+│   │   └── base.py                         # Cliente unificado com streaming/retry
+│   ├── core/                               # Funcionalidades centrais: parsing de template, armazenamento de capítulos, montagem de documento
+│   │   ├── template_parser.py              # Fatiamento de template Markdown e geração de slug
+│   │   ├── chapter_storage.py              # Diretório run de capítulos, manifest e escrita de fluxo raw
+│   │   └── stitcher.py                     # Montador de Document IR, preenchimento de âncoras/metadados
+│   ├── ir/                                 # Contrato e validação de Representação Intermediária (IR) do relatório
+│   │   ├── schema.py                       # Definição de constantes de Schema de blocos/marcadores
+│   │   └── validator.py                    # Validador de estrutura JSON de capítulos
+│   ├── nodes/                              # Nós de inferência do fluxo completo
+│   │   ├── base_node.py                    # Classe base de nó + hooks de log/estado
+│   │   ├── template_selection_node.py      # Coleta de candidatos de template e seleção por LLM
+│   │   ├── document_layout_node.py         # Design de título/índice/tema
+│   │   ├── word_budget_node.py             # Planejamento de extensão e geração de instruções por capítulo
+│   │   └── chapter_generation_node.py      # Geração JSON por capítulo + validação
+│   ├── prompts/                            # Biblioteca de prompts e descrições de Schema
+│   │   └── prompts.py                      # Prompts de seleção de template/layout/extensão/capítulo
+│   ├── renderers/                          # Renderizadores de IR
+│   │   ├── html_renderer.py               # Document IR→HTML interativo
+│   │   ├── pdf_renderer.py                # HTML→exportação PDF (WeasyPrint)
+│   │   ├── pdf_layout_optimizer.py         # Otimizador de layout PDF
+│   │   └── chart_to_svg.py                # Ferramenta de conversão de gráficos para SVG
+│   ├── state/                              # Modelos de estado de tarefa/metadados
+│   │   └── state.py                        # ReportState e ferramentas de serialização
+│   ├── utils/                              # Configuração e ferramentas auxiliares
+│   │   ├── config.py                       # Pydantic Settings e auxiliar de impressão
+│   │   ├── dependency_check.py             # Ferramenta de verificação de dependências
+│   │   ├── json_parser.py                  # Ferramenta de parsing JSON
+│   │   ├── chart_validator.py              # Ferramenta de validação de gráficos
+│   │   └── chart_repair_api.py             # API de reparo de gráficos
+│   ├── report_template/                    # Biblioteca de templates Markdown
 │   │   ├── 企业品牌声誉分析报告.md
 │   │   └── ...
 │   └── __init__.py
-├── ForumEngine/                            # 论坛引擎：Agent协作机制
-│   ├── monitor.py                          # 日志监控和论坛管理核心
-│   ├── llm_host.py                         # 论坛主持人LLM模块
+├── ForumEngine/                            # Motor de fórum: mecanismo de colaboração entre Agents
+│   ├── monitor.py                          # Núcleo de monitoramento de logs e gerenciamento do fórum
+│   ├── llm_host.py                         # Módulo LLM do moderador do fórum
 │   └── __init__.py
-├── MindSpider/                             # 社交媒体爬虫系统
-│   ├── main.py                             # 爬虫主程序入口
-│   ├── config.py                           # 爬虫配置文件
-│   ├── BroadTopicExtraction/               # 话题提取模块
-│   │   ├── main.py                         # 话题提取主程序
-│   │   ├── database_manager.py             # 数据库管理器
-│   │   ├── get_today_news.py               # 今日新闻获取
-│   │   └── topic_extractor.py              # 话题提取器
-│   ├── DeepSentimentCrawling/              # 深度舆情爬取模块
-│   │   ├── main.py                         # 深度爬取主程序
-│   │   ├── keyword_manager.py              # 关键词管理器
-│   │   ├── platform_crawler.py             # 平台爬虫管理
-│   │   └── MediaCrawler/                   # 社媒爬虫核心
+├── MindSpider/                             # Sistema de crawlers de mídias sociais
+│   ├── main.py                             # Ponto de entrada principal do crawler
+│   ├── config.py                           # Arquivo de configuração do crawler
+│   ├── BroadTopicExtraction/               # Módulo de extração de tópicos
+│   │   ├── main.py                         # Programa principal de extração de tópicos
+│   │   ├── database_manager.py             # Gerenciador de banco de dados
+│   │   ├── get_today_news.py               # Obtenção de notícias do dia
+│   │   └── topic_extractor.py              # Extrator de tópicos
+│   ├── DeepSentimentCrawling/              # Módulo de crawling profundo de opinião pública
+│   │   ├── main.py                         # Programa principal de crawling profundo
+│   │   ├── keyword_manager.py              # Gerenciador de palavras-chave
+│   │   ├── platform_crawler.py             # Gerenciador de crawlers por plataforma
+│   │   └── MediaCrawler/                   # Núcleo de crawlers de mídias sociais
 │   │       ├── main.py
-│   │       ├── config/                     # 各平台配置
-│   │       ├── media_platform/             # 各平台爬虫实现
+│   │       ├── config/                     # Configurações por plataforma
+│   │       ├── media_platform/             # Implementação de crawlers por plataforma
 │   │       └── ...
-│   └── schema/                             # 数据库结构定义
-│       ├── db_manager.py                   # 数据库管理器
-│       ├── init_database.py                # 数据库初始化脚本
-│       ├── mindspider_tables.sql           # 数据库表结构SQL
-│       ├── models_bigdata.py               # 大规模媒体舆情表的SQLAlchemy映射
-│       └── models_sa.py                    # DailyTopic/Task等扩展表ORM模型
-├── SentimentAnalysisModel/                 # 情感分析模型集合
-│   ├── WeiboSentiment_Finetuned/           # 微调BERT/GPT-2模型
-│   │   ├── BertChinese-Lora/               # BERT中文LoRA微调
+│   └── schema/                             # Definição de estrutura do banco de dados
+│       ├── db_manager.py                   # Gerenciador de banco de dados
+│       ├── init_database.py                # Script de inicialização do banco de dados
+│       ├── mindspider_tables.sql           # SQL da estrutura de tabelas do banco de dados
+│       ├── models_bigdata.py               # Mapeamento SQLAlchemy das tabelas de opinião pública em larga escala
+│       └── models_sa.py                    # Modelos ORM de tabelas estendidas DailyTopic/Task
+├── SentimentAnalysisModel/                 # Coleção de modelos de análise de sentimento
+│   ├── WeiboSentiment_Finetuned/           # Modelos BERT/GPT-2 ajustados finamente
+│   │   ├── BertChinese-Lora/               # Ajuste fino LoRA do BERT chinês
 │   │   │   ├── train.py
 │   │   │   ├── predict.py
 │   │   │   └── ...
-│   │   └── GPT2-Lora/                      # GPT-2 LoRA微调
+│   │   └── GPT2-Lora/                      # Ajuste fino LoRA do GPT-2
 │   │       ├── train.py
 │   │       ├── predict.py
 │   │       └── ...
-│   ├── WeiboMultilingualSentiment/         # 多语言情感分析
+│   ├── WeiboMultilingualSentiment/         # Análise de sentimento multilíngue
 │   │   ├── train.py
 │   │   ├── predict.py
 │   │   └── ...
-│   ├── WeiboSentiment_SmallQwen/           # 小参数Qwen3微调
+│   ├── WeiboSentiment_SmallQwen/           # Ajuste fino do Qwen3 com poucos parâmetros
 │   │   ├── train.py
 │   │   ├── predict_universal.py
 │   │   └── ...
-│   └── WeiboSentiment_MachineLearning/     # 传统机器学习方法
+│   └── WeiboSentiment_MachineLearning/     # Métodos tradicionais de aprendizado de máquina
 │       ├── train.py
 │       ├── predict.py
 │       └── ...
-├── SingleEngineApp/                        # 单独Agent的Streamlit应用
-│   ├── query_engine_streamlit_app.py       # QueryEngine独立应用
-│   ├── media_engine_streamlit_app.py       # MediaEngine独立应用
-│   └── insight_engine_streamlit_app.py     # InsightEngine独立应用
-├── query_engine_streamlit_reports/         # QueryEngine单应用运行输出
-├── media_engine_streamlit_reports/         # MediaEngine单应用运行输出
-├── insight_engine_streamlit_reports/       # InsightEngine单应用运行输出
-├── templates/                              # Flask前端模板
-│   └── index.html                          # 主界面HTML
-├── static/                                 # 静态资源
-│   ├── image/                              # 图片资源
+├── SingleEngineApp/                        # Aplicações Streamlit de Agents individuais
+│   ├── query_engine_streamlit_app.py       # Aplicação independente do QueryEngine
+│   ├── media_engine_streamlit_app.py       # Aplicação independente do MediaEngine
+│   └── insight_engine_streamlit_app.py     # Aplicação independente do InsightEngine
+├── query_engine_streamlit_reports/         # Saída da aplicação individual do QueryEngine
+├── media_engine_streamlit_reports/         # Saída da aplicação individual do MediaEngine
+├── insight_engine_streamlit_reports/       # Saída da aplicação individual do InsightEngine
+├── templates/                              # Templates do frontend Flask
+│   └── index.html                          # HTML da interface principal
+├── static/                                 # Recursos estáticos
+│   ├── image/                              # Recursos de imagem
 │   │   └── ...
-│   ├── Partial README for PDF Exporting/   # PDF导出依赖配置说明
-│   └── v2_report_example/                  # 报告渲染示例
-│       └── report_all_blocks_demo/         # 全块类型演示（HTML/PDF/MD）
-├── logs/                                   # 运行日志目录
-├── final_reports/                          # 最终生成的报告文件
-│   ├── ir/                                 # 报告IR JSON文件
-│   └── *.html                              # 最终HTML报告
-├── utils/                                  # 通用工具函数
-│   ├── forum_reader.py                     # Agent间论坛通信工具
-│   ├── github_issues.py                    # 统一生成GitHub Issue链接与错误提示
-│   └── retry_helper.py                     # 网络请求重试机制工具
-├── tests/                                  # 单元测试与集成测试
-│   ├── run_tests.py                        # pytest入口脚本
-│   ├── test_monitor.py                     # ForumEngine监控单元测试
-│   ├── test_report_engine_sanitization.py  # ReportEngine安全性测试
+│   ├── Partial README for PDF Exporting/   # Instruções de configuração de dependências para exportação PDF
+│   └── v2_report_example/                  # Exemplos de renderização de relatórios
+│       └── report_all_blocks_demo/         # Demonstração de todos os tipos de blocos (HTML/PDF/MD)
+├── logs/                                   # Diretório de logs de execução
+├── final_reports/                          # Arquivos de relatórios finais gerados
+│   ├── ir/                                 # Arquivos JSON de IR do relatório
+│   └── *.html                              # Relatórios HTML finais
+├── utils/                                  # Funções utilitárias gerais
+│   ├── forum_reader.py                     # Ferramenta de comunicação do fórum entre Agents
+│   ├── github_issues.py                    # Geração unificada de links para GitHub Issues e mensagens de erro
+│   └── retry_helper.py                     # Ferramenta de mecanismo de retry para requisições de rede
+├── tests/                                  # Testes unitários e de integração
+│   ├── run_tests.py                        # Script de entrada do pytest
+│   ├── test_monitor.py                     # Testes unitários do monitoramento do ForumEngine
+│   ├── test_report_engine_sanitization.py  # Testes de segurança do ReportEngine
 │   └── ...
-├── app.py                                  # Flask主应用入口
-├── config.py                               # 全局配置文件
-├── .env.example                            # 环境变量示例文件
-├── docker-compose.yml                      # Docker多服务编排配置
-├── Dockerfile                              # Docker镜像构建文件
-├── requirements.txt                        # Python依赖包清单
-├── regenerate_latest_html.py               # 使用最新章节重装订并渲染HTML
-├── regenerate_latest_md.py                 # 使用最新章节重装订并渲染Markdown
-├── regenerate_latest_pdf.py                # PDF重新生成工具脚本
-├── report_engine_only.py                   # Report Engine命令行版本
-├── README.md                               # 中文说明文档
-├── README-EN.md                            # 英文说明文档
-├── CONTRIBUTING.md                         # 中文贡献指南
-├── CONTRIBUTING-EN.md                      # 英文贡献指南
-└── LICENSE                                 # GPL-2.0开源许可证
+├── app.py                                  # Ponto de entrada da aplicação Flask principal
+├── config.py                               # Arquivo de configuração global
+├── .env.example                            # Arquivo de exemplo de variáveis de ambiente
+├── docker-compose.yml                      # Configuração de orquestração multi-serviço Docker
+├── Dockerfile                              # Arquivo de construção de imagem Docker
+├── requirements.txt                        # Lista de dependências Python
+├── regenerate_latest_html.py               # Remontagem e renderização HTML usando os capítulos mais recentes
+├── regenerate_latest_md.py                 # Remontagem e renderização Markdown usando os capítulos mais recentes
+├── regenerate_latest_pdf.py                # Script de regeneração de PDF
+├── report_engine_only.py                   # Versão de linha de comando do Report Engine
+├── README.md                               # Documentação em português
+├── README-EN.md                            # Documentação em inglês
+├── CONTRIBUTING.md                         # Guia de contribuição em chinês
+├── CONTRIBUTING-EN.md                      # Guia de contribuição em inglês
+└── LICENSE                                 # Licença open source GPL-2.0
 ```
 
-## 🚀 快速开始（Docker）
+## 🚀 Início Rápido (Docker)
 
-### 1. 启动项目
+### 1. Iniciar o projeto
 
-复制一份 `.env.example` 文件，命名为 `.env` ，并按需配置 `.env` 文件中的环境变量
+Copie o arquivo `.env.example`, renomeie-o para `.env` e configure as variáveis de ambiente no arquivo `.env` conforme necessário
 
-执行以下命令在后台启动所有服务：
+Execute o seguinte comando para iniciar todos os serviços em segundo plano:
 
 ```bash
 docker compose up -d
 ```
 
-> **注：镜像拉取速度慢**，在原 `docker-compose.yml` 文件中，我们已经通过**注释**的方式提供了备用镜像地址供您替换
+> **Nota: se o download da imagem estiver lento**, no arquivo `docker-compose.yml` original, já fornecemos endereços de imagem alternativos por meio de **comentários** para sua substituição
 
-### 2. 配置说明
+### 2. Instruções de Configuração
 
-#### 数据库配置（PostgreSQL）
+#### Configuração do Banco de Dados (PostgreSQL)
 
-请按照以下参数配置数据库连接信息，也支持Mysql可自行修改：
+Configure as informações de conexão com o banco de dados de acordo com os seguintes parâmetros. MySQL também é suportado e pode ser modificado por conta própria:
 
-| 配置项 | 填写值 | 说明 |
+| Item de Configuração | Valor | Descrição |
 | :--- | :--- | :--- |
-| `DB_HOST` | `db` | 数据库服务名称 (对应 `docker-compose.yml` 中的服务名) |
-| `DB_PORT` | `5432` | 默认 PostgreSQL 端口 |
-| `DB_USER` | `bettafish` | 数据库用户名 |
-| `DB_PASSWORD` | `bettafish` | 数据库密码 |
-| `DB_NAME` | `bettafish` | 数据库名称 |
-| **其他** | **保持默认** | 数据库连接池等其他参数请保持默认设置。 |
+| `DB_HOST` | `db` | Nome do serviço de banco de dados (corresponde ao nome do serviço no `docker-compose.yml`) |
+| `DB_PORT` | `5432` | Porta padrão do PostgreSQL |
+| `DB_USER` | `bettafish` | Nome de usuário do banco de dados |
+| `DB_PASSWORD` | `bettafish` | Senha do banco de dados |
+| `DB_NAME` | `bettafish` | Nome do banco de dados |
+| **Outros** | **Manter padrão** | Pool de conexões e outros parâmetros do banco de dados devem manter as configurações padrão. |
 
-#### 大模型配置
+#### Configuração de Modelos de Linguagem
 
-> 我们所有 LLM 调用使用 OpenAI 的 API 接口标准
+> Todas as nossas chamadas de LLM utilizam o padrão de interface API da OpenAI
 
-在完成数据库配置后，请正常配置**所有大模型相关的参数**，确保系统能够连接到您选择的大模型服务。
+Após concluir a configuração do banco de dados, configure normalmente **todos os parâmetros relacionados ao modelo de linguagem**, garantindo que o sistema possa se conectar ao serviço de modelo de linguagem escolhido.
 
-完成上述所有配置并保存后，系统即可正常运行。
+Após concluir todas as configurações acima e salvar, o sistema estará pronto para funcionar.
 
-## 🔧 源码启动指南
+## 🔧 Guia de Inicialização a Partir do Código-Fonte
 
-> 如果你是初次学习一个Agent系统的搭建，可以从一个非常简单的demo开始：[Deep Search Agent Demo](https://github.com/666ghj/DeepSearchAgent-Demo)
+> Se você está aprendendo pela primeira vez como construir um sistema de Agents, pode começar com um demo muito simples: [Deep Search Agent Demo](https://github.com/666ghj/DeepSearchAgent-Demo)
 
-### 环境要求
+### Requisitos do Ambiente
 
-- **操作系统**: Windows、Linux、MacOS
-- **Python版本**: 3.9+
-- **Conda**: Anaconda或Miniconda
-- **数据库**: PostgreSQL（推荐）或MySQL
-- **内存**: 建议2GB以上
+- **Sistema Operacional**: Windows, Linux, MacOS
+- **Versão do Python**: 3.9+
+- **Conda**: Anaconda ou Miniconda
+- **Banco de Dados**: PostgreSQL (recomendado) ou MySQL
+- **Memória**: Recomendado 2GB ou mais
 
-### 1. 创建环境
+### 1. Criar Ambiente
 
-#### 如果使用Conda
+#### Se usar Conda
 
 ```bash
-# 创建conda环境
+# Criar ambiente conda
 conda create -n your_conda_name python=3.11
 conda activate your_conda_name
 ```
 
-#### 如果使用uv
+#### Se usar uv
 
 ```bash
-# 创建uv环境
-uv venv --python 3.11 # 创建3.11环境
+# Criar ambiente uv
+uv venv --python 3.11 # Criar ambiente 3.11
 ```
 
-### 2. 安装 PDF 导出所需系统依赖（可选）
+### 2. Instalar Dependências do Sistema para Exportação PDF (Opcional)
 
-这部分有详细的配置说明：[配置所需依赖](./static/Partial%20README%20for%20PDF%20Exporting/README.md)
+Há instruções detalhadas de configuração nesta parte: [Configurar dependências necessárias](./static/Partial%20README%20for%20PDF%20Exporting/README.md)
 
-### 3. 安装依赖包
+### 3. Instalar Pacotes de Dependências
 
-> 如果跳过了步骤2，weasyprint库可能无法安装，PDF功能可能无法正常使用。
+> Se você pulou a etapa 2, a biblioteca weasyprint pode não ser instalada e a funcionalidade de PDF pode não funcionar corretamente.
 
 ```bash
-# 基础依赖安装
+# Instalação de dependências básicas
 pip install -r requirements.txt
 
-# uv版本命令（更快速安装）
+# Comando para versão uv (instalação mais rápida)
 uv pip install -r requirements.txt
-# 如果不想使用本地情感分析模型（算力需求很小，默认安装cpu版本），可以将该文件中的"机器学习"部分注释掉再执行指令
+# Se não quiser usar o modelo local de análise de sentimento (necessidade computacional muito baixa, versão CPU instalada por padrão), você pode comentar a seção "aprendizado de máquina" neste arquivo antes de executar o comando
 ```
 
-### 4. 安装Playwright浏览器驱动
+### 4. Instalar Driver de Navegador Playwright
 
 ```bash
-# 安装浏览器驱动（用于爬虫功能）
+# Instalar driver de navegador (usado para funcionalidade de crawler)
 playwright install chromium
 ```
 
-### 5. 配置LLM与数据库
+### 5. Configurar LLM e Banco de Dados
 
-复制一份项目根目录 `.env.example` 文件，命名为 `.env`
+Copie o arquivo `.env.example` do diretório raiz do projeto e renomeie-o para `.env`
 
-编辑 `.env` 文件，填入您的API密钥（您也可以选择自己的模型、搜索代理，详情见根目录.env.example文件内或根目录config.py中的说明）：
+Edite o arquivo `.env` e insira suas chaves de API (você também pode escolher seus próprios modelos e proxies de busca, veja detalhes no arquivo .env.example do diretório raiz ou nas instruções em config.py do diretório raiz):
 
 ```yml
-# ====================== 数据库配置 ======================
-# 数据库主机，例如localhost 或 127.0.0.1
+# ====================== Configuração do Banco de Dados ======================
+# Host do banco de dados, por exemplo localhost ou 127.0.0.1
 DB_HOST=your_db_host
-# 数据库端口号，默认为3306
+# Porta do banco de dados, padrão 3306
 DB_PORT=3306
-# 数据库用户名
+# Nome de usuário do banco de dados
 DB_USER=your_db_user
-# 数据库密码
+# Senha do banco de dados
 DB_PASSWORD=your_db_password
-# 数据库名称
+# Nome do banco de dados
 DB_NAME=your_db_name
-# 数据库字符集，推荐utf8mb4，兼容emoji
+# Charset do banco de dados, recomendado utf8mb4, compatível com emoji
 DB_CHARSET=utf8mb4
-# 数据库类型postgresql或mysql
+# Tipo de banco de dados: postgresql ou mysql
 DB_DIALECT=postgresql
-# 数据库不需要初始化，执行app.py时会自动检测
+# O banco de dados não precisa de inicialização, será detectado automaticamente ao executar app.py
 
-# ====================== LLM配置 ======================
-# 您可以更改每个部分LLM使用的API，只要兼容OpenAI请求格式都可以
-# 配置文件内部给了每一个Agent的推荐LLM，初次部署请先参考推荐设置
+# ====================== Configuração do LLM ======================
+# Você pode alterar a API de LLM usada em cada seção, qualquer uma compatível com o formato de requisição OpenAI funciona
+# O arquivo de configuração fornece o LLM recomendado para cada Agent, na primeira implantação consulte as configurações recomendadas
 
 # Insight Agent
 INSIGHT_ENGINE_API_KEY=
@@ -412,178 +412,178 @@ INSIGHT_ENGINE_MODEL_NAME=
 ...
 ```
 
-### 6. 启动系统
+### 6. Iniciar o Sistema
 
-#### 6.1 完整系统启动（推荐）
+#### 6.1 Inicialização do Sistema Completo (Recomendado)
 
 ```bash
-# 在项目根目录下，激活conda环境
+# No diretório raiz do projeto, ative o ambiente conda
 conda activate your_conda_name
 
-# 启动主应用即可
+# Inicie a aplicação principal
 python app.py
 ```
 
-uv 版本启动命令 
+Comando de inicialização para versão uv
 ```bash
-# 在项目根目录下，激活uv环境
+# No diretório raiz do projeto, ative o ambiente uv
 .venv\Scripts\activate
 
-# 启动主应用即可
+# Inicie a aplicação principal
 python app.py
 ```
 
-> 注1：一次运行终止后，streamlit app可能结束异常仍然占用端口，此时搜索占用端口的进程kill掉即可
+> Nota 1: Após o término de uma execução, o streamlit app pode encerrar de forma anormal e continuar ocupando a porta. Nesse caso, basta encontrar e encerrar o processo que está ocupando a porta
 
-> 注2：数据爬取需要单独操作，见6.3指引
+> Nota 2: A coleta de dados requer operação separada, veja as instruções em 6.3
 
-访问 http://localhost:5000 即可使用完整系统
+Acesse http://localhost:5000 para utilizar o sistema completo
 
-#### 6.2 单独启动某个Agent
+#### 6.2 Iniciar um Agent Individualmente
 
 ```bash
-# 启动QueryEngine
+# Iniciar QueryEngine
 streamlit run SingleEngineApp/query_engine_streamlit_app.py --server.port 8503
 
-# 启动MediaEngine  
+# Iniciar MediaEngine
 streamlit run SingleEngineApp/media_engine_streamlit_app.py --server.port 8502
 
-# 启动InsightEngine
+# Iniciar InsightEngine
 streamlit run SingleEngineApp/insight_engine_streamlit_app.py --server.port 8501
 ```
 
-#### 6.3 爬虫系统单独使用
+#### 6.3 Uso Independente do Sistema de Crawlers
 
-这部分有详细的配置文档：[MindSpider使用说明](./MindSpider/README.md)
+Há documentação detalhada de configuração nesta parte: [Instruções de uso do MindSpider](./MindSpider/README.md)
 
 <div align="center">
 <img src="MindSpider\img\example.png" alt="banner" width="600">
 
-MindSpider 运行示例
+Exemplo de execução do MindSpider
 </div>
 
 ```bash
-# 进入爬虫目录
+# Entrar no diretório do crawler
 cd MindSpider
 
-# 项目初始化
+# Inicialização do projeto
 python main.py --setup
 
-# 运行话题提取（获取热点新闻和关键词）
+# Executar extração de tópicos (obter notícias em alta e palavras-chave)
 python main.py --broad-topic
 
-# 运行完整爬虫流程
+# Executar fluxo completo do crawler
 python main.py --complete --date 2024-01-20
 
-# 仅运行话题提取
+# Executar apenas extração de tópicos
 python main.py --broad-topic --date 2024-01-20
 
-# 仅运行深度爬取
+# Executar apenas crawling profundo
 python main.py --deep-sentiment --platforms xhs dy wb
 ```
 
-#### 6.4 命令行报告生成工具
+#### 6.4 Ferramenta de Geração de Relatório por Linha de Comando
 
-该工具会跳过三个分析引擎的运行阶段，直接读取它们的最新日志文件，并在无需 Web 界面的情况下生成综合报告（同时省略文件增量校验步骤），默认会在 PDF 之后自动生成 Markdown（可用参数关闭）。通常用于对报告生成结果不满意、需要快速重试的场景，或在调试 Report Engine 时启用。
+Esta ferramenta pula a fase de execução dos três motores de análise, lê diretamente seus arquivos de log mais recentes e gera o relatório consolidado sem necessidade de interface web (também omite a etapa de verificação incremental de arquivos). Por padrão, gera automaticamente Markdown após o PDF (pode ser desativado por parâmetro). Geralmente usada em cenários onde o resultado da geração de relatório não é satisfatório e uma nova tentativa rápida é necessária, ou ao depurar o Report Engine.
 
 ```bash
-# 基本使用（自动从文件名提取主题）
+# Uso básico (extrai automaticamente o tema do nome do arquivo)
 python report_engine_only.py
 
-# 指定报告主题
-python report_engine_only.py --query "土木工程行业分析"
+# Especificar tema do relatório
+python report_engine_only.py --query "Análise da indústria de engenharia civil"
 
-# 跳过PDF生成（即使系统支持）
+# Pular geração de PDF (mesmo que o sistema suporte)
 python report_engine_only.py --skip-pdf
 
-# 跳过Markdown生成
+# Pular geração de Markdown
 python report_engine_only.py --skip-markdown
 
-# 显示详细日志
+# Exibir logs detalhados
 python report_engine_only.py --verbose
 
-# 查看帮助信息
+# Ver informações de ajuda
 python report_engine_only.py --help
 ```
 
-**功能说明：**
+**Descrição das Funcionalidades:**
 
-1. **自动检查依赖**：程序会自动检查PDF生成所需的系统依赖，如果缺失会给出安装提示
-2. **获取最新文件**：自动从三个引擎目录（`insight_engine_streamlit_reports`、`media_engine_streamlit_reports`、`query_engine_streamlit_reports`）获取最新的分析报告
-3. **文件确认**：显示所有选择的文件名、路径和修改时间，等待用户确认（默认输入 `y` 继续，输入 `n` 退出）
-4. **直接生成报告**：跳过文件增加审核程序，直接调用Report Engine生成综合报告
-5. **自动保存文件**：
-   - HTML报告保存到 `final_reports/` 目录
-   - PDF报告（如果有依赖）保存到 `final_reports/pdf/` 目录
-   - Markdown报告（可用 `--skip-markdown` 关闭）保存到 `final_reports/md/` 目录
-   - 文件命名格式：`final_report_{主题}_{时间戳}.html/pdf/md`
+1. **Verificação automática de dependências**: O programa verifica automaticamente as dependências do sistema necessárias para geração de PDF e, se estiverem faltando, fornece instruções de instalação
+2. **Obtenção dos arquivos mais recentes**: Obtém automaticamente os relatórios de análise mais recentes dos três diretórios de motores (`insight_engine_streamlit_reports`, `media_engine_streamlit_reports`, `query_engine_streamlit_reports`)
+3. **Confirmação de arquivos**: Exibe todos os nomes de arquivo selecionados, caminhos e horários de modificação, aguardando confirmação do usuário (digite `y` para continuar por padrão, `n` para sair)
+4. **Geração direta de relatório**: Pula o programa de revisão de incremento de arquivos e chama diretamente o Report Engine para gerar o relatório consolidado
+5. **Salvamento automático de arquivos**:
+   - Relatórios HTML salvos no diretório `final_reports/`
+   - Relatórios PDF (se houver dependências) salvos no diretório `final_reports/pdf/`
+   - Relatórios Markdown (pode ser desativado com `--skip-markdown`) salvos no diretório `final_reports/md/`
+   - Formato de nomenclatura: `final_report_{tema}_{timestamp}.html/pdf/md`
 
-**注意事项：**
+**Observações:**
 
-- 确保三个引擎目录中至少有一个包含`.md`报告文件
-- 命令行工具与Web界面相互独立，不会相互影响
-- PDF生成需要安装系统依赖，详见上文"安装 PDF 导出所需系统依赖"部分
+- Certifique-se de que pelo menos um dos três diretórios de motores contenha arquivos de relatório `.md`
+- A ferramenta de linha de comando e a interface web são independentes entre si e não se afetam mutuamente
+- A geração de PDF requer instalação de dependências do sistema, veja a seção "Instalar Dependências do Sistema para Exportação PDF" acima
 
-**快速重渲染最新结果：**
+**Re-renderização rápida dos resultados mais recentes:**
 
-- `regenerate_latest_html.py` / `regenerate_latest_md.py`：从 `CHAPTER_OUTPUT_DIR` 中最新一次运行的章节 JSON 重装订 Document IR，并直接渲染 HTML 或 Markdown。
-- `regenerate_latest_pdf.py`：读取 `final_reports/ir` 里最新的 IR，使用 SVG 矢量图表重新导出 PDF。
+- `regenerate_latest_html.py` / `regenerate_latest_md.py`: Remonta o Document IR a partir dos JSONs de capítulo da execução mais recente em `CHAPTER_OUTPUT_DIR` e renderiza diretamente HTML ou Markdown.
+- `regenerate_latest_pdf.py`: Lê o IR mais recente de `final_reports/ir` e re-exporta o PDF usando gráficos vetoriais SVG.
 
-## ⚙️ 高级配置（已过时，已经统一为项目根目录.env文件管理，其他子agent自动继承根目录配置）
+## ⚙️ Configuração Avançada (Obsoleta, já unificada no arquivo .env do diretório raiz do projeto; outros sub-agents herdam automaticamente a configuração do diretório raiz)
 
-### 修改关键参数
+### Modificar Parâmetros-Chave
 
-#### Agent配置参数
+#### Parâmetros de Configuração dos Agents
 
-每个Agent都有专门的配置文件，可根据需求调整，下面是部分示例：
+Cada Agent possui um arquivo de configuração dedicado que pode ser ajustado conforme a necessidade. Seguem alguns exemplos:
 
 ```python
 # QueryEngine/utils/config.py
 class Config:
-    max_reflections = 2           # 反思轮次
-    max_search_results = 15       # 最大搜索结果数
-    max_content_length = 8000     # 最大内容长度
-    
-# MediaEngine/utils/config.py  
+    max_reflections = 2           # Rodadas de reflexão
+    max_search_results = 15       # Número máximo de resultados de busca
+    max_content_length = 8000     # Comprimento máximo do conteúdo
+
+# MediaEngine/utils/config.py
 class Config:
-    comprehensive_search_limit = 10  # 综合搜索限制
-    web_search_limit = 15           # 网页搜索限制
-    
+    comprehensive_search_limit = 10  # Limite de busca abrangente
+    web_search_limit = 15           # Limite de busca web
+
 # InsightEngine/utils/config.py
 class Config:
-    default_search_topic_globally_limit = 200    # 全局搜索限制
-    default_get_comments_limit = 500             # 评论获取限制
-    max_search_results_for_llm = 50              # 传给LLM的最大结果数
+    default_search_topic_globally_limit = 200    # Limite de busca global
+    default_get_comments_limit = 500             # Limite de obtenção de comentários
+    max_search_results_for_llm = 50              # Número máximo de resultados passados ao LLM
 ```
 
-#### 情感分析模型配置
+#### Configuração do Modelo de Análise de Sentimento
 
 ```python
 # InsightEngine/tools/sentiment_analyzer.py
 SENTIMENT_CONFIG = {
-    'model_type': 'multilingual',     # 可选: 'bert', 'multilingual', 'qwen'等
-    'confidence_threshold': 0.8,      # 置信度阈值
-    'batch_size': 32,                 # 批处理大小
-    'max_sequence_length': 512,       # 最大序列长度
+    'model_type': 'multilingual',     # Opções: 'bert', 'multilingual', 'qwen', etc.
+    'confidence_threshold': 0.8,      # Limiar de confiança
+    'batch_size': 32,                 # Tamanho do lote
+    'max_sequence_length': 512,       # Comprimento máximo da sequência
 }
 ```
 
-### 接入不同的LLM模型
+### Conectar Diferentes Modelos LLM
 
-支持任意openAI调用格式的LLM提供商，只需要在/config.py中填写对应的KEY、BASE_URL、MODEL_NAME即可。
+Suporta qualquer provedor de LLM no formato de chamada OpenAI. Basta preencher os campos KEY, BASE_URL e MODEL_NAME correspondentes em /config.py.
 
-> 什么是openAI调用格式？下面提供一个简单的例子：
+> O que é o formato de chamada OpenAI? Aqui está um exemplo simples:
 >```python
 >from openai import OpenAI
 >
->client = OpenAI(api_key="your_api_key", 
+>client = OpenAI(api_key="your_api_key",
 >                base_url="https://aihubmix.com/v1")
 >
 >response = client.chat.completions.create(
 >    model="gpt-4o-mini",
 >    messages=[
->        {'role': 'user', 
->         'content': "推理模型会给市场带来哪些新的机会"}
+>        {'role': 'user',
+>         'content': "Quais novas oportunidades os modelos de raciocínio trarão ao mercado"}
 >    ],
 >)
 >
@@ -591,52 +591,52 @@ SENTIMENT_CONFIG = {
 >print(complete_response)
 >```
 
-### 更改情感分析模型
+### Alterar o Modelo de Análise de Sentimento
 
-系统集成了多种情感分析方法，可根据需求选择：
+O sistema integra diversos métodos de análise de sentimento, que podem ser escolhidos conforme a necessidade:
 
-#### 1. 多语言情感分析
+#### 1. Análise de Sentimento Multilíngue
 
 ```bash
 cd SentimentAnalysisModel/WeiboMultilingualSentiment
 python predict.py --text "This product is amazing!" --lang "en"
 ```
 
-#### 2. 小参数Qwen3微调
+#### 2. Ajuste Fino do Qwen3 com Poucos Parâmetros
 
 ```bash
 cd SentimentAnalysisModel/WeiboSentiment_SmallQwen
-python predict_universal.py --text "这次活动办得很成功"
+python predict_universal.py --text "Este evento foi um grande sucesso"
 ```
 
-#### 3. 基于BERT的微调模型
+#### 3. Modelo Ajustado Fino Baseado em BERT
 
 ```bash
-# 使用BERT中文模型
+# Usar modelo BERT chinês
 cd SentimentAnalysisModel/WeiboSentiment_Finetuned/BertChinese-Lora
-python predict.py --text "这个产品真的很不错"
+python predict.py --text "Este produto é realmente muito bom"
 ```
 
-#### 4. GPT-2 LoRA微调模型
+#### 4. Modelo Ajustado Fino GPT-2 LoRA
 
 ```bash
 cd SentimentAnalysisModel/WeiboSentiment_Finetuned/GPT2-Lora
-python predict.py --text "今天心情不太好"
+python predict.py --text "Hoje não estou me sentindo muito bem"
 ```
 
-#### 5. 传统机器学习方法
+#### 5. Métodos Tradicionais de Aprendizado de Máquina
 
 ```bash
 cd SentimentAnalysisModel/WeiboSentiment_MachineLearning
-python predict.py --model_type "svm" --text "服务态度需要改进"
+python predict.py --model_type "svm" --text "O atendimento precisa melhorar"
 ```
 
-### 接入自定义业务数据库
+### Conectar Banco de Dados de Negócios Personalizado
 
-#### 1. 修改数据库连接配置
+#### 1. Modificar Configuração de Conexão com o Banco de Dados
 
 ```python
-# config.py 中添加您的业务数据库配置
+# Adicionar configuração do banco de dados de negócios em config.py
 BUSINESS_DB_HOST = "your_business_db_host"
 BUSINESS_DB_PORT = 3306
 BUSINESS_DB_USER = "your_business_user"
@@ -644,13 +644,13 @@ BUSINESS_DB_PASSWORD = "your_business_password"
 BUSINESS_DB_NAME = "your_business_database"
 ```
 
-#### 2. 创建自定义数据访问工具
+#### 2. Criar Ferramenta de Acesso a Dados Personalizada
 
 ```python
 # InsightEngine/tools/custom_db_tool.py
 class CustomBusinessDBTool:
-    """自定义业务数据库查询工具"""
-    
+    """Ferramenta de consulta a banco de dados de negócios personalizada"""
+
     def __init__(self):
         self.connection_config = {
             'host': config.BUSINESS_DB_HOST,
@@ -659,131 +659,131 @@ class CustomBusinessDBTool:
             'password': config.BUSINESS_DB_PASSWORD,
             'database': config.BUSINESS_DB_NAME,
         }
-    
+
     def search_business_data(self, query: str, table: str):
-        """查询业务数据"""
-        # 实现您的业务逻辑
+        """Consultar dados de negócios"""
+        # Implemente sua lógica de negócios
         pass
-    
+
     def get_customer_feedback(self, product_id: str):
-        """获取客户反馈数据"""
-        # 实现客户反馈查询逻辑
+        """Obter dados de feedback de clientes"""
+        # Implemente a lógica de consulta de feedback de clientes
         pass
 ```
 
-#### 3. 集成到InsightEngine
+#### 3. Integrar ao InsightEngine
 
 ```python
-# InsightEngine/agent.py 中集成自定义工具
+# Integrar ferramenta personalizada em InsightEngine/agent.py
 from .tools.custom_db_tool import CustomBusinessDBTool
 
 class DeepSearchAgent:
     def __init__(self, config=None):
-        # ... 其他初始化代码
+        # ... outro código de inicialização
         self.custom_db_tool = CustomBusinessDBTool()
-    
+
     def execute_custom_search(self, query: str):
-        """执行自定义业务数据搜索"""
+        """Executar busca personalizada de dados de negócios"""
         return self.custom_db_tool.search_business_data(query, "your_table")
 ```
 
-### 自定义报告模板
+### Personalizar Templates de Relatório
 
-#### 1. 在Web界面中上传
+#### 1. Upload pela Interface Web
 
-系统支持上传自定义模板文件（.md或.txt格式），可在生成报告时选择使用。
+O sistema suporta upload de arquivos de template personalizados (formato .md ou .txt), que podem ser selecionados ao gerar relatórios.
 
-#### 2. 创建模板文件
+#### 2. Criar Arquivo de Template
 
-在 `ReportEngine/report_template/` 目录下创建新的模板，我们的Agent会自行选用最合适的模板。
+Crie novos templates no diretório `ReportEngine/report_template/`. Nosso Agent selecionará automaticamente o template mais adequado.
 
-## 🤝 贡献指南
+## 🤝 Guia de Contribuição
 
-我们欢迎所有形式的贡献！
+Aceitamos contribuições de todas as formas!
 
-**请阅读以下贡献指南：**  
+**Por favor, leia o seguinte guia de contribuição:**
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 
-## 🦖 下一步开发计划
+## 🦖 Próximos Passos de Desenvolvimento
 
-现在系统完成了最后一步预测！访问查看【MiroFish-预测万物】：https://github.com/666ghj/MiroFish
+Agora o sistema completou a última etapa: previsão! Acesse e confira [MiroFish - Prever Tudo]: https://github.com/666ghj/MiroFish
 
 <div align="center">
 <img src="static/image/MiroFish_logo_compressed.jpeg" alt="banner" width="800">
 <img src="static/image/banner_compressed.png" alt="banner" width="800">
 </div>
 
-## ⚠️ 免责声明
+## ⚠️ Aviso Legal
 
-**重要提醒：本项目仅供学习、学术研究和教育目的使用**
+**Aviso Importante: Este projeto destina-se exclusivamente a fins de estudo, pesquisa acadêmica e educação**
 
-1. **合规性声明**：
-   - 本项目中的所有代码、工具和功能均仅供学习、学术研究和教育目的使用
-   - 严禁将本项目用于任何商业用途或盈利性活动
-   - 严禁将本项目用于任何违法、违规或侵犯他人权益的行为
+1. **Declaração de Conformidade**:
+   - Todo o código, ferramentas e funcionalidades deste projeto destinam-se exclusivamente a fins de estudo, pesquisa acadêmica e educação
+   - É estritamente proibido usar este projeto para qualquer finalidade comercial ou atividade lucrativa
+   - É estritamente proibido usar este projeto para qualquer comportamento ilegal, irregular ou que viole os direitos de terceiros
 
-2. **爬虫功能免责**：
-   - 项目中的爬虫功能仅用于技术学习和研究目的
-   - 使用者必须遵守目标网站的robots.txt协议和使用条款
-   - 使用者必须遵守相关法律法规，不得进行恶意爬取或数据滥用
-   - 因使用爬虫功能产生的任何法律后果由使用者自行承担
+2. **Isenção de Responsabilidade sobre Crawlers**:
+   - As funcionalidades de crawler neste projeto destinam-se exclusivamente a fins de aprendizado técnico e pesquisa
+   - Os usuários devem respeitar o protocolo robots.txt e os termos de uso dos sites-alvo
+   - Os usuários devem cumprir as leis e regulamentos aplicáveis, não realizar coleta maliciosa ou uso indevido de dados
+   - Quaisquer consequências legais decorrentes do uso das funcionalidades de crawler são de responsabilidade exclusiva do usuário
 
-3. **数据使用免责**：
-   - 项目涉及的数据分析功能仅供学术研究使用
-   - 严禁将分析结果用于商业决策或盈利目的
-   - 使用者应确保所分析数据的合法性和合规性
+3. **Isenção de Responsabilidade sobre Uso de Dados**:
+   - As funcionalidades de análise de dados do projeto destinam-se exclusivamente a pesquisa acadêmica
+   - É estritamente proibido usar os resultados da análise para decisões comerciais ou fins lucrativos
+   - Os usuários devem garantir a legalidade e conformidade dos dados analisados
 
-4. **技术免责**：
-   - 本项目按"现状"提供，不提供任何明示或暗示的保证
-   - 作者不对使用本项目造成的任何直接或间接损失承担责任
-   - 使用者应自行评估项目的适用性和风险
+4. **Isenção de Responsabilidade Técnica**:
+   - Este projeto é fornecido "como está", sem qualquer garantia expressa ou implícita
+   - Os autores não se responsabilizam por quaisquer perdas diretas ou indiretas causadas pelo uso deste projeto
+   - Os usuários devem avaliar por conta própria a adequação e os riscos do projeto
 
-5. **责任限制**：
-   - 使用者在使用本项目前应充分了解相关法律法规
-   - 使用者应确保其使用行为符合当地法律法规要求
-   - 因违反法律法规使用本项目而产生的任何后果由使用者自行承担
+5. **Limitação de Responsabilidade**:
+   - Os usuários devem compreender plenamente as leis e regulamentos aplicáveis antes de usar este projeto
+   - Os usuários devem garantir que seu uso esteja em conformidade com as leis e regulamentos locais
+   - Quaisquer consequências decorrentes do uso deste projeto em violação de leis e regulamentos são de responsabilidade exclusiva do usuário
 
-**请在使用本项目前仔细阅读并理解上述免责声明。使用本项目即表示您已同意并接受上述所有条款。**
+**Por favor, leia e compreenda cuidadosamente o aviso legal acima antes de usar este projeto. O uso deste projeto indica que você concorda e aceita todos os termos acima.**
 
-## 📄 许可证
+## 📄 Licença
 
-本项目采用 [GPL-2.0许可证](LICENSE)。详细信息请参阅LICENSE文件。
+Este projeto é licenciado sob a [Licença GPL-2.0](LICENSE). Para informações detalhadas, consulte o arquivo LICENSE.
 
-## 🎉 支持与联系
+## 🎉 Suporte e Contato
 
-### 获取帮助
+### Obter Ajuda
 
-常见问题解答：https://github.com/666ghj/BettaFish/issues/185
+Perguntas frequentes: https://github.com/666ghj/BettaFish/issues/185
 
-- **项目主页**：[GitHub仓库](https://github.com/666ghj/BettaFish)
-- **问题反馈**：[Issues页面](https://github.com/666ghj/BettaFish/issues)
-- **功能建议**：[Discussions页面](https://github.com/666ghj/BettaFish/discussions)
+- **Página do Projeto**: [Repositório GitHub](https://github.com/666ghj/BettaFish)
+- **Reportar Problemas**: [Página de Issues](https://github.com/666ghj/BettaFish/issues)
+- **Sugestões de Funcionalidades**: [Página de Discussions](https://github.com/666ghj/BettaFish/discussions)
 
-### 联系方式
+### Informações de Contato
 
-- 📧 **邮箱**：hangjiang@bupt.edu.cn
+- **E-mail**: hangjiang@bupt.edu.cn
 
-### 商务合作
+### Cooperação Empresarial
 
-- **企业定制开发**
-- **大数据服务**
-- **学术合作**
-- **技术培训**
+- **Desenvolvimento personalizado para empresas**
+- **Serviços de Big Data**
+- **Cooperação acadêmica**
+- **Treinamento técnico**
 
-## 👥 贡献者
+## 👥 Contribuidores
 
-感谢以下优秀的贡献者们：
+Agradecemos aos seguintes excelentes contribuidores:
 
 [![Contributors](https://contrib.rocks/image?repo=666ghj/BettaFish)](https://github.com/666ghj/BettaFish/graphs/contributors)
 
-## 🌟 加入官方交流群
+## 🌟 Junte-se ao Grupo Oficial de Comunicação
 
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=200&section=header&text=欢迎加入我们的技术交流QQ群！&fontSize=40&fontAlignY=35&desc=扫描下方二维码加入群聊&descAlignY=55" alt="欢迎加入我们的技术交流QQ群！" style="width:60%; max-width:900px; display:block; margin:0 auto;">
-  <img src="static/image/QQ_Light_Horizenal.png" alt="BettaFish 技术交流群二维码" style="width:60%; max-width:360px; display:block; margin:20px auto 0;">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=200&section=header&text=Bem-vindo ao nosso grupo de comunicação técnica no QQ!&fontSize=40&fontAlignY=35&desc=Escaneie o QR code abaixo para entrar no grupo&descAlignY=55" alt="Bem-vindo ao nosso grupo de comunicação técnica no QQ!" style="width:60%; max-width:900px; display:block; margin:0 auto;">
+  <img src="static/image/QQ_Light_Horizenal.png" alt="QR code do grupo de comunicação técnica BettaFish" style="width:60%; max-width:360px; display:block; margin:20px auto 0;">
 </div>
 
-## 📈 项目统计
+## 📈 Estatísticas do Projeto
 
 <a href="https://www.star-history.com/#666ghj/BettaFish&type=date&legend=top-left">
  <picture>

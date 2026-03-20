@@ -1,60 +1,60 @@
->  **Note**: If you need to use the PDF export function, please install system dependencies following the steps below. If you don't need PDF export, you can skip this step, and other system functions will not be affected.
+>  **Nota**: Se você precisa utilizar a funcionalidade de exportação PDF, instale as dependências do sistema seguindo os passos abaixo. Se não precisar da exportação PDF, pode pular esta etapa; as demais funcionalidades do sistema não serão afetadas.
 
 <details>
-<summary><b> Windows Installation Steps</b></summary>
+<summary><b> Passos de Instalação para Windows</b></summary>
 
 ```powershell
-# 1. Download and install GTK3 Runtime (execute on host machine)
-# Visit: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
-# Download the latest .exe file and install
-# Installing it in the default path is strongly advised, as it may help prevent various unforeseen errors.
+# 1. Baixe e instale o GTK3 Runtime (execute na máquina host)
+# Acesse: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
+# Baixe o arquivo .exe mais recente e instale
+# É fortemente recomendado instalar no caminho padrão, pois isso pode ajudar a evitar diversos erros imprevistos.
 
-# 2. Add the GTK installation bin directory to PATH (open a new terminal afterwards)
-# Default path example (replace with your custom install path if different)
+# 2. Adicione o diretório bin da instalação GTK ao PATH (abra um novo terminal depois)
+# Exemplo de caminho padrão (substitua pelo seu caminho de instalação personalizado, se diferente)
 set PATH=C:\Program Files\GTK3-Runtime Win64\bin;%PATH%
 
-# Optional: persist the setting
+# Opcional: persistir a configuração
 setx PATH "C:\Program Files\GTK3-Runtime Win64\bin;%PATH%"
 
-# If installed to a custom path, replace with your actual path, or set GTK_BIN_PATH=<your-bin-path>, then reopen the terminal
+# Se instalado em um caminho personalizado, substitua pelo caminho real, ou defina GTK_BIN_PATH=<seu-caminho-bin> e reabra o terminal
 
-# 3. Verify in a new terminal
+# 3. Verifique em um novo terminal
 python -m ReportEngine.utils.dependency_check
-# You should see “✓ Pango dependency check passed”
+# Você deverá ver "✓ Pango dependency check passed"
 ```
 
 </details>
 
 <details>
-<summary><b> macOS Installation Steps</b></summary>
+<summary><b> Passos de Instalação para macOS</b></summary>
 
 ```bash
-# 1. Install system dependencies (execute on host machine)
+# 1. Instale as dependências do sistema (execute na máquina host)
 brew install pango gdk-pixbuf libffi
 
-# 2. Set environment variable (required)
+# 2. Configure a variável de ambiente (obrigatório)
 # Apple Silicon
 export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
 # Intel Mac
 export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
 
-# Or permanently add to ~/.zshrc
+# Ou adicione permanentemente ao ~/.zshrc
 echo 'export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH' >> ~/.zshrc
-# Intel users: echo 'export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH' >> ~/.zshrc
+# Usuários Intel: echo 'export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH' >> ~/.zshrc
 source ~/.zshrc
 
-# 3. Verify in a new terminal
+# 3. Verifique em um novo terminal
 python -m ReportEngine.utils.dependency_check
-# You should see “✓ Pango dependency check passed”
+# Você deverá ver "✓ Pango dependency check passed"
 ```
 
 </details>
 
 <details>
-<summary><b> Ubuntu/Debian Installation Steps</b></summary>
+<summary><b> Passos de Instalação para Ubuntu/Debian</b></summary>
 
 ```bash
-# 1. Install system dependencies (execute on host machine)
+# 1. Instale as dependências do sistema (execute na máquina host)
 sudo apt-get update
 sudo apt-get install -y \
   libpango-1.0-0 \
@@ -62,7 +62,7 @@ sudo apt-get install -y \
   libffi-dev \
   libcairo2
 
-# Prefer the newer package name; fall back if your repo doesn't provide it
+# Priorizar o nome de pacote mais recente; fazer fallback se o repositório não o fornecer
 if sudo apt-cache show libgdk-pixbuf-2.0-0 >/dev/null 2>&1; then
   sudo apt-get install -y libgdk-pixbuf-2.0-0
 else
@@ -73,14 +73,14 @@ fi
 </details>
 
 <details>
-<summary><b> CentOS/RHEL Installation Steps</b></summary>
+<summary><b> Passos de Instalação para CentOS/RHEL</b></summary>
 
 ```bash
-# 1. Install system dependencies (execute on host machine)
+# 1. Instale as dependências do sistema (execute na máquina host)
 sudo yum install -y pango gdk-pixbuf2 libffi-devel cairo
 ```
 
 </details>
 
 
->  **Tip**: If using Docker deployment, no need to manually install these dependencies, the Docker image already contains all necessary system dependencies.
+>  **Dica**: Se estiver utilizando deploy com Docker, não é necessário instalar essas dependências manualmente; a imagem Docker já contém todas as dependências de sistema necessárias.

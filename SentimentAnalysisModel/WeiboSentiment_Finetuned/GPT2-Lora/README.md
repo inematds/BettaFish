@@ -1,142 +1,142 @@
-# 微博情感识别模型-GPT2-LoRA微调
+# Modelo de Reconhecimento de Sentimento do Weibo - Fine-tuning GPT2-LoRA
 
-## 项目说明
-这是一个基于GPT2的微博情感二分类模型，采用LoRA（Low-Rank Adaptation）微调技术。通过PEFT库实现的LoRA微调，只需训练极少量参数就可以让模型适应情感分析任务，大幅降低计算资源需求和模型体积。
+## Descrição do Projeto
+Este é um modelo de classificação binária de sentimento do Weibo baseado em GPT2, utilizando a técnica de fine-tuning LoRA (Low-Rank Adaptation). Através do LoRA implementado pela biblioteca PEFT, é necessário treinar uma quantidade extremamente pequena de parâmetros para adaptar o modelo à tarefa de análise de sentimento, reduzindo significativamente os requisitos de recursos computacionais e o tamanho do modelo.
 
-## 数据集
-使用微博情感数据集(weibo_senti_100k)，包含约10万条带情感标注的微博内容，正负向评论各约5万条。数据集标签：
-- 标签0：负面情感
-- 标签1：正面情感
+## Dataset
+Utiliza o dataset de sentimento do Weibo (weibo_senti_100k), contendo aproximadamente 100 mil postagens do Weibo com anotação de sentimento, com cerca de 50 mil comentários positivos e 50 mil negativos. Rótulos do dataset:
+- Rótulo 0: Sentimento negativo
+- Rótulo 1: Sentimento positivo
 
-## 文件结构
+## Estrutura de Arquivos
 ```
 GPT2-Lora/
-├── train.py                  # 训练脚本（基于PEFT库的LoRA实现）
-├── predict.py                # 预测脚本（交互式使用）
-├── requirements.txt          # 依赖包列表
-├── models/                   # 本地存储的预训练模型
-│   └── gpt2-chinese/        # 中文GPT2模型及配置
-├── dataset/                  # 数据集目录
-│   └── weibo_senti_100k.csv # 微博情感数据集
-└── best_weibo_sentiment_lora/ # 训练好的LoRA权重（训练后生成）
+├── train.py                  # Script de treinamento (implementação LoRA baseada na biblioteca PEFT)
+├── predict.py                # Script de predição (uso interativo)
+├── requirements.txt          # Lista de dependências
+├── models/                   # Modelos pré-treinados armazenados localmente
+│   └── gpt2-chinese/        # Modelo GPT2 chinês e configurações
+├── dataset/                  # Diretório do dataset
+│   └── weibo_senti_100k.csv # Dataset de sentimento do Weibo
+└── best_weibo_sentiment_lora/ # Pesos LoRA treinados (gerado após o treinamento)
 ```
 
-## 技术特点
+## Características Técnicas
 
-1. **极度参数高效**：相比全参数微调，仅训练约0.1%-1%的参数
-2. **使用PEFT库**：基于Hugging Face官方的参数高效微调库，稳定可靠
-3. **模型性能保持**：在仅训练极少参数的情况下，保持良好的分类性能
-4. **部署友好**：LoRA权重文件小，便于模型部署和分享
+1. **Extremamente eficiente em parâmetros**: Comparado ao fine-tuning completo, treina apenas cerca de 0,1%-1% dos parâmetros
+2. **Utiliza a biblioteca PEFT**: Baseado na biblioteca oficial de fine-tuning eficiente em parâmetros da Hugging Face, estável e confiável
+3. **Manutenção do desempenho**: Mantém bom desempenho de classificação mesmo treinando pouquíssimos parâmetros
+4. **Amigável para deploy**: Arquivos de pesos LoRA são pequenos, facilitando o deploy e compartilhamento do modelo
 
-## LoRA技术优势
+## Vantagens da Tecnologia LoRA
 
-LoRA (Low-Rank Adaptation) 是目前最流行的参数高效微调技术：
+LoRA (Low-Rank Adaptation) é atualmente a técnica de fine-tuning eficiente em parâmetros mais popular:
 
-1. **超低参数量**：通过低秩分解，将大矩阵分解为两个小矩阵的乘积
-2. **插件式设计**：LoRA权重可以动态加载和卸载，一个基础模型支持多个任务
-3. **训练速度快**：参数少，训练时间短，内存占用小
-4. **无损原模型**：原始预训练模型权重保持不变，避免灾难性遗忘
+1. **Quantidade ultra baixa de parâmetros**: Através da decomposição de posto baixo, decompõe matrizes grandes no produto de duas matrizes menores
+2. **Design plug-in**: Pesos LoRA podem ser carregados e descarregados dinamicamente, um modelo base suporta múltiplas tarefas
+3. **Treinamento rápido**: Poucos parâmetros, tempo de treinamento curto, baixo consumo de memória
+4. **Modelo original intacto**: Os pesos do modelo pré-treinado original permanecem inalterados, evitando esquecimento catastrófico
 
-## 环境依赖
+## Dependências do Ambiente
 
-安装所需依赖：
+Instale as dependências necessárias:
 ```bash
 pip install -r requirements.txt
 ```
 
-主要依赖包：
+Principais dependências:
 - Python 3.8+
 - PyTorch 1.13+
 - Transformers 4.28+
 - PEFT 0.4+
 - Pandas, NumPy, Scikit-learn
 
-## 使用方法
+## Método de Uso
 
-### 1. 安装依赖
+### 1. Instalar Dependências
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. 训练模型
+### 2. Treinar o Modelo
 ```bash
 python train.py
 ```
 
-训练过程会自动：
-- 下载并本地保存中文GPT2预训练模型
-- 加载微博情感数据集
-- 使用LoRA技术训练模型
-- 保存最佳LoRA权重到 `./best_weibo_sentiment_lora/`
+O processo de treinamento executará automaticamente:
+- Download e salvamento local do modelo pré-treinado GPT2 chinês
+- Carregamento do dataset de sentimento do Weibo
+- Treinamento do modelo usando técnica LoRA
+- Salvamento dos melhores pesos LoRA em `./best_weibo_sentiment_lora/`
 
-### 3. 情感分析预测
+### 3. Predição de Análise de Sentimento
 ```bash
 python predict.py
 ```
 
-运行后将进入交互模式：
-- 在控制台输入要分析的微博文本
-- 系统会返回情感分析结果（正面/负面）和置信度
-- 输入'q'退出程序
+Após a execução, entrará no modo interativo:
+- Digite o texto do Weibo a ser analisado no console
+- O sistema retornará o resultado da análise de sentimento (positivo/negativo) e a confiança
+- Digite 'q' para sair do programa
 
-## 模型配置
+## Configuração do Modelo
 
-- **基础模型**: `uer/gpt2-chinese-cluecorpussmall` 中文预训练模型
-- **模型本地保存路径**: `./models/gpt2-chinese/`
-- **LoRA配置**:
-  - rank (r): 8 - 低秩矩阵的秩
-  - alpha: 32 - 缩放因子
-  - target_modules: ["c_attn", "c_proj"] - 目标线性层
-  - dropout: 0.1 - 防止过拟合
+- **Modelo base**: modelo pré-treinado chinês `uer/gpt2-chinese-cluecorpussmall`
+- **Caminho local de salvamento do modelo**: `./models/gpt2-chinese/`
+- **Configuração LoRA**:
+  - rank (r): 8 - Posto da matriz de posto baixo
+  - alpha: 32 - Fator de escala
+  - target_modules: ["c_attn", "c_proj"] - Camadas lineares alvo
+  - dropout: 0.1 - Prevenção de overfitting
 
-## 性能对比
+## Comparação de Desempenho
 
-| 方法 | 可训练参数占比 | 模型文件大小 | 训练时间 | 推理速度 |
+| Método | Proporção de parâmetros treináveis | Tamanho do arquivo do modelo | Tempo de treinamento | Velocidade de inferência |
 |------|----------------|--------------|----------|----------|
-| 全参数微调 | 100% | ~500MB | 长 | 慢 |
-| Adapter微调 | ~3% | ~50MB | 中等 | 中等 |
-| **LoRA微调** | **~0.5%** | **~2MB** | **短** | **快** |
+| Fine-tuning completo | 100% | ~500MB | Longo | Lenta |
+| Fine-tuning Adapter | ~3% | ~50MB | Médio | Média |
+| **Fine-tuning LoRA** | **~0,5%** | **~2MB** | **Curto** | **Rápida** |
 
-## 使用示例
+## Exemplo de Uso
 
 ```
-使用设备: cuda
-LoRA模型加载成功!
+Dispositivo utilizado: cuda
+Modelo LoRA carregado com sucesso!
 
-============= 微博情感分析 (LoRA版) =============
-输入微博内容进行分析 (输入 'q' 退出):
+============= Análise de Sentimento do Weibo (versão LoRA) =============
+Digite o conteúdo do Weibo para análise (digite 'q' para sair):
 
-请输入微博内容: 这部电影真是太好看了，我非常喜欢！
-预测结果: 正面情感 (置信度: 0.9876)
+Digite o conteúdo do Weibo: 这部电影真是太好看了，我非常喜欢！
+Resultado da predição: Sentimento Positivo (confiança: 0.9876)
 
-请输入微博内容: 服务态度差，价格还贵，一点都不推荐
-预测结果: 负面情感 (置信度: 0.9742)
+Digite o conteúdo do Weibo: 服务态度差，价格还贵，一点都不推荐
+Resultado da predição: Sentimento Negativo (confiança: 0.9742)
 
-请输入微博内容: q
+Digite o conteúdo do Weibo: q
 ```
 
-## 注意事项
+## Observações
 
-1. **首次运行**：首次运行 `train.py` 时会自动下载预训练模型，请确保网络连接
-2. **GPU推荐**：虽然LoRA参数少，但建议使用GPU加速训练
-3. **模型加载**：预测时需要先有训练好的LoRA权重文件
-4. **兼容性**：基于PEFT库实现，与Hugging Face生态系统完全兼容
+1. **Primeira execução**: Na primeira execução do `train.py`, o modelo pré-treinado será baixado automaticamente; certifique-se de ter conexão com a internet
+2. **GPU recomendada**: Embora o LoRA tenha poucos parâmetros, recomenda-se usar GPU para acelerar o treinamento
+3. **Carregamento do modelo**: Para a predição, é necessário ter os arquivos de pesos LoRA treinados previamente
+4. **Compatibilidade**: Baseado na biblioteca PEFT, totalmente compatível com o ecossistema Hugging Face
 
-## 扩展功能
+## Funcionalidades Estendidas
 
-- **多任务支持**：可以为不同任务训练不同的LoRA权重，共享同一个基础模型
-- **权重合并**：可以将多个LoRA权重合并，或将LoRA权重合并到基础模型中
-- **动态切换**：支持运行时动态加载和切换不同的LoRA权重
+- **Suporte a múltiplas tarefas**: É possível treinar pesos LoRA diferentes para tarefas diferentes, compartilhando o mesmo modelo base
+- **Fusão de pesos**: É possível fundir múltiplos pesos LoRA ou fundir pesos LoRA ao modelo base
+- **Alternância dinâmica**: Suporta carregamento e alternância dinâmica de diferentes pesos LoRA em tempo de execução
 
-## 技术原理
+## Princípio Técnico
 
-LoRA通过在原始线性层旁边添加两个小的矩阵A和B，使得：
+O LoRA adiciona duas matrizes pequenas A e B ao lado da camada linear original, de modo que:
 ```
 h = W₀x + BAx
 ```
-其中：
-- W₀是冻结的预训练权重
-- B ∈ ℝᵈˣʳ, A ∈ ℝʳˣᵏ是可训练的低秩矩阵
-- r << min(d,k)，大大减少了参数量
+Onde:
+- W₀ são os pesos pré-treinados congelados
+- B ∈ ℝᵈˣʳ, A ∈ ℝʳˣᵏ são matrizes de posto baixo treináveis
+- r << min(d,k), reduzindo significativamente a quantidade de parâmetros
 
-这种设计既保持了预训练模型的知识，又能高效地适应新任务。
+Esse design preserva o conhecimento do modelo pré-treinado e permite a adaptação eficiente a novas tarefas.

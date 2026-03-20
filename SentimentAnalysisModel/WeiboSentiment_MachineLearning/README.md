@@ -1,34 +1,34 @@
-# 微博情感分析 - 传统机器学习方法
+# Análise de Sentimento do Weibo - Métodos de Aprendizado de Máquina Tradicionais
 
-## 项目介绍
+## Introdução do Projeto
 
-本项目使用5种传统机器学习方法对中文微博进行情感二分类（正面/负面）：
+Este projeto utiliza 5 métodos tradicionais de aprendizado de máquina para classificação binária de sentimento (positivo/negativo) em postagens do Weibo em chinês:
 
-- **朴素贝叶斯**: 基于词袋模型的概率分类
-- **SVM**: 基于TF-IDF特征的支持向量机  
-- **XGBoost**: 梯度提升决策树
-- **LSTM**: 循环神经网络 + Word2Vec词向量
-- **BERT+分类头**: 预训练语言模型接分类器（我认为也属于传统ML范畴）
+- **Naive Bayes**: Classificação probabilística baseada em modelo bag-of-words
+- **SVM**: Máquina de vetores de suporte baseada em características TF-IDF
+- **XGBoost**: Árvore de decisão com gradient boosting
+- **LSTM**: Rede neural recorrente + vetores de palavras Word2Vec
+- **BERT + cabeçote de classificação**: Modelo de linguagem pré-treinado com classificador (que também considero pertencente ao escopo de ML tradicional)
 
-## 模型性能
+## Desempenho dos Modelos
 
-在微博情感数据集上的表现（训练集10000条，测试集500条）：
+Desempenho no dataset de sentimento do Weibo (conjunto de treinamento com 10.000 amostras, conjunto de teste com 500 amostras):
 
-| 模型 | 准确率 | AUC | 特点 |
+| Modelo | Acurácia | AUC | Características |
 |------|--------|-----|------|
-| 朴素贝叶斯 | 85.6% | - | 速度快，内存占用小 |
-| SVM | 85.6% | - | 泛化能力好 |
-| XGBoost | 86.0% | 90.4% | 性能稳定，支持特征重要性 |
-| LSTM | 87.0% | 93.1% | 理解序列信息和上下文 |
-| BERT+分类头 | 87.0% | 92.9% | 强大的语义理解能力 |
+| Naive Bayes | 85,6% | - | Rápido, baixo consumo de memória |
+| SVM | 85,6% | - | Boa capacidade de generalização |
+| XGBoost | 86,0% | 90,4% | Desempenho estável, suporta importância de features |
+| LSTM | 87,0% | 93,1% | Compreende informação sequencial e contexto |
+| BERT + cabeçote de classificação | 87,0% | 92,9% | Forte capacidade de compreensão semântica |
 
-## 环境配置
+## Configuração do Ambiente
 
 ```bash
 pip install -r requirements.txt
 ```
 
-数据文件结构：
+Estrutura dos arquivos de dados:
 ```
 data/
 ├── weibo2018/
@@ -37,9 +37,9 @@ data/
 └── stopwords.txt
 ```
 
-## 训练模型（后面可以不接参数直接运行）
+## Treinar Modelos (podem ser executados diretamente sem argumentos)
 
-### 朴素贝叶斯
+### Naive Bayes
 ```bash
 python bayes_train.py
 ```
@@ -64,44 +64,44 @@ python lstm_train.py --epochs 5 --batch_size 100 --hidden_size 64
 python bert_train.py --epochs 10 --batch_size 100 --learning_rate 1e-3
 ```
 
-注：BERT模型会自动下载中文预训练模型（bert-base-chinese）
+Nota: O modelo BERT baixará automaticamente o modelo pré-treinado em chinês (bert-base-chinese)
 
-## 使用预测
+## Uso para Predição
 
-### 交互式预测（推荐）
+### Predição interativa (recomendada)
 ```bash
 python predict.py
 ```
 
-### 命令行预测
+### Predição via linha de comando
 ```bash
-# 单模型预测
+# Predição com modelo único
 python predict.py --model_type bert --text "今天天气真好，心情很棒"
 
-# 多模型集成预测
+# Predição com ensemble de múltiplos modelos
 python predict.py --ensemble --text "这部电影太无聊了"
 ```
 
-## 文件结构
+## Estrutura de Arquivos
 
 ```
 WeiboSentiment_MachineLearning/
-├── bayes_train.py           # 朴素贝叶斯训练
-├── svm_train.py             # SVM训练
-├── xgboost_train.py         # XGBoost训练
-├── lstm_train.py            # LSTM训练
-├── bert_train.py            # BERT训练
-├── predict.py               # 统一预测程序
-├── base_model.py            # 基础模型类
-├── utils.py                 # 工具函数
-├── requirements.txt         # 依赖包
-├── model/                   # 模型保存目录
-└── data/                    # 数据目录
+├── bayes_train.py           # Treinamento Naive Bayes
+├── svm_train.py             # Treinamento SVM
+├── xgboost_train.py         # Treinamento XGBoost
+├── lstm_train.py            # Treinamento LSTM
+├── bert_train.py            # Treinamento BERT
+├── predict.py               # Programa de predição unificado
+├── base_model.py            # Classe base do modelo
+├── utils.py                 # Funções utilitárias
+├── requirements.txt         # Dependências
+├── model/                   # Diretório de salvamento dos modelos
+└── data/                    # Diretório de dados
 ```
 
-## 注意事项
+## Observações
 
-1. **BERT模型**首次运行会自动下载预训练模型（约400MB）
-2. **LSTM模型**训练时间较长，建议使用GPU
-3. **模型保存**在 `model/` 目录下，确保有足够磁盘空间
-4. **内存需求**BERT > LSTM > XGBoost > SVM > 朴素贝叶斯
+1. O **modelo BERT** baixará automaticamente o modelo pré-treinado na primeira execução (~400MB)
+2. O **modelo LSTM** tem tempo de treinamento mais longo; recomenda-se o uso de GPU
+3. Os **modelos são salvos** no diretório `model/`; certifique-se de ter espaço suficiente em disco
+4. **Requisitos de memória**: BERT > LSTM > XGBoost > SVM > Naive Bayes

@@ -1,141 +1,141 @@
-# MindSpider - 专为舆情分析设计的AI爬虫
+# MindSpider - Crawler com IA projetado para análise de opinião pública
 
-> 免责声明：
-> 本仓库的所有内容仅供学习和参考之用，禁止用于商业用途。任何人或组织不得将本仓库的内容用于非法用途或侵犯他人合法权益。本仓库所涉及的爬虫技术仅用于学习和研究，不得用于对其他平台进行大规模爬虫或其他非法行为。对于因使用本仓库内容而引起的任何法律责任，本仓库不承担任何责任。使用本仓库的内容即表示您同意本免责声明的所有条款和条件。
+> Aviso Legal:
+> Todo o conteúdo deste repositório é destinado exclusivamente para fins de aprendizado e referência, sendo proibido o uso comercial. Nenhuma pessoa ou organização pode utilizar o conteúdo deste repositório para fins ilegais ou para violar os direitos legítimos de terceiros. As técnicas de web scraping abordadas neste repositório são exclusivamente para aprendizado e pesquisa, não devendo ser utilizadas para raspagem em larga escala em outras plataformas ou qualquer outro comportamento ilegal. Este repositório não assume nenhuma responsabilidade legal decorrente do uso de seu conteúdo. Ao utilizar o conteúdo deste repositório, você concorda com todos os termos e condições deste aviso legal.
 
-## 项目概述
+## Visão Geral do Projeto
 
-MindSpider是一个基于Agent技术的智能舆情爬虫系统，通过AI自动识别热点话题，并在多个社交媒体平台进行精准的内容爬取。系统采用模块化设计，能够实现从话题发现到内容收集的全自动化流程。
+MindSpider é um sistema inteligente de crawler para análise de opinião pública baseado em tecnologia Agent. Através de IA, identifica automaticamente tópicos em alta e realiza coleta precisa de conteúdo em múltiplas plataformas de mídia social. O sistema utiliza design modular, permitindo um fluxo totalmente automatizado desde a descoberta de tópicos até a coleta de conteúdo.
 
-该部分学习借鉴github知名爬虫项目[MediaCrawler](https://github.com/NanmiCoder/MediaCrawler)
+Este módulo foi inspirado e desenvolvido com base no conhecido projeto de crawler do GitHub [MediaCrawler](https://github.com/NanmiCoder/MediaCrawler)
 
-两步走爬取：
+Coleta em duas etapas:
 
-- 模块一：Search Agent从包括微博、知乎、github、酷安等 **13个** 社媒平台、技术论坛识别热点新闻，并维护一个每日话题分析表。
-- 模块二：全平台爬虫深度爬取每个话题的细粒度舆情反馈。
+- Módulo Um: O Search Agent identifica notícias em alta em **13** plataformas de mídia social e fóruns técnicos, incluindo Weibo, Zhihu, GitHub, Coolapk, entre outros, e mantém uma tabela de análise de tópicos diários.
+- Módulo Dois: O crawler multiplataforma realiza coleta aprofundada de feedback de opinião pública granular para cada tópico.
 
 <div align="center">
 <img src="img\example.png" alt="banner" width="700">
 
-MindSpider 运行示例
+Exemplo de execução do MindSpider
 </div>
 
-### 技术架构
+### Arquitetura Técnica
 
-- **编程语言**: Python 3.9+
-- **AI框架**: 默认Deepseek，可以接入多种api (话题提取与分析)
-- **爬虫框架**: Playwright (浏览器自动化)
-- **数据库**: MySQL / PostgreSQL (数据持久化存储)
-- **并发处理**: AsyncIO (异步并发爬取)
+- **Linguagem de Programação**: Python 3.9+
+- **Framework de IA**: Deepseek por padrão, compatível com diversas APIs (extração e análise de tópicos)
+- **Framework de Crawler**: Playwright (automação de navegador)
+- **Banco de Dados**: MySQL / PostgreSQL (armazenamento persistente de dados)
+- **Processamento Concorrente**: AsyncIO (coleta assíncrona e concorrente)
 
-## 项目结构
+## Estrutura do Projeto
 
 ```
 MindSpider/
-├── BroadTopicExtraction/           # 话题提取模块
-│   ├── database_manager.py         # 数据库管理器
-│   ├── get_today_news.py          # 新闻采集器
-│   ├── main.py                    # 模块主入口
-│   └── topic_extractor.py         # AI话题提取器
+├── BroadTopicExtraction/           # Módulo de extração de tópicos
+│   ├── database_manager.py         # Gerenciador de banco de dados
+│   ├── get_today_news.py          # Coletor de notícias
+│   ├── main.py                    # Ponto de entrada do módulo
+│   └── topic_extractor.py         # Extrator de tópicos com IA
 │
-├── DeepSentimentCrawling/         # 深度爬取模块
-│   ├── keyword_manager.py         # 关键词管理器
-│   ├── main.py                   # 模块主入口
-│   ├── platform_crawler.py       # 平台爬虫管理器
-│   └── MediaCrawler/             # 多平台爬虫核心
-│       ├── base/                 # 基础类
-│       ├── cache/                # 缓存系统
-│       ├── config/               # 配置文件
-│       ├── media_platform/       # 各平台实现
-│       │   ├── bilibili/        # B站爬虫
-│       │   ├── douyin/          # 抖音爬虫
-│       │   ├── kuaishou/        # 快手爬虫
-│       │   ├── tieba/           # 贴吧爬虫
-│       │   ├── weibo/           # 微博爬虫
-│       │   ├── xhs/             # 小红书爬虫
-│       │   └── zhihu/           # 知乎爬虫
-│       ├── model/               # 数据模型
-│       ├── proxy/               # 代理管理
-│       ├── store/               # 存储层
-│       └── tools/               # 工具集
+├── DeepSentimentCrawling/         # Módulo de coleta aprofundada
+│   ├── keyword_manager.py         # Gerenciador de palavras-chave
+│   ├── main.py                   # Ponto de entrada do módulo
+│   ├── platform_crawler.py       # Gerenciador de crawler por plataforma
+│   └── MediaCrawler/             # Núcleo do crawler multiplataforma
+│       ├── base/                 # Classes base
+│       ├── cache/                # Sistema de cache
+│       ├── config/               # Arquivos de configuração
+│       ├── media_platform/       # Implementação por plataforma
+│       │   ├── bilibili/        # Crawler do Bilibili
+│       │   ├── douyin/          # Crawler do Douyin
+│       │   ├── kuaishou/        # Crawler do Kuaishou
+│       │   ├── tieba/           # Crawler do Tieba
+│       │   ├── weibo/           # Crawler do Weibo
+│       │   ├── xhs/             # Crawler do Xiaohongshu
+│       │   └── zhihu/           # Crawler do Zhihu
+│       ├── model/               # Modelos de dados
+│       ├── proxy/               # Gerenciamento de proxy
+│       ├── store/               # Camada de armazenamento
+│       └── tools/               # Ferramentas utilitárias
 │
-├── schema/                       # 数据库架构
-│   ├── db_manager.py            # 数据库管理
-│   ├── init_database.py         # 初始化脚本
-│   └── mindspider_tables.sql    # 表结构定义
+├── schema/                       # Esquema do banco de dados
+│   ├── db_manager.py            # Gerenciamento do banco de dados
+│   ├── init_database.py         # Script de inicialização
+│   └── mindspider_tables.sql    # Definição da estrutura das tabelas
 │
-├── config.py                    # 全局配置文件
-├── main.py                      # 系统主入口
-├── requirements.txt             # 依赖列表
-└── README.md                    # 项目文档
+├── config.py                    # Arquivo de configuração global
+├── main.py                      # Ponto de entrada do sistema
+├── requirements.txt             # Lista de dependências
+└── README.md                    # Documentação do projeto
 ```
 
-## 系统工作流程
+## Fluxo de Trabalho do Sistema
 
-### 整体架构流程图
+### Diagrama de Fluxo da Arquitetura Geral
 
 ```mermaid
 flowchart TB
-    Start[开始] --> CheckConfig{检查配置}
-    CheckConfig -->|配置无效| ConfigError[配置错误<br/>请检查env中的环境变量]
-    CheckConfig -->|配置有效| InitDB[初始化数据库]
-    
-    InitDB --> BroadTopic[BroadTopicExtraction<br/>话题提取模块]
-    
-    BroadTopic --> CollectNews[收集热点新闻]
-    CollectNews --> |多平台采集| NewsSource{新闻源}
-    NewsSource --> Weibo[微博热搜]
-    NewsSource --> Zhihu[知乎热榜]
-    NewsSource --> Bilibili[B站热门]
-    NewsSource --> Toutiao[今日头条]
-    NewsSource --> Other[其他平台...]
-    
-    Weibo --> SaveNews[保存新闻到数据库]
+    Start[Início] --> CheckConfig{Verificar Configuração}
+    CheckConfig -->|Configuração inválida| ConfigError[Erro de configuração<br/>Verifique as variáveis de ambiente no env]
+    CheckConfig -->|Configuração válida| InitDB[Inicializar banco de dados]
+
+    InitDB --> BroadTopic[BroadTopicExtraction<br/>Módulo de extração de tópicos]
+
+    BroadTopic --> CollectNews[Coletar notícias em alta]
+    CollectNews --> |Coleta multiplataforma| NewsSource{Fontes de notícias}
+    NewsSource --> Weibo[Trending do Weibo]
+    NewsSource --> Zhihu[Ranking do Zhihu]
+    NewsSource --> Bilibili[Em alta no Bilibili]
+    NewsSource --> Toutiao[Toutiao]
+    NewsSource --> Other[Outras plataformas...]
+
+    Weibo --> SaveNews[Salvar notícias no banco de dados]
     Zhihu --> SaveNews
     Bilibili --> SaveNews
     Toutiao --> SaveNews
     Other --> SaveNews
-    
-    SaveNews --> ExtractTopic[AI话题提取]
-    ExtractTopic --> |DeepSeek API| GenerateKeywords[生成关键词列表]
-    GenerateKeywords --> GenerateSummary[生成新闻摘要]
-    GenerateSummary --> SaveTopics[保存话题数据]
-    
-    SaveTopics --> DeepCrawl[DeepSentimentCrawling<br/>深度爬取模块]
-    
-    DeepCrawl --> LoadKeywords[加载关键词]
-    LoadKeywords --> PlatformSelect{选择爬取平台}
-    
-    PlatformSelect --> XHS[小红书爬虫]
-    PlatformSelect --> DY[抖音爬虫]
-    PlatformSelect --> KS[快手爬虫]
-    PlatformSelect --> BILI[B站爬虫]
-    PlatformSelect --> WB[微博爬虫]
-    PlatformSelect --> TB[贴吧爬虫]
-    PlatformSelect --> ZH[知乎爬虫]
-    
-    XHS --> Login{需要登录?}
+
+    SaveNews --> ExtractTopic[Extração de tópicos com IA]
+    ExtractTopic --> |DeepSeek API| GenerateKeywords[Gerar lista de palavras-chave]
+    GenerateKeywords --> GenerateSummary[Gerar resumo de notícias]
+    GenerateSummary --> SaveTopics[Salvar dados de tópicos]
+
+    SaveTopics --> DeepCrawl[DeepSentimentCrawling<br/>Módulo de coleta aprofundada]
+
+    DeepCrawl --> LoadKeywords[Carregar palavras-chave]
+    LoadKeywords --> PlatformSelect{Selecionar plataforma de coleta}
+
+    PlatformSelect --> XHS[Crawler do Xiaohongshu]
+    PlatformSelect --> DY[Crawler do Douyin]
+    PlatformSelect --> KS[Crawler do Kuaishou]
+    PlatformSelect --> BILI[Crawler do Bilibili]
+    PlatformSelect --> WB[Crawler do Weibo]
+    PlatformSelect --> TB[Crawler do Tieba]
+    PlatformSelect --> ZH[Crawler do Zhihu]
+
+    XHS --> Login{Precisa fazer login?}
     DY --> Login
     KS --> Login
     BILI --> Login
     WB --> Login
     TB --> Login
     ZH --> Login
-    
-    Login -->|是| QRCode[扫码登录]
-    Login -->|否| Search[关键词搜索]
+
+    Login -->|Sim| QRCode[Login por QR Code]
+    Login -->|Não| Search[Busca por palavras-chave]
     QRCode --> Search
-    
-    Search --> CrawlContent[爬取内容]
-    CrawlContent --> ParseData[解析数据]
-    ParseData --> SaveContent[保存到数据库]
-    
-    SaveContent --> MoreKeywords{还有更多关键词?}
-    MoreKeywords -->|是| LoadKeywords
-    MoreKeywords -->|否| GenerateReport[生成爬取报告]
-    
-    GenerateReport --> End[结束]
-    
+
+    Search --> CrawlContent[Coletar conteúdo]
+    CrawlContent --> ParseData[Analisar dados]
+    ParseData --> SaveContent[Salvar no banco de dados]
+
+    SaveContent --> MoreKeywords{Há mais palavras-chave?}
+    MoreKeywords -->|Sim| LoadKeywords
+    MoreKeywords -->|Não| GenerateReport[Gerar relatório de coleta]
+
+    GenerateReport --> End[Fim]
+
     style Start fill:#90EE90
     style End fill:#FFB6C1
     style BroadTopic fill:#87CEEB,stroke:#000,stroke-width:3px
@@ -144,444 +144,444 @@ flowchart TB
     style ConfigError fill:#FF6347
 ```
 
-### 工作流程说明
+### Descrição do Fluxo de Trabalho
 
-#### 1. BroadTopicExtraction（话题提取模块）
+#### 1. BroadTopicExtraction (Módulo de Extração de Tópicos)
 
-该模块负责每日热点话题的自动发现和提取：
+Este módulo é responsável pela descoberta e extração automática de tópicos em alta diariamente:
 
-1. **新闻采集**：从多个主流平台（微博、知乎、B站等）自动采集热点新闻
-2. **AI分析**：使用DeepSeek API对新闻进行智能分析
-3. **话题提取**：自动识别热点话题并生成相关关键词
-4. **数据存储**：将话题和关键词保存到MySQL数据库
+1. **Coleta de Notícias**: Coleta automática de notícias em alta de múltiplas plataformas principais (Weibo, Zhihu, Bilibili, etc.)
+2. **Análise com IA**: Utiliza a API do DeepSeek para análise inteligente das notícias
+3. **Extração de Tópicos**: Identifica automaticamente tópicos em alta e gera palavras-chave relacionadas
+4. **Armazenamento de Dados**: Salva tópicos e palavras-chave no banco de dados MySQL
 
-#### 2. DeepSentimentCrawling（深度爬取模块）
+#### 2. DeepSentimentCrawling (Módulo de Coleta Aprofundada)
 
-基于提取的话题关键词，在各大社交平台进行深度内容爬取：
+Com base nas palavras-chave dos tópicos extraídos, realiza coleta aprofundada de conteúdo nas principais plataformas sociais:
 
-1. **关键词加载**：从数据库读取当日提取的关键词
-2. **平台爬取**：使用Playwright在7大平台进行自动化爬取
-3. **内容解析**：提取帖子、评论、互动数据等
-4. **情感分析**：对爬取内容进行情感倾向分析
-5. **数据持久化**：将所有数据结构化存储到数据库
+1. **Carregamento de Palavras-chave**: Lê do banco de dados as palavras-chave extraídas no dia
+2. **Coleta por Plataforma**: Utiliza o Playwright para coleta automatizada em 7 grandes plataformas
+3. **Análise de Conteúdo**: Extrai postagens, comentários, dados de interação, etc.
+4. **Análise de Sentimento**: Realiza análise de tendência de sentimento no conteúdo coletado
+5. **Persistência de Dados**: Armazena todos os dados de forma estruturada no banco de dados
 
-## 数据库架构
+## Arquitetura do Banco de Dados
 
-### 核心数据表
+### Tabelas Principais
 
-1. **daily_news** - 每日新闻表
-   - 存储从各平台采集的热点新闻
-   - 包含标题、链接、描述、排名等信息
+1. **daily_news** - Tabela de notícias diárias
+   - Armazena notícias em alta coletadas das plataformas
+   - Contém título, link, descrição, ranking e outras informações
 
-2. **daily_topics** - 每日话题表
-   - 存储AI提取的话题和关键词
-   - 包含话题名称、描述、关键词列表等
+2. **daily_topics** - Tabela de tópicos diários
+   - Armazena tópicos e palavras-chave extraídos pela IA
+   - Contém nome do tópico, descrição, lista de palavras-chave, etc.
 
-3. **topic_news_relation** - 话题新闻关联表
-   - 记录话题与新闻的关联关系
-   - 包含关联度得分
+3. **topic_news_relation** - Tabela de relação entre tópicos e notícias
+   - Registra a relação de associação entre tópicos e notícias
+   - Contém pontuação de relevância
 
-4. **crawling_tasks** - 爬取任务表
-   - 管理各平台的爬取任务
-   - 记录任务状态、进度、结果等
+4. **crawling_tasks** - Tabela de tarefas de coleta
+   - Gerencia as tarefas de coleta de cada plataforma
+   - Registra status da tarefa, progresso, resultados, etc.
 
-5. **平台内容表**（继承自MediaCrawler）
-    - xhs_note - 小红书笔记
-    - douyin_aweme - 抖音视频
-   - kuaishou_video - 快手视频
-   - bilibili_video - B站视频
-   - weibo_note - 微博帖子
-   - tieba_note - 贴吧帖子
-   - zhihu_content - 知乎内容
+5. **Tabelas de conteúdo por plataforma** (herdadas do MediaCrawler)
+    - xhs_note - Notas do Xiaohongshu
+    - douyin_aweme - Vídeos do Douyin
+   - kuaishou_video - Vídeos do Kuaishou
+   - bilibili_video - Vídeos do Bilibili
+   - weibo_note - Postagens do Weibo
+   - tieba_note - Postagens do Tieba
+   - zhihu_content - Conteúdo do Zhihu
 
-## 安装部署
+## Instalação e Implantação
 
-### 环境要求
+### Requisitos do Ambiente
 
-- Python 3.9 或更高版本
-- MySQL 5.7 或更高版本，或 PostgreSQL
-- Conda环境：pytorch_python11（推荐）
-- 操作系统：Windows/Linux/macOS
+- Python 3.9 ou superior
+- MySQL 5.7 ou superior, ou PostgreSQL
+- Ambiente Conda: pytorch_python11 (recomendado)
+- Sistema Operacional: Windows/Linux/macOS
 
 
-### 1. 克隆项目与获取子模块
+### 1. Clonar o projeto e obter os submódulos
 
-MindSpider 作为 BettaFish 的核心组件运行。请克隆 BettaFish 主项目并同步获取 `MediaCrawler` 爬虫子模块。
+O MindSpider funciona como componente central do BettaFish. Clone o projeto principal BettaFish e obtenha simultaneamente o submódulo do crawler `MediaCrawler`.
 
-**方式一：克隆时直接获取（推荐）**
+**Opção 1: Obter ao clonar (recomendado)**
 
 ```bash
 git clone --recurse-submodules https://github.com/666ghj/BettaFish.git
 cd BettaFish/MindSpider
 ```
 
-**方式二：已克隆主项目后补充拉取**
+**Opção 2: Complementar após já ter clonado o projeto principal**
 
-如果你已经克隆了 BettaFish 但 `MindSpider/DeepSentimentCrawling/MediaCrawler` 目录为空，请在**项目根目录**运行：
+Se você já clonou o BettaFish, mas o diretório `MindSpider/DeepSentimentCrawling/MediaCrawler` está vazio, execute no **diretório raiz do projeto**:
 
 ```bash
 git submodule update --init --recursive
 ```
 
-> **注意**：MediaCrawler 的 Python 依赖会在首次运行 `uv run main.py --deep-sentiment` 时由系统自动检测并安装到当前环境。
+> **Nota**: As dependências Python do MediaCrawler serão automaticamente detectadas e instaladas no ambiente atual na primeira execução de `uv run main.py --deep-sentiment`.
 
-### 2. 创建并激活环境
+### 2. Criar e ativar o ambiente
 
-#### Conda配置方法
+#### Método de configuração com Conda
 
-#### Conda配置方法
+#### Método de configuração com Conda
 
 ```bash
-# 创建名为 pytorch_python11 的conda环境并指定Python版本
+# Criar ambiente conda chamado pytorch_python11 especificando a versão do Python
 conda create -n pytorch_python11 python=3.11
-# 激活该环境
+# Ativar o ambiente
 conda activate pytorch_python11
 ```
 
-#### UV配置方法
+#### Método de configuração com UV
 
-> [UV 是一种快速轻量级 Python 包环境管理工具，适用于低依赖及便捷管理需求。可参考：https://github.com/astral-sh/uv]
+> [UV é uma ferramenta rápida e leve para gerenciamento de pacotes e ambientes Python, ideal para necessidades de baixa dependência e gerenciamento prático. Referência: https://github.com/astral-sh/uv]
 
-- 安装uv（如未安装）
+- Instalar o uv (caso ainda não esteja instalado)
 ```bash
 pip install uv
 ```
-- 创建虚拟环境并激活
+- Criar e ativar ambiente virtual
 ```bash
-uv venv --python 3.11 # 创建3.11环境
+uv venv --python 3.11 # Criar ambiente 3.11
 source .venv/bin/activate   # Linux/macOS
-# 或
+# ou
 .venv\Scripts\activate      # Windows
 ```
 
 
-### 3. 安装依赖
+### 3. Instalar dependências
 
 ```bash
-# 安装Python依赖
+# Instalar dependências Python
 pip install -r requirements.txt
 
-或
-# uv版本更加快速
+ou
+# Versão com uv, mais rápida
 uv pip install -r requirements.txt
 
 
-# 安装Playwright浏览器驱动
+# Instalar drivers de navegador do Playwright
 playwright install
 ```
 
-### 4. 配置系统
+### 4. Configurar o sistema
 
-复制.env.example文件为.env文件，放置在项目根目录。编辑 `.env` 文件，设置数据库和API配置：
+Copie o arquivo .env.example para .env e coloque-o no diretório raiz do projeto. Edite o arquivo `.env` para configurar o banco de dados e a API:
 
 ```python
-# 数据库配置（MySQL 示例）
-DB_DIALECT = "mysql"       # mysql 或 postgresql
+# Configuração do banco de dados (exemplo MySQL)
+DB_DIALECT = "mysql"       # mysql ou postgresql
 DB_HOST = "your_database_host"
 DB_PORT = 3306
 DB_USER = "your_username"
 DB_PASSWORD = "your_password"
 DB_NAME = "mindspider"
-DB_CHARSET = "utf8mb4"     # PostgreSQL 时可省略此项
+DB_CHARSET = "utf8mb4"     # Pode ser omitido para PostgreSQL
 
-# PostgreSQL 示例（将上方 DB_DIALECT 改为 postgresql，DB_PORT 改为 5432）
+# Exemplo PostgreSQL (altere DB_DIALECT acima para postgresql e DB_PORT para 5432)
 # DB_DIALECT = "postgresql"
 # DB_PORT = 5432
 
-# MINDSPIDER API密钥
+# Chave de API do MINDSPIDER
 MINDSPIDER_BASE_URL=your_api_base_url
 MINDSPIDER_API_KEY=sk-your-key
 MINDSPIDER_MODEL_NAME=deepseek-chat
 ```
 
-### 5. 初始化系统
+### 5. Inicializar o sistema
 
 ```bash
-# 检查系统状态
+# Verificar status do sistema
 python main.py --status
-# 或
+# ou
 uv run main.py --status
 ```
 
-## 使用指南
+## Guia de Uso
 
-### 完整流程
+### Fluxo Completo
 
 ```bash
-# 1. 运行话题提取（获取热点新闻和关键词）
+# 1. Executar extração de tópicos (obter notícias em alta e palavras-chave)
 python main.py --broad-topic
-# 或
+# ou
 uv run main.py --broad-topic
 
-# 2. 运行爬虫（基于关键词爬取各平台内容）
+# 2. Executar crawler (coletar conteúdo das plataformas com base nas palavras-chave)
 python main.py --deep-sentiment --test
-# 或
+# ou
 uv run main.py --deep-sentiment --test
 
-# 或者一次性运行完整流程
+# Ou executar o fluxo completo de uma vez
 python main.py --complete --test
-# 或
+# ou
 uv run main.py --complete --test
 ```
 
-### 单独使用模块
+### Usar módulos individualmente
 
 ```bash
-# 只获取今日热点和关键词
+# Apenas obter tópicos em alta e palavras-chave do dia
 python main.py --broad-topic
-# 或
+# ou
 uv run main.py --broad-topic
 
-# 只爬取特定平台
+# Coletar apenas de plataformas específicas
 python main.py --deep-sentiment --platforms xhs dy --test
-# 或
+# ou
 uv run main.py --deep-sentiment --platforms xhs dy --test
 
-# 指定日期
+# Especificar data
 python main.py --broad-topic --date 2024-01-15
-# 或
+# ou
 uv run main.py --broad-topic --date 2024-01-15
 ```
 
-## 爬虫配置（重要）
+## Configuração do Crawler (Importante)
 
-### 平台登录配置
+### Configuração de Login por Plataforma
 
-**首次使用每个平台都需要登录，这是最关键的步骤：**
+**O primeiro uso de cada plataforma requer login, esta é a etapa mais importante:**
 
-1. **小红书登录**
+1. **Login no Xiaohongshu**
 ```bash
-# 测试小红书爬取（会弹出二维码）
+# Testar coleta do Xiaohongshu (exibirá QR code)
 python main.py --deep-sentiment --platforms xhs --test
-# 或
+# ou
 uv run main.py --deep-sentiment --platforms xhs --test
-# 用小红书APP扫码登录，登录成功后会自动保存状态
+# Escaneie o QR code com o app Xiaohongshu para fazer login. Após login bem-sucedido, o estado será salvo automaticamente
 ```
 
-2. **抖音登录**
+2. **Login no Douyin**
 ```bash
-# 测试抖音爬取
+# Testar coleta do Douyin
 python main.py --deep-sentiment --platforms dy --test
-# 或
+# ou
 uv run main.py --deep-sentiment --platforms dy --test
-# 用抖音APP扫码登录
+# Escaneie o QR code com o app Douyin para fazer login
 ```
 
-3. **其他平台同理**
+3. **Outras plataformas seguem o mesmo processo**
 ```bash
-# 快手
+# Kuaishou
 uv run main.py --deep-sentiment --platforms ks --test
 
-# B站
+# Bilibili
 uv run main.py --deep-sentiment --platforms bili --test
 
-# 微博
+# Weibo
 uv run main.py --deep-sentiment --platforms wb --test
 
-# 贴吧
+# Tieba
 uv run main.py --deep-sentiment --platforms tieba --test
 
-# 知乎
+# Zhihu
 uv run main.py --deep-sentiment --platforms zhihu --test
 ```
 
-### 登录问题排除
+### Solução de Problemas de Login
 
-**如果登录失败或卡住：**
+**Se o login falhar ou travar:**
 
-1. **检查网络**：确保能正常访问对应平台
-2. **关闭无头模式**：编辑 `DeepSentimentCrawling/MediaCrawler/config/base_config.py`
+1. **Verificar rede**: Certifique-se de que consegue acessar normalmente a plataforma correspondente
+2. **Desativar modo headless**: Edite `DeepSentimentCrawling/MediaCrawler/config/base_config.py`
    ```python
-   HEADLESS = False  # 改为False，可以看到浏览器界面
+   HEADLESS = False  # Altere para False para ver a interface do navegador
    ```
-3. **手动处理验证**：有些平台可能需要手动滑动验证码
-4. **重新登录**：删除 `DeepSentimentCrawling/MediaCrawler/browser_data/` 目录重新登录
+3. **Verificação manual**: Algumas plataformas podem exigir resolução manual de captcha
+4. **Refazer login**: Delete o diretório `DeepSentimentCrawling/MediaCrawler/browser_data/` e faça login novamente
 
-### 其他问题
+### Outros Problemas
 
 https://github.com/666ghj/BettaFish/issues/185
 
-### 爬取参数调整
+### Ajuste de Parâmetros de Coleta
 
-在实际使用前建议调整爬取参数：
+Antes do uso em produção, recomenda-se ajustar os parâmetros de coleta:
 
 ```bash
-# 小规模测试（推荐先这样测试）
+# Teste em pequena escala (recomendado testar assim primeiro)
 python main.py --complete --test
-# 或
+# ou
 uv run main.py --complete --test
 
-# 调整爬取数量
+# Ajustar quantidade de coleta
 python main.py --complete --max-keywords 20 --max-notes 30
-# 或
+# ou
 uv run main.py --complete --max-keywords 20 --max-notes 30
 ```
 
-### 高级功能
+### Funcionalidades Avançadas
 
-#### 1. 指定日期操作
+#### 1. Operação por data específica
 ```bash
-# 提取指定日期的话题
+# Extrair tópicos de uma data específica
 python main.py --broad-topic --date 2024-01-15
-# 或
+# ou
 uv run main.py --broad-topic --date 2024-01-15
 
-# 爬取指定日期的内容
+# Coletar conteúdo de uma data específica
 python main.py --deep-sentiment --date 2024-01-15
-# 或
+# ou
 uv run main.py --deep-sentiment --date 2024-01-15
 ```
 
-#### 2. 指定平台爬取
+#### 2. Coleta por plataforma específica
 ```bash
-# 只爬取B站和抖音
+# Coletar apenas do Bilibili e Douyin
 python main.py --deep-sentiment --platforms bili dy --test
-# 或
+# ou
 uv run main.py --deep-sentiment --platforms bili dy --test
 
-# 爬取所有平台的特定数量内容
+# Coletar quantidade específica de conteúdo de todas as plataformas
 python main.py --deep-sentiment --max-keywords 30 --max-notes 20
-# 或
+# ou
 uv run main.py --deep-sentiment --max-keywords 30 --max-notes 20
 ```
 
-## 常用参数
+## Parâmetros Comuns
 
 ```bash
---status              # 检查项目状态
---setup               # 初始化项目(废弃，已自动初始化)
---broad-topic         # 话题提取
---deep-sentiment      # 爬虫模块
---complete            # 完整流程
---test                # 测试模式（少量数据）
---platforms xhs dy    # 指定平台
---date 2024-01-15     # 指定日期
+--status              # Verificar status do projeto
+--setup               # Inicializar projeto (obsoleto, agora inicializa automaticamente)
+--broad-topic         # Extração de tópicos
+--deep-sentiment      # Módulo de crawler
+--complete            # Fluxo completo
+--test                # Modo de teste (poucos dados)
+--platforms xhs dy    # Especificar plataformas
+--date 2024-01-15     # Especificar data
 ```
 
-## 支持的平台
+## Plataformas Suportadas
 
-| 代码 | 平台 | 代码 | 平台 |
+| Código | Plataforma | Código | Plataforma |
 |-----|-----|-----|-----|
-| xhs | 小红书 | wb | 微博 |
-| dy | 抖音 | tieba | 贴吧 |
-| ks | 快手 | zhihu | 知乎 |
-| bili | B站 | | |
+| xhs | Xiaohongshu | wb | Weibo |
+| dy | Douyin | tieba | Tieba |
+| ks | Kuaishou | zhihu | Zhihu |
+| bili | Bilibili | | |
 
-## 常见问题
+## Perguntas Frequentes
 
-### 1. 爬虫登录失败
+### 1. Falha no login do crawler
 ```bash
-# 问题：二维码不显示或登录失败
-# 解决：关闭无头模式，手动登录
-# 编辑：DeepSentimentCrawling/MediaCrawler/config/base_config.py
+# Problema: QR code não aparece ou login falha
+# Solução: Desativar modo headless e fazer login manualmente
+# Editar: DeepSentimentCrawling/MediaCrawler/config/base_config.py
 HEADLESS = False
 
-# 重新运行登录
+# Executar login novamente
 python main.py --deep-sentiment --platforms xhs --test
-# 或
+# ou
 uv run main.py --deep-sentiment --platforms xhs --test
 ```
 
-### 2. 数据库连接失败
+### 2. Falha na conexão com o banco de dados
 ```bash
-# 检查配置
+# Verificar configuração
 python main.py --status
-# 或
+# ou
 uv run main.py --status
 
-# 检查config.py中的数据库配置是否正确
+# Verificar se a configuração do banco de dados no config.py está correta
 ```
 
-### 3. playwright安装失败
+### 3. Falha na instalação do playwright
 ```bash
-# 重新安装
+# Reinstalar
 pip install playwright
 
-或
+ou
 
 uv pip install playwright
 
 playwright install
 ```
 
-### 4. 爬取数据为空
-- 确保平台已经登录成功
-- 检查关键词是否存在（先运行话题提取）
-- 使用测试模式验证：`--test`
+### 4. Dados coletados vazios
+- Certifique-se de que o login na plataforma foi realizado com sucesso
+- Verifique se existem palavras-chave (execute primeiro a extração de tópicos)
+- Valide usando o modo de teste: `--test`
 
-### 5. API调用失败
-- 检查DeepSeek API密钥是否正确
-- 确认API额度是否充足
+### 5. Falha na chamada da API
+- Verifique se a chave da API do DeepSeek está correta
+- Confirme se o saldo/cota da API é suficiente
 
-## 注意事项
+## Observações Importantes
 
-1. **首次使用必须先登录各平台**
-2. **建议先用测试模式验证**
-3. **遵守平台使用规则**
-4. **仅供学习研究使用**
+1. **O primeiro uso requer login em cada plataforma**
+2. **Recomenda-se validar primeiro com o modo de teste**
+3. **Respeite as regras de uso das plataformas**
+4. **Apenas para uso em aprendizado e pesquisa**
 
-## 项目开发指南
+## Guia de Desenvolvimento do Projeto
 
-### 扩展新的新闻源
+### Adicionar novas fontes de notícias
 
-在 `BroadTopicExtraction/get_today_news.py` 中添加新的新闻源：
+Adicione novas fontes de notícias em `BroadTopicExtraction/get_today_news.py`:
 
 ```python
 async def get_new_platform_news(self) -> List[Dict]:
-    """获取新平台的热点新闻"""
-    # 实现新闻采集逻辑
+    """Obter notícias em alta de uma nova plataforma"""
+    # Implementar lógica de coleta de notícias
     pass
 ```
 
-### 扩展新的爬虫平台
+### Adicionar nova plataforma de crawler
 
-1. 在 `DeepSentimentCrawling/MediaCrawler/media_platform/` 下创建新平台目录
-2. 实现平台的核心功能模块：
-   - `client.py`: API客户端
-   - `core.py`: 爬虫核心逻辑
-   - `login.py`: 登录逻辑
-   - `field.py`: 数据字段定义
+1. Crie um novo diretório para a plataforma em `DeepSentimentCrawling/MediaCrawler/media_platform/`
+2. Implemente os módulos de funcionalidade principal da plataforma:
+   - `client.py`: Cliente da API
+   - `core.py`: Lógica principal do crawler
+   - `login.py`: Lógica de login
+   - `field.py`: Definição dos campos de dados
 
-### 数据库扩展
+### Extensão do Banco de Dados
 
-如需添加新的数据表或字段，请更新 `schema/mindspider_tables.sql` 并运行：
+Para adicionar novas tabelas ou campos, atualize `schema/mindspider_tables.sql` e execute:
 
 ```bash
 python schema/init_database.py
 ```
 
-## 性能优化建议
+## Sugestões de Otimização de Desempenho
 
-1. **数据库优化**
-   - 定期清理历史数据
-   - 为高频查询字段建立索引
-   - 考虑使用分区表管理大量数据
+1. **Otimização do Banco de Dados**
+   - Limpe periodicamente dados históricos
+   - Crie índices para campos de consulta frequente
+   - Considere usar tabelas particionadas para gerenciar grandes volumes de dados
 
-2. **爬取优化**
-   - 合理设置爬取间隔避免被限制
-   - 使用代理池提高稳定性
-   - 控制并发数避免资源耗尽
+2. **Otimização de Coleta**
+   - Configure intervalos de coleta adequados para evitar bloqueios
+   - Use pool de proxies para maior estabilidade
+   - Controle a concorrência para evitar esgotamento de recursos
 
-3. **系统优化**
-   - 使用Redis缓存热点数据
-   - 异步任务队列处理耗时操作
-   - 定期监控系统资源使用
+3. **Otimização do Sistema**
+   - Use Redis para cache de dados frequentes
+   - Filas de tarefas assíncronas para operações demoradas
+   - Monitore regularmente o uso de recursos do sistema
 
-## API接口说明
+## Documentação da API
 
-系统提供Python API供二次开发：
+O sistema fornece uma API Python para desenvolvimento secundário:
 
 ```python
 from BroadTopicExtraction import BroadTopicExtraction
 from DeepSentimentCrawling import DeepSentimentCrawling
 
-# 话题提取
+# Extração de tópicos
 async def extract_topics():
     extractor = BroadTopicExtraction()
     result = await extractor.run_daily_extraction()
     return result
 
-# 内容爬取
+# Coleta de conteúdo
 def crawl_content():
     crawler = DeepSentimentCrawling()
     result = crawler.run_daily_crawling(
@@ -592,10 +592,10 @@ def crawl_content():
     return result
 ```
 
-## 许可证
+## Licença
 
-本项目仅供学习研究使用，请勿用于商业用途。使用本项目时请遵守相关法律法规和平台服务条款。
+Este projeto é destinado exclusivamente para uso em aprendizado e pesquisa. Por favor, não o utilize para fins comerciais. Ao utilizar este projeto, respeite as leis e regulamentos aplicáveis, bem como os termos de serviço das plataformas.
 
 ---
 
-**MindSpider** - 让AI助力舆情洞察，智能化内容分析的得力助手
+**MindSpider** - Deixe a IA impulsionar a percepção de opinião pública, um assistente poderoso para análise inteligente de conteúdo
