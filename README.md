@@ -783,6 +783,79 @@ Agradecemos aos seguintes excelentes contribuidores:
   <img src="static/image/QQ_Light_Horizenal.png" alt="QR code do grupo de comunicação técnica BettaFish" style="width:60%; max-width:360px; display:block; margin:20px auto 0;">
 </div>
 
+## 🖥️ Infraestrutura para Deploy
+
+### Opção Recomendada: Docker Compose
+
+```bash
+docker compose up -d
+```
+
+Sobe dois containers: a **aplicação** + **PostgreSQL 15**.
+
+### Servidor Mínimo
+
+| Recurso | Mínimo | Recomendado |
+|---------|--------|-------------|
+| RAM | 2 GB | 4 GB+ |
+| Disco | 5 GB | 10 GB+ |
+| CPU | 2 cores | 4+ cores |
+| Python | 3.9+ | 3.11 |
+| SO | Linux/macOS/Windows | Linux (Ubuntu) |
+
+### Portas Expostas
+
+| Porta | Serviço |
+|-------|---------|
+| 5000 | Flask (app principal) |
+| 8501 | InsightEngine (Streamlit) |
+| 8502 | MediaEngine (Streamlit) |
+| 8503 | QueryEngine (Streamlit) |
+| 5444 | PostgreSQL |
+
+### Banco de Dados
+
+- **PostgreSQL 15+** (recomendado) ou MySQL 8.0+
+- Inicializado automaticamente no primeiro `python app.py`
+
+### APIs Externas (LLMs + Buscadores)
+
+O sistema usa 6 endpoints de LLM separados, cada um otimizado para sua função:
+
+| Serviço | Função | Modelo Recomendado | Por que um modelo separado? |
+|---------|--------|--------------------|-----------------------------|
+| Moonshot Kimi | Insight Engine | kimi-k2 | Contexto longo para analisar grandes volumes de dados |
+| Gemini 2.5 Pro | Media + Report Engine | gemini-2.5-pro | Multimodal (entende imagens e vídeos) |
+| DeepSeek | Query Engine | deepseek-chat | Rápido e barato para muitas buscas web |
+| Qwen | Forum Host + Keyword Optimizer | qwen-plus | Tarefas leves de moderação e otimização de queries |
+
+Buscadores web (pelo menos um obrigatório):
+
+| Serviço | Tipo |
+|---------|------|
+| Tavily | Busca web |
+| Anspire | Busca IA |
+| Bocha | Busca IA (alternativa) |
+
+> **Posso usar apenas uma LLM?** Sim! Todas as APIs usam formato OpenAI-compatible. Você pode apontar todas as 6 variáveis no `.env` para o **mesmo modelo** (ex: GPT-4o, Claude ou Gemini), basta repetir a mesma chave/URL/modelo. A separação existe para otimizar **custo e desempenho** — modelos baratos onde pode, modelos fortes onde precisa — mas funciona perfeitamente com um só.
+
+### Configuração
+
+1. Copiar `.env.example` para `.env`
+2. Preencher as **6 chaves de API** dos LLMs (ou a mesma chave repetida)
+3. Preencher credenciais do banco de dados
+4. Preencher chave de pelo menos um buscador (Tavily, Anspire ou Bocha)
+
+### Deploy Nativo (sem Docker)
+
+```bash
+conda create -n bettafish python=3.11
+conda activate bettafish
+pip install -r requirements.txt
+playwright install chromium
+python app.py
+```
+
 ## 📈 Estatísticas do Projeto
 
 <a href="https://www.star-history.com/#666ghj/BettaFish&type=date&legend=top-left">
