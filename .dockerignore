@@ -10,3 +10,10 @@ __pycache__
 *.sqlite3
 .DS_Store
 Thumbs.db
+db_data
+logs
+final_reports
+insight_engine_streamlit_reports
+media_engine_streamlit_reports
+query_engine_streamlit_reports
+.env

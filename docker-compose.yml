@@ -2,11 +2,12 @@ version: "3.9"
 
 services:
   bettafish:
-    image: ghcr.io/666ghj/bettafish:latest
-    # Speed up mirror
-    # image: ghcr.nju.edu.cn/666ghj/bettafish:latest
+    build: .
+    image: bettafish:local
     container_name: bettafish
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - PYTHONUNBUFFERED=1
       - STREAMLIT_SERVER_ENABLE_FILE_WATCHER=false
