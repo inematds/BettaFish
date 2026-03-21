@@ -1,10 +1,10 @@
 """
-Report Engine Flask接口。
+Interface Flask do Report Engine.
 
-该模块为前端/CLI提供统一HTTP/SSE入口，负责：
-1. 初始化 ReportAgent 并串联后台线程；
-2. 管理任务排队、进度查询、流式推送与日志下载；
-3. 提供模板列表、输入文件检查等周边能力。
+Este modulo fornece um ponto de entrada HTTP/SSE unificado para o frontend/CLI, responsavel por:
+1. Inicializar o ReportAgent e encadear threads de segundo plano;
+2. Gerenciar fila de tarefas, consulta de progresso, envio por streaming e download de logs;
+3. 提供模板列表、输入Arquivo检查等周边能力。
 """
 
 import os
@@ -23,10 +23,10 @@ from .nodes import ChapterJsonParseError
 from .utils.config import settings
 
 
-# 创建Blueprint
+# Criar Blueprint
 report_bp = Blueprint('report_engine', __name__)
 
-# 全局变量
+# Variaveis globais
 report_agent = None
 current_task = None
 task_lock = threading.Lock()
@@ -49,7 +49,7 @@ def _is_excluded_engine_log(record: Dict[str, Any]) -> bool:
     """
     判断日志是否来自其他引擎（Insight/Media/Query/Forum），用于过滤混入的日志。
 
-    返回:
+    Retorna:
         bool: True 表示应当过滤（即不写入/不转发）。
     """
     try:
@@ -105,7 +105,7 @@ def _stream_log_to_task(message):
             },
         )
     except Exception:
-        # 避免在日志钩子里产生日志递归
+        # Evitar recursao de log dentro do hook de log
         pass
 
 
@@ -128,10 +128,10 @@ def _register_stream(task_id: str) -> Queue:
 
     返回的 Queue 会存入 `stream_subscribers`，SSE 生成器将不断读取。
 
-    参数:
-        task_id: 需要监听的任务ID。
+    Parametros:
+        task_id: 需要监听的ID da tarefa.
 
-    返回:
+    Retorna:
         Queue: 线程安全的事件队列。
     """
     queue = Queue()
@@ -146,8 +146,8 @@ def _unregister_stream(task_id: str, queue: Queue):
 
     需要在finally中调用，保证异常情况下资源也能释放。
 
-    参数:
-        task_id: 任务ID。
+    Parametros:
+        task_id: ID da tarefa.
         queue: 之前注册的事件队列。
     """
     with stream_lock:
@@ -164,8 +164,8 @@ def _broadcast_event(task_id: str, event: Dict[str, Any]):
 
     采用浅拷贝监听列表，防止并发移除导致遍历异常。
 
-    参数:
-        task_id: 待推送的任务ID。
+    Parametros:
+        task_id: 待推送的ID da tarefa.
         event: 结构化事件payload。
     """
     with stream_lock:
@@ -174,7 +174,7 @@ def _broadcast_event(task_id: str, event: Dict[str, Any]):
         try:
             queue.put(event, timeout=0.1)
         except Exception:
-            logger.exception("推送流式事件失败，跳过当前监听队列")
+            logger.exception("Falha ao enviar evento de streaming, ignorando fila de escuta atual")
 
 
 def _prune_task_history_locked():
@@ -183,7 +183,7 @@ def _prune_task_history_locked():
 
     仅保留最近 `MAX_TASK_HISTORY` 个任务，避免长时间运行占用过多内存。
 
-    说明:
+    Descricao:
         该函数假设调用方已获取 `task_lock`，否则存在竞态风险。
     """
     if len(tasks_registry) <= MAX_TASK_HISTORY:
@@ -200,10 +200,10 @@ def _get_task(task_id: str) -> Optional['ReportTask']:
 
     避免重复写锁逻辑，便于多个API共享。
 
-    参数:
-        task_id: 任务ID。
+    Parametros:
+        task_id: ID da tarefa.
 
-    返回:
+    Retorna:
         ReportTask | None: 命中时返回任务实例，否则为None。
     """
     with task_lock:
@@ -218,11 +218,11 @@ def _format_sse(event: Dict[str, Any]) -> str:
 
     输出形如 `id:/event:/data:` 的三段文本，供浏览器端直接消费。
 
-    参数:
+    Parametros:
         event: 事件payload，至少包含 id/type。
 
-    返回:
-        str: SSE协议要求的字符串。
+    Retorna:
+        str: SSE协议要求的string。
     """
     payload = json.dumps(event, ensure_ascii=False)
     event_id = event.get('id', 0)
@@ -232,10 +232,10 @@ def _format_sse(event: Dict[str, Any]) -> str:
 
 def _safe_filename_segment(value: str, fallback: str = "report") -> str:
     """
-    生成可用于文件名的安全片段，保留字母数字与常见分隔符。
+    生成可用于Arquivo名的安全片段，保留字母数字与常见分隔符。
 
-    参数:
-        value: 原始字符串。
+    Parametros:
+        value: 原始string。
         fallback: 兜底文本，当value为空或清洗后为空时使用。
     """
     sanitized = "".join(c for c in str(value) if c.isalnum() or c in (" ", "-", "_")).strip()
@@ -245,17 +245,17 @@ def _safe_filename_segment(value: str, fallback: str = "report") -> str:
 
 def initialize_report_engine():
     """
-    初始化Report Engine。
+    Inicializar Report Engine.
 
-    单例化 ReportAgent，方便 API 启动后直接接收任务。
+    Instanciar ReportAgent como singleton, permitindo receber tarefas diretamente apos inicio da API.
 
-    返回:
+    Retorna:
         bool: 初始化成功返回True，异常时返回False。
     """
     global report_agent
     try:
         report_agent = create_agent()
-        logger.info("Report Engine初始化成功")
+        logger.info("Report Engine inicializado com sucesso")
         _setup_log_stream_forwarder()
 
         # 检测 PDF 生成依赖（Pango）
@@ -263,19 +263,19 @@ def initialize_report_engine():
             from .utils.dependency_check import log_dependency_status
             log_dependency_status()
         except Exception as dep_err:
-            logger.warning(f"依赖检测失败: {dep_err}")
+            logger.warning(f"Falha na detecao de dependencias: {dep_err}")
 
         return True
     except Exception as e:
-        logger.exception(f"Report Engine初始化失败: {str(e)}")
+        logger.exception(f"Falha ao inicializar o Report Engine: {str(e)}")
         return False
 
 
 class ReportTask:
     """
-    报告生成任务。
+    relatorio生成任务。
 
-    该对象串联运行状态、进度、事件历史及最终文件路径，
+    该对象串联运行状态、进度、事件历史及最终ArquivoCaminho，
     既供后台线程更新，也供HTTP接口读取。
     """
 
@@ -284,7 +284,7 @@ class ReportTask:
         初始化任务对象，记录查询词、自定义模板与运行期元数据。
 
         Args:
-            query: 最终需要生成的报告主题
+            query: 最终需要生成的relatorio主题
             task_id: 任务唯一ID，通常由时间戳构造
             custom_template: 可选的自定义Markdown模板
         """
@@ -318,9 +318,9 @@ class ReportTask:
         """
         更新任务状态并广播事件。
 
-        会自动刷新 `updated_at`、错误信息，并触发 `status` 类型的 SSE。
+        会自动刷新 `updated_at`、Erro(s)信息，并触发 `status` 类型的 SSE。
 
-        参数:
+        Parametros:
             status: 任务阶段（pending/running/completed/error/cancelled）。
             progress: 可选的进度百分比。
             error_message: 出错时的人类可读说明。
@@ -344,7 +344,7 @@ class ReportTask:
         )
 
     def to_dict(self) -> Dict[str, Any]:
-        """转换为字典格式，方便直接返回给JSON API。"""
+        """Converter para formato de dicionario，方便直接返回给JSON API。"""
         return {
             'task_id': self.task_id,
             'query': self.query,
@@ -368,9 +368,9 @@ class ReportTask:
 
     def publish_event(self, event_type: str, payload: Dict[str, Any]) -> None:
         """
-        将任意事件放入缓存并广播，所有新增逻辑均配套中文说明。
+        将任意事件放入缓存并广播，所有novo(s)逻辑均配套中文说明。
 
-        参数:
+        Parametros:
             event_type: SSE中的event名称。
             payload: 实际业务数据。
         """
@@ -392,10 +392,10 @@ class ReportTask:
         """
         根据Last-Event-ID补发历史事件，确保断线重连无遗漏。
 
-        参数:
+        Parametros:
             last_event_id: SSE客户端记录的最后一个事件ID。
 
-        返回:
+        Retorna:
             list[dict]: 从 last_event_id 之后的事件列表。
         """
         with self._event_lock:
@@ -406,9 +406,9 @@ class ReportTask:
 
 def check_engines_ready() -> Dict[str, Any]:
     """
-    检查三个子引擎是否都有新文件。
+    检查三个子引擎是否都有新Arquivo。
 
-    调用 ReportAgent 的基准检测逻辑，并附带论坛日志存在性，
+    调用 ReportAgent 的linha de base检测逻辑，并附带logs do forum存在性，
     是 /status、/generate 的前置校验。
     """
     directories = {
@@ -422,7 +422,7 @@ def check_engines_ready() -> Dict[str, Any]:
     if not report_agent:
         return {
             'ready': False,
-            'error': 'Report Engine未初始化'
+            'error': 'Report Engine nao inicializado'
         }
 
     return report_agent.check_input_files(
@@ -435,51 +435,51 @@ def check_engines_ready() -> Dict[str, Any]:
 
 def run_report_generation(task: ReportTask, query: str, custom_template: str = ""):
     """
-    在后台线程中运行报告生成。
+    在后台线程中运行relatorio生成。
 
     包括：检查输入→加载文档→调用ReportAgent→持久化输出→
-    推送阶段性事件。出现错误会自动推送并写状态。
+    推送阶段性事件。出现Erro(s)会自动推送并写状态。
 
-    参数:
+    Parametros:
         task: 本次任务对象，内部持有事件队列。
-        query: 报告主题。
-        custom_template: 可选的自定义模板字符串。
+        query: relatorio主题。
+        custom_template: 可选的自定义模板string。
     """
     global current_task
 
     try:
-        # 在局部闭包内封装推送逻辑，便于传递给ReportAgent
+        # Encapsular logica de push em closure local, facilitando passagem ao ReportAgent
         def stream_handler(event_type: str, payload: Dict[str, Any]):
-            """所有阶段事件都通过同一个接口分发，保证日志一致。"""
+            """Todos os eventos de etapa sao distribuidos pela mesma interface, garantindo consistencia de logs."""
             task.publish_event(event_type, payload)
-            # 如果事件包含进度信息，同步更新任务进度
+            # Se o evento contiver informacoes de progresso, atualizar progresso da tarefa sincronamente
             if event_type == 'progress' and 'progress' in payload:
                 task.update_status("running", payload['progress'])
 
         task.update_status("running", 5)
-        task.publish_event('stage', {'message': '任务已启动，正在检查输入文件', 'stage': 'prepare'})
+        task.publish_event('stage', {'message': 'Tarefa iniciada, verificando arquivos de entrada', 'stage': 'prepare'})
 
-        # 检查输入文件
+        # 检查输入Arquivo
         check_result = check_engines_ready()
         if not check_result['ready']:
-            task.update_status("error", 0, f"输入文件未准备就绪: {check_result.get('missing_files', [])}")
+            task.update_status("error", 0, f"Arquivos de entrada nao estao prontos: {check_result.get('missing_files', [])}")
             return
 
         task.publish_event('stage', {
-            'message': '输入文件检查通过，准备载入内容',
+            'message': 'Verificacao de arquivos aprovada, preparando para carregar conteudo',
             'stage': 'io_ready',
             'files': check_result.get('latest_files', {})
         })
 
-        # 加载输入文件
+        # 加载输入Arquivo
         content = report_agent.load_input_files(check_result['latest_files'])
-        task.publish_event('stage', {'message': '源数据加载完成，启动生成流程', 'stage': 'data_loaded'})
+        task.publish_event('stage', {'message': 'Dados de origem carregados, iniciando processo de geracao', 'stage': 'data_loaded'})
 
-        # 生成报告（附带兜底重试，缓解瞬时网络抖动）
+        # 生成relatorio（附带兜底重试，缓解瞬时网络抖动）
         for attempt in range(1, 3):
             try:
                 task.publish_event('stage', {
-                    'message': f'正在调用ReportAgent生成报告（第{attempt}次尝试）',
+                    'message': f'正在调用ReportAgent生成relatorio（第{attempt}次尝试）',
                     'stage': 'agent_running',
                     'attempt': attempt
                 })
@@ -502,7 +502,7 @@ def run_report_generation(task: ReportTask, query: str, custom_template: str = "
                     'error': str(err),
                     'task': task.to_dict(),
                 })
-                # 旧逻辑：在JSON解析失败后重启Report Engine
+                # 旧逻辑：在Falha na analise JSON后重启Report Engine
                 # backoff = min(5 * attempt, 15)
                 # task.publish_event('stage', {
                 #     'message': f'{backoff} 秒后重试生成任务',
@@ -512,7 +512,7 @@ def run_report_generation(task: ReportTask, query: str, custom_template: str = "
                 # time.sleep(backoff)
                 raise ChapterJsonParseError(hint_message) from err
             except Exception as err:
-                # 将错误即时推送至前端，方便观察重试策略
+                # 将Erro(s)即时推送至前端，方便观察重试策略
                 task.publish_event('warning', {
                     'message': f'ReportAgent执行失败: {str(err)}',
                     'stage': 'agent_running',
@@ -520,7 +520,7 @@ def run_report_generation(task: ReportTask, query: str, custom_template: str = "
                 })
                 if attempt == 2:
                     raise
-                # 简单的指数退避，防止频繁触发限流（单位秒）
+                # Backoff exponencial simples para evitar acionar limites de frequencia (em segundos)
                 backoff = min(5 * attempt, 15)
                 task.publish_event('stage', {
                     'message': f'{backoff} 秒后重试生成任务',
@@ -534,9 +534,9 @@ def run_report_generation(task: ReportTask, query: str, custom_template: str = "
         else:
             html_report = generation_result
 
-        task.publish_event('stage', {'message': '报告生成完毕，准备持久化', 'stage': 'persist'})
+        task.publish_event('stage', {'message': 'Geracao do relatorio concluida, preparando persistencia', 'stage': 'persist'})
 
-        # 保存结果
+        # Salvar resultado
         task.html_content = html_report
         if isinstance(generation_result, dict):
             task.report_file_path = generation_result.get('report_filepath', '')
@@ -547,28 +547,28 @@ def run_report_generation(task: ReportTask, query: str, custom_template: str = "
             task.ir_file_path = generation_result.get('ir_filepath', '')
             task.ir_file_relative_path = generation_result.get('ir_relative_path', '')
         task.publish_event('html_ready', {
-            'message': 'HTML渲染完成，可刷新预览',
+            'message': 'Renderizacao HTML concluida, atualize para visualizar',
             'report_file': task.report_file_relative_path or task.report_file_path,
             'state_file': task.state_file_relative_path or task.state_file_path,
             'task': task.to_dict(),
         })
         task.update_status("completed", 100)
         task.publish_event('completed', {
-            'message': '任务完成',
+            'message': 'Tarefa concluida',
             'duration_seconds': (task.updated_at - task.created_at).total_seconds(),
             'report_file': task.report_file_relative_path or task.report_file_path,
             'task': task.to_dict(),
         })
 
     except Exception as e:
-        logger.exception(f"报告生成过程中发生错误: {str(e)}")
+        logger.exception(f"Erro durante a geracao do relatorio: {str(e)}")
         task.update_status("error", 0, str(e))
         task.publish_event('error', {
             'message': str(e),
             'stage': 'failed',
             'task': task.to_dict(),
         })
-        # 只在出错时清理任务
+        # Limpar tarefa apenas em caso de erro
         with task_lock:
             if current_task and current_task.task_id == task.task_id:
                 current_task = None
@@ -577,9 +577,9 @@ def run_report_generation(task: ReportTask, query: str, custom_template: str = "
 @report_bp.route('/status', methods=['GET'])
 def get_status():
     """
-    获取Report Engine状态，包括引擎就绪情况与当前任务信息。
+    Obter status do Report Engine, incluindo estado de prontidao dos motores e informacoes da tarefa atual.
 
-    返回:
+    Retorna:
         Response: JSON结构包含initialized/engines_ready/当前任务等。
     """
     try:
@@ -594,7 +594,7 @@ def get_status():
             'current_task': current_task.to_dict() if current_task else None
         })
     except Exception as e:
-        logger.exception(f"获取Report Engine状态失败: {str(e)}")
+        logger.exception(f"Falha ao obter status do Report Engine: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -604,61 +604,61 @@ def get_status():
 @report_bp.route('/generate', methods=['POST'])
 def generate_report():
     """
-    开始生成报告。
+    Iniciando geracao do relatorio。
 
     负责排队、创建后台线程、清空日志并返回SSE地址。
 
     请求体:
-        query: 报告主题（可选）。
-        custom_template: 自定义模板字符串（可选）。
+        query: relatorio主题（可选）。
+        custom_template: 自定义模板string（可选）。
 
-    返回:
+    Retorna:
         Response: JSON，包含 task_id 与 SSE stream url。
     """
     global current_task
 
     try:
-        # 检查是否有任务在运行
+        # Verificar se ha tarefa em execucao
         with task_lock:
             if current_task and current_task.status == "running":
                 return jsonify({
                     'success': False,
-                    'error': '已有报告生成任务在运行中',
+                    'error': 'Ja existe uma tarefa de geracao de relatorio em execucao',
                     'current_task': current_task.to_dict()
                 }), 400
 
-            # 如果有已完成的任务，清理它
+            # Se houver tarefa concluida, limpa-la
             if current_task and current_task.status in ["completed", "error"]:
                 current_task = None
 
-        # 获取请求参数
+        # Obter parametros da requisicao
         data = request.get_json() or {}
         if not isinstance(data, dict):
             logger.warning("generate_report 接收到非对象JSON负载，已忽略原始内容")
             data = {}
-        query = data.get('query', '智能舆情分析报告')
+        query = data.get('query', 'Relatorio inteligente de analise de opiniao publica')
         custom_template = data.get('custom_template', '')
 
-        # 清空日志文件
+        # 清空日志Arquivo
         clear_report_log()
 
-        # 检查Report Engine是否初始化
+        # Verificar se o Report Engine esta inicializado
         if not report_agent:
             return jsonify({
                 'success': False,
-                'error': 'Report Engine未初始化'
+                'error': 'Report Engine nao inicializado'
             }), 500
 
-        # 检查输入文件是否准备就绪
+        # 检查输入Arquivo是否准备就绪
         engines_status = check_engines_ready()
         if not engines_status['ready']:
             return jsonify({
                 'success': False,
-                'error': '输入文件未准备就绪',
+                'error': 'Arquivos de entrada nao estao prontos',
                 'missing_files': engines_status.get('missing_files', [])
             }), 400
 
-        # 创建新任务
+        # Criar nova tarefa
         task_id = f"report_{int(time.time())}"
         task = ReportTask(query, task_id, custom_template)
 
@@ -667,18 +667,18 @@ def generate_report():
             tasks_registry[task_id] = task
             _prune_task_history_locked()
 
-        # 通过主动推送pending事件告知前端任务已经排队
+        # Notificar o frontend de que a tarefa foi enfileirada via push ativo de evento pending
         task.publish_event(
             'status',
             {
                 'status': task.status,
                 'progress': task.progress,
-                'message': '任务已排队，等待资源空闲',
+                'message': 'Tarefa enfileirada, aguardando recursos disponiveis',
                 'task': task.to_dict(),
             }
         )
 
-        # 在后台线程中运行报告生成
+        # 在后台线程中运行relatorio生成
         thread = threading.Thread(
             target=run_report_generation,
             args=(task, query, custom_template),
@@ -689,13 +689,13 @@ def generate_report():
         return jsonify({
             'success': True,
             'task_id': task_id,
-            'message': '报告生成已启动',
+            'message': 'Geracao do relatorio iniciada',
             'task': task.to_dict(),
             'stream_url': f"/api/report/stream/{task_id}"
         })
 
     except Exception as e:
-        logger.exception(f"开始生成报告失败: {str(e)}")
+        logger.exception(f"Falha ao iniciar geracao do relatorio: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -705,18 +705,18 @@ def generate_report():
 @report_bp.route('/progress/<task_id>', methods=['GET'])
 def get_progress(task_id: str):
     """
-    获取报告生成进度，若任务被清理则返回一个完成态兜底。
+    获取relatorio生成进度，若任务被清理则返回一个完成态兜底。
 
-    参数:
+    Parametros:
         task_id: 任务唯一标识。
 
-    返回:
-        Response: JSON包含任务当前状态。
+    Retorna:
+        Response: JSON包含任务Estado atual。
     """
     try:
         task = _get_task(task_id)
         if not task:
-            # 如果任务不存在，可能是历史记录已被清理，回传一个完成态兜底
+            # 如果Tarefa nao encontrada，可能是历史记录已被清理，回传一个完成态兜底
             return jsonify({
                 'success': True,
                 'task': {
@@ -739,7 +739,7 @@ def get_progress(task_id: str):
         })
 
     except Exception as e:
-        logger.exception(f"获取报告生成进度失败: {str(e)}")
+        logger.exception(f"Falha ao obter progresso da geracao do relatorio: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -749,21 +749,21 @@ def get_progress(task_id: str):
 @report_bp.route('/stream/<task_id>', methods=['GET'])
 def stream_task(task_id: str):
     """
-    基于SSE的实时推送接口。
+    Interface de push em tempo real baseada em SSE.
 
     - 自动补发Last-Event-ID之后的历史事件；
     - 周期性发送心跳以防代理中断；
     - 任务结束后自动注销监听。
 
-    参数:
+    Parametros:
         task_id: 任务唯一标识。
 
-    返回:
+    Retorna:
         Response: `text/event-stream` 类型响应。
     """
     task = _get_task(task_id)
     if not task:
-        return jsonify({'success': False, 'error': '任务不存在'}), 404
+        return jsonify({'success': False, 'error': 'Tarefa nao encontrada'}), 404
 
     last_event_header = request.headers.get('Last-Event-ID')
     try:
@@ -869,26 +869,26 @@ def stream_task(task_id: str):
 @report_bp.route('/result/<task_id>', methods=['GET'])
 def get_result(task_id: str):
     """
-    获取报告生成结果。
+    获取relatorio生成结果。
 
-    参数:
-        task_id: 任务ID。
+    Parametros:
+        task_id: ID da tarefa.
 
-    返回:
-        Response: JSON，包含HTML预览与文件路径。
+    Retorna:
+        Response: JSON，包含HTML预览与ArquivoCaminho。
     """
     try:
         task = _get_task(task_id)
         if not task:
             return jsonify({
                 'success': False,
-                'error': '任务不存在'
+                'error': 'Tarefa nao encontrada'
             }), 404
 
         if task.status != "completed":
             return jsonify({
                 'success': False,
-                'error': '报告尚未完成',
+                'error': 'Relatorio ainda nao concluido',
                 'task': task.to_dict()
             }), 400
 
@@ -898,7 +898,7 @@ def get_result(task_id: str):
         )
 
     except Exception as e:
-        logger.exception(f"获取报告生成结果失败: {str(e)}")
+        logger.exception(f"Falha ao obter resultado da geracao do relatorio: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -907,19 +907,19 @@ def get_result(task_id: str):
 
 @report_bp.route('/result/<task_id>/json', methods=['GET'])
 def get_result_json(task_id: str):
-    """获取报告生成结果（JSON格式）"""
+    """获取relatorio生成结果（JSON格式）"""
     try:
         task = _get_task(task_id)
         if not task:
             return jsonify({
                 'success': False,
-                'error': '任务不存在'
+                'error': 'Tarefa nao encontrada'
             }), 404
 
         if task.status != "completed":
             return jsonify({
                 'success': False,
-                'error': '报告尚未完成',
+                'error': 'Relatorio ainda nao concluido',
                 'task': task.to_dict()
             }), 400
 
@@ -930,7 +930,7 @@ def get_result_json(task_id: str):
         })
 
     except Exception as e:
-        logger.exception(f"获取报告生成结果失败: {str(e)}")
+        logger.exception(f"Falha ao obter resultado da geracao do relatorio: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -940,32 +940,32 @@ def get_result_json(task_id: str):
 @report_bp.route('/download/<task_id>', methods=['GET'])
 def download_report(task_id: str):
     """
-    下载已生成的报告HTML文件。
+    下载已生成的relatorioHTMLArquivo。
 
-    参数:
-        task_id: 任务ID。
+    Parametros:
+        task_id: ID da tarefa.
 
-    返回:
-        Response: HTML文件的附件下载响应。
+    Retorna:
+        Response: HTMLArquivo的附件下载响应。
     """
     try:
         task = _get_task(task_id)
         if not task:
             return jsonify({
                 'success': False,
-                'error': '任务不存在'
+                'error': 'Tarefa nao encontrada'
             }), 404
 
         if task.status != "completed" or not task.report_file_path:
             return jsonify({
                 'success': False,
-                'error': '报告尚未完成或尚未保存'
+                'error': 'Relatorio ainda nao concluido ou nao salvo'
             }), 400
 
         if not os.path.exists(task.report_file_path):
             return jsonify({
                 'success': False,
-                'error': '报告文件不存在或已被删除'
+                'error': 'Arquivo do relatorio nao existe ou foi excluido'
             }), 404
 
         download_name = task.report_file_name or os.path.basename(task.report_file_path)
@@ -977,7 +977,7 @@ def download_report(task_id: str):
         )
 
     except Exception as e:
-        logger.exception(f"下载报告失败: {str(e)}")
+        logger.exception(f"Falha ao baixar relatorio: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -987,13 +987,13 @@ def download_report(task_id: str):
 @report_bp.route('/cancel/<task_id>', methods=['POST'])
 def cancel_task(task_id: str):
     """
-    取消报告生成任务。
+    取消relatorio生成任务。
 
-    参数:
-        task_id: 需要被取消的任务ID。
+    Parametros:
+        task_id: 需要被取消的ID da tarefa.
 
-    返回:
-        Response: JSON，包含取消结果或错误信息。
+    Retorna:
+        Response: JSON，包含取消结果或Erro(s)信息。
     """
     global current_task
 
@@ -1001,32 +1001,32 @@ def cancel_task(task_id: str):
         with task_lock:
             if current_task and current_task.task_id == task_id:
                 if current_task.status == "running":
-                    current_task.update_status("cancelled", 0, "用户取消任务")
+                    current_task.update_status("cancelled", 0, "Tarefa cancelada pelo usuario")
                     current_task.publish_event('cancelled', {
-                        'message': '任务被用户主动终止',
+                        'message': 'Tarefa encerrada pelo usuario',
                         'task': current_task.to_dict(),
                     })
                 current_task = None
             task = tasks_registry.get(task_id)
             if task and task.status == 'running':
-                task.update_status("cancelled", task.progress, "用户取消任务")
+                task.update_status("cancelled", task.progress, "Tarefa cancelada pelo usuario")
                 task.publish_event('cancelled', {
-                    'message': '任务被用户主动终止',
+                    'message': 'Tarefa encerrada pelo usuario',
                     'task': task.to_dict(),
                 })
 
                 return jsonify({
                     'success': True,
-                    'message': '任务已取消'
+                    'message': 'Tarefa cancelada'
                 })
             else:
                 return jsonify({
                     'success': False,
-                    'error': '任务不存在或无法取消'
+                    'error': 'Tarefa nao existe ou nao pode ser cancelada'
                 }), 404
 
     except Exception as e:
-        logger.exception(f"取消报告生成任务失败: {str(e)}")
+        logger.exception(f"Falha ao cancelar tarefa de geracao do relatorio: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -1036,16 +1036,16 @@ def cancel_task(task_id: str):
 @report_bp.route('/templates', methods=['GET'])
 def get_templates():
     """
-    获取可用模板列表，便于前端展示可选Markdown骨架。
+    Obter lista de templates disponiveis para exibir estruturas Markdown opcionais no frontend.
 
-    返回:
+    Retorna:
         Response: JSON，列出模板名称/描述/大小。
     """
     try:
         if not report_agent:
             return jsonify({
                 'success': False,
-                'error': 'Report Engine未初始化'
+                'error': 'Report Engine nao inicializado'
             }), 500
 
         template_dir = settings.TEMPLATE_DIR
@@ -1062,11 +1062,11 @@ def get_templates():
                         templates.append({
                             'name': filename.replace('.md', ''),
                             'filename': filename,
-                            'description': content.split('\n')[0] if content else '无描述',
+                            'description': content.split('\n')[0] if content else 'Sem descricao',
                             'size': len(content)
                         })
                     except Exception as e:
-                        logger.exception(f"读取模板失败 {filename}: {str(e)}")
+                        logger.exception(f"Falha ao ler template {filename}: {str(e)}")
 
         return jsonify({
             'success': True,
@@ -1075,71 +1075,71 @@ def get_templates():
         })
 
     except Exception as e:
-        logger.exception(f"获取可用模板列表失败: {str(e)}")
+        logger.exception(f"Falha ao obter lista de templates disponiveis: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
 
 
-# 错误处理
+# Tratamento de erros
 @report_bp.errorhandler(404)
 def not_found(error):
-    """404兜底处理：保证接口统一返回JSON结构"""
-    logger.exception(f"API端点不存在: {str(error)}")
+    """Tratamento 404: garantir que a interface retorne estrutura JSON uniforme"""
+    logger.exception(f"Endpoint da API nao encontrado: {str(error)}")
     return jsonify({
         'success': False,
-        'error': 'API端点不存在'
+        'error': 'Endpoint da API nao encontrado'
     }), 404
 
 
 @report_bp.errorhandler(500)
 def internal_error(error):
-    """500兜底处理：捕获未被主动捕获的异常"""
-    logger.exception(f"服务器内部错误: {str(error)}")
+    """Tratamento 500: capturar excecoes nao capturadas ativamente"""
+    logger.exception(f"Erro interno do servidor: {str(error)}")
     return jsonify({
         'success': False,
-        'error': '服务器内部错误'
+        'error': 'Erro interno do servidor'
     }), 500
 
 
 def clear_report_log():
     """
-    清空report.log文件，方便新任务只查看本次运行日志。
+    清空report.logArquivo，方便新任务只查看本次运行日志。
 
-    返回:
+    Retorna:
         None
     """
     try:
         log_file = settings.LOG_FILE
 
-        # 【修复】使用truncate而非重新打开，避免与logger的文件句柄冲突
-        # 追加模式打开，然后truncate，保持文件句柄有效
+        # [CORRECAO] 使用truncate而非重新打开，避免与logger的Arquivo句柄冲突
+        # Modo de adição打开，然后truncate，保持Arquivo句柄有效
         with open(log_file, 'r+', encoding='utf-8') as f:
-            f.truncate(0)  # 清空文件内容但不关闭文件
-            f.flush()      # 立即刷新
+            f.truncate(0)  # 清空Arquivo内容但不关闭Arquivo
+            f.flush()      # Flush imediato
 
-        logger.info(f"已清空日志文件: {log_file}")
+        logger.info(f"Arquivo de log limpo: {log_file}")
     except FileNotFoundError:
-        # 文件不存在，创建空文件
+        # Arquivo nao existe，创建空Arquivo
         try:
             with open(log_file, 'w', encoding='utf-8') as f:
                 f.write('')
-            logger.info(f"创建日志文件: {log_file}")
+            logger.info(f"Criando arquivo de log: {log_file}")
         except Exception as e:
-            logger.exception(f"创建日志文件失败: {str(e)}")
+            logger.exception(f"Falha ao criar arquivo de log: {str(e)}")
     except Exception as e:
-        logger.exception(f"清空日志文件失败: {str(e)}")
+        logger.exception(f"Falha ao limpar arquivo de log: {str(e)}")
 
 
 @report_bp.route('/log', methods=['GET'])
 def get_report_log():
     """
-    获取report.log内容，并按行去除空白返回。
+    Obter conteudo do report.log e retornar por linha sem espacos em branco.
 
-    【修复】优化大文件读取，添加错误处理和文件锁
+    【修复】优化大Arquivo读取，添加Erro(s)处理和Arquivo锁
 
-    返回:
+    Retorna:
         Response: JSON，包含最新日志行数组。
     """
     try:
@@ -1151,19 +1151,19 @@ def get_report_log():
                 'log_lines': []
             })
 
-        # 【修复】检查文件大小，避免读取过大文件导致内存问题
+        # [CORRECAO] 检查Arquivo大小，避免读取过大Arquivo导致内存问题
         file_size = os.path.getsize(log_file)
         max_size = 10 * 1024 * 1024  # 10MB限制
 
         if file_size > max_size:
-            # 文件过大，只读取最后10MB
+            # Arquivo过大，只读取最后10MB
             with open(log_file, 'rb') as f:
-                f.seek(-max_size, 2)  # 从文件末尾往前10MB
+                f.seek(-max_size, 2)  # 从Arquivo末尾往前10MB
                 # 跳过可能不完整的第一行
                 f.readline()
                 content = f.read().decode('utf-8', errors='replace')
             lines = content.splitlines()
-            logger.warning(f"日志文件过大 ({file_size} bytes)，仅返回最后 {max_size} bytes")
+            logger.warning(f"Arquivo de log muito grande ({file_size} bytes)，retornando apenas os ultimos {max_size} bytes")
         else:
             # 正常大小，完整读取
             with open(log_file, 'r', encoding='utf-8', errors='replace') as f:
@@ -1178,72 +1178,72 @@ def get_report_log():
         })
 
     except PermissionError as e:
-        logger.error(f"读取日志权限不足: {str(e)}")
+        logger.error(f"Permissao insuficiente para ler logs: {str(e)}")
         return jsonify({
             'success': False,
-            'error': '读取日志权限不足'
+            'error': 'Permissao insuficiente para ler logs'
         }), 403
     except UnicodeDecodeError as e:
-        logger.error(f"日志文件编码错误: {str(e)}")
+        logger.error(f"Erro de codificacao do arquivo de log: {str(e)}")
         return jsonify({
             'success': False,
-            'error': '日志文件编码错误'
+            'error': 'Erro de codificacao do arquivo de log'
         }), 500
     except Exception as e:
-        logger.exception(f"读取日志失败: {str(e)}")
+        logger.exception(f"Falha ao ler logs: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'读取日志失败: {str(e)}'
+            'error': f'Falha ao ler logs: {str(e)}'
         }), 500
 
 
 @report_bp.route('/log/clear', methods=['POST'])
 def clear_log():
     """
-    手动清空日志，提供REST入口供前端一键重置。
+    Limpar logs manualmente, fornecendo endpoint REST para reset pelo frontend.
 
-    返回:
+    Retorna:
         Response: JSON，标记是否清理成功。
     """
     try:
         clear_report_log()
         return jsonify({
             'success': True,
-            'message': '日志已清空'
+            'message': 'Logs limpos'
         })
     except Exception as e:
-        logger.exception(f"清空日志失败: {str(e)}")
+        logger.exception(f"Falha ao limpar logs: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'清空日志失败: {str(e)}'
+            'error': f'Falha ao limpar logs: {str(e)}'
         }), 500
 
 
 @report_bp.route('/export/md/<task_id>', methods=['GET'])
 def export_markdown(task_id: str):
     """
-    导出报告为 Markdown 格式。
+    导出relatorio为 Markdown 格式。
 
-    基于已保存的 Document IR 调用 MarkdownRenderer，生成文件并返回下载。
+    基于已保存的 Document IR 调用 MarkdownRenderer，生成Arquivo并返回下载。
     """
     try:
         task = tasks_registry.get(task_id)
         if not task:
             return jsonify({
                 'success': False,
-                'error': '任务不存在'
+                'error': 'Tarefa nao encontrada'
             }), 404
 
         if task.status != 'completed':
             return jsonify({
                 'success': False,
-                'error': f'任务未完成，当前状态: {task.status}'
+                'error': f'任务未完成，Estado atual: {task.status}'
             }), 400
 
         if not task.ir_file_path or not os.path.exists(task.ir_file_path):
             return jsonify({
                 'success': False,
-                'error': 'IR文件不存在，无法生成Markdown'
+                'error': 'IRArquivo nao existe，无法生成Markdown'
             }), 404
 
         with open(task.ir_file_path, 'r', encoding='utf-8') as f:
@@ -1251,7 +1251,7 @@ def export_markdown(task_id: str):
 
         from .renderers import MarkdownRenderer
         renderer = MarkdownRenderer()
-        # 传入 ir_file_path，修复后的图表会自动保存到 IR 文件
+        # 传入 ir_file_path，修复后的图表会自动保存到 IR Arquivo
         markdown_text = renderer.render(document_ir, ir_file_path=task.ir_file_path)
 
         metadata = document_ir.get('metadata') if isinstance(document_ir, dict) else {}
@@ -1269,7 +1269,7 @@ def export_markdown(task_id: str):
         task.markdown_file_relative_path = os.path.relpath(task.markdown_file_path, os.getcwd())
         task.markdown_file_name = filename
 
-        logger.info(f"导出Markdown完成: {md_path}")
+        logger.info(f"Exportacao para Markdown concluida: {md_path}")
 
         return send_file(
             task.markdown_file_path,
@@ -1279,28 +1279,28 @@ def export_markdown(task_id: str):
         )
 
     except Exception as e:
-        logger.exception(f"导出Markdown失败: {str(e)}")
+        logger.exception(f"Falha ao exportar Markdown: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'导出Markdown失败: {str(e)}'
+            'error': f'Falha ao exportar Markdown: {str(e)}'
         }), 500
 
 
 @report_bp.route('/export/pdf/<task_id>', methods=['GET'])
 def export_pdf(task_id: str):
     """
-    导出报告为PDF格式。
+    导出relatorio为PDF格式。
 
-    从IR JSON文件生成优化的PDF，支持自动布局调整。
+    从IR JSONArquivo生成优化的PDF，支持自动布局调整。
 
-    参数:
+    Parametros:
         task_id: 任务ID
 
-    查询参数:
+    查询Parametros:
         optimize: 是否启用布局优化（默认true）
 
-    返回:
-        Response: PDF文件流或错误信息
+    Retorna:
+        Response: PDFArquivo流或Erro(s)信息
     """
     try:
         # 检测 Pango 依赖
@@ -1309,8 +1309,8 @@ def export_pdf(task_id: str):
         if not pango_available:
             return jsonify({
                 'success': False,
-                'error': 'PDF 导出功能不可用：缺少系统依赖',
-                'details': '请查看根目录 README.md “源码启动”的第二步（PDF 导出依赖）了解安装方法',
+                'error': 'Funcao de exportacao de PDF indisponivel: dependencias do sistema ausentes',
+                'details': '请查看根Sumario README.md “源码启动”的第二步（PDF 导出依赖）了解安装方法',
                 'help_url': 'https://github.com/666ghj/BettaFish#2-安装-pdf-导出所需系统依赖可选',
                 'system_message': pango_message
             }), 503
@@ -1320,24 +1320,24 @@ def export_pdf(task_id: str):
         if not task:
             return jsonify({
                 'success': False,
-                'error': '任务不存在'
+                'error': 'Tarefa nao encontrada'
             }), 404
 
         # 检查任务是否完成
         if task.status != 'completed':
             return jsonify({
                 'success': False,
-                'error': f'任务未完成，当前状态: {task.status}'
+                'error': f'任务未完成，Estado atual: {task.status}'
             }), 400
 
-        # 获取IR文件路径
+        # 获取IRArquivoCaminho
         if not task.ir_file_path or not os.path.exists(task.ir_file_path):
             return jsonify({
                 'success': False,
-                'error': 'IR文件不存在'
+                'error': 'IRArquivo nao existe'
             }), 404
 
-        # 读取IR数据
+        # Ler dados do IR
         with open(task.ir_file_path, 'r', encoding='utf-8') as f:
             document_ir = json.load(f)
 
@@ -1350,14 +1350,14 @@ def export_pdf(task_id: str):
 
         logger.info(f"开始导出PDF，任务ID: {task_id}，布局优化: {optimize}")
 
-        # 生成PDF字节流
+        # Gerar PDF字节流
         pdf_bytes = renderer.render_to_bytes(document_ir, optimize_layout=optimize)
 
-        # 确定下载文件名
+        # 确定下载Arquivo名
         topic = document_ir.get('metadata', {}).get('topic', 'report')
         pdf_filename = f"report_{topic}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
 
-        # 返回PDF文件
+        # 返回PDFArquivo
         return Response(
             pdf_bytes,
             mimetype='application/pdf',
@@ -1368,17 +1368,17 @@ def export_pdf(task_id: str):
         )
 
     except Exception as e:
-        logger.exception(f"导出PDF失败: {str(e)}")
+        logger.exception(f"Falha ao exportar PDF: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'导出PDF失败: {str(e)}'
+            'error': f'Falha ao exportar PDF: {str(e)}'
         }), 500
 
 
 @report_bp.route('/export/pdf-from-ir', methods=['POST'])
 def export_pdf_from_ir():
     """
-    从IR JSON直接导出PDF（不需要任务ID）。
+    Exportar PDF diretamente do IR JSON (sem necessidade de ID de tarefa).
 
     适用于前端直接传递IR数据的场景。
 
@@ -1388,8 +1388,8 @@ def export_pdf_from_ir():
             "optimize": true       // 是否启用布局优化（可选）
         }
 
-    返回:
-        Response: PDF文件流或错误信息
+    Retorna:
+        Response: PDFArquivo流或Erro(s)信息
     """
     try:
         # 检测 Pango 依赖
@@ -1398,8 +1398,8 @@ def export_pdf_from_ir():
         if not pango_available:
             return jsonify({
                 'success': False,
-                'error': 'PDF 导出功能不可用：缺少系统依赖',
-                'details': '请查看根目录 README.md “源码启动”的第二步（PDF 导出依赖）了解安装方法',
+                'error': 'Funcao de exportacao de PDF indisponivel: dependencias do sistema ausentes',
+                'details': '请查看根Sumario README.md “源码启动”的第二步（PDF 导出依赖）了解安装方法',
                 'help_url': 'https://github.com/666ghj/BettaFish#2-安装-pdf-导出所需系统依赖可选',
                 'system_message': pango_message
             }), 503
@@ -1409,13 +1409,13 @@ def export_pdf_from_ir():
             logger.warning("export_pdf_from_ir 请求体不是JSON对象")
             return jsonify({
                 'success': False,
-                'error': '请求体必须是JSON对象'
+                'error': 'O corpo da requisicao deve ser um objeto JSON'
             }), 400
 
         if not data or 'document_ir' not in data:
             return jsonify({
                 'success': False,
-                'error': '缺少document_ir参数'
+                'error': 'Parametro document_ir ausente'
             }), 400
 
         document_ir = data['document_ir']
@@ -1425,16 +1425,16 @@ def export_pdf_from_ir():
         from .renderers import PDFRenderer
         renderer = PDFRenderer()
 
-        logger.info(f"从IR直接导出PDF，布局优化: {optimize}")
+        logger.info(f"Exportando PDF diretamente do IR, otimizacao de layout: {optimize}")
 
-        # 生成PDF字节流
+        # Gerar PDF字节流
         pdf_bytes = renderer.render_to_bytes(document_ir, optimize_layout=optimize)
 
-        # 确定下载文件名
+        # 确定下载Arquivo名
         topic = document_ir.get('metadata', {}).get('topic', 'report')
         pdf_filename = f"report_{topic}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
 
-        # 返回PDF文件
+        # 返回PDFArquivo
         return Response(
             pdf_bytes,
             mimetype='application/pdf',
@@ -1445,8 +1445,8 @@ def export_pdf_from_ir():
         )
 
     except Exception as e:
-        logger.exception(f"从IR导出PDF失败: {str(e)}")
+        logger.exception(f"Falha ao exportar PDF a partir do IR: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'导出PDF失败: {str(e)}'
+            'error': f'Falha ao exportar PDF: {str(e)}'
         }), 500

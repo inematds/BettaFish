@@ -1,6 +1,6 @@
 """
-检测系统依赖工具
-用于检测 PDF 生成所需的系统依赖
+Ferramenta de detecao de dependencias do sistema
+Usada para detectar dependencias necessarias para geracao de PDF
 """
 import os
 import sys
@@ -77,12 +77,12 @@ def _get_platform_specific_instructions():
                 "🪟 Windows 系统解决方案：",
                 "",
                 "步骤 1: 安装 GTK3 Runtime（宿主机执行）",
-                "  下载页: README 中的 GTK3 Runtime 链接（建议默认路径）",
+                "  下载页: README 中的 GTK3 Runtime 链接（建议默认Caminho）",
                 "",
-                "步骤 2: 将 GTK 安装目录下的 bin 加入 PATH（需新终端）",
+                "步骤 2: 将 GTK 安装Sumario下的 bin 加入 PATH（需新终端）",
                 "  set PATH=C:\\Program Files\\GTK3-Runtime Win64\\bin;%PATH%",
-                "  自定义路径请替换，或设置环境变量 GTK_BIN_PATH",
-                "  可选: 永久添加 PATH 示例:",
+                "  自定义Caminho请替换，或设置环境变量 GTK_BIN_PATH",
+                "  可选: 永久添加 PATH Exemplos:",
                 "    setx PATH \"C:\\Program Files\\GTK3-Runtime Win64\\bin;%PATH%\"",
                 "",
                 "步骤 3: 验证（新终端执行）",
@@ -96,10 +96,10 @@ def _get_platform_specific_instructions():
 
 def _ensure_windows_gtk_paths():
     """
-    为 Windows 自动补充 GTK/Pango 运行时搜索路径，解决 DLL 未找到问题。
+    为 Windows 自动补充 GTK/Pango 运行时搜索Caminho，解决 DLL 未Encontrado(s)问题。
 
     Returns:
-        str | None: 成功添加的路径（没有命中则为 None）
+        str | None: 成功添加的Caminho（没有命中则为 None）
     """
     if platform.system() != "Windows":
         return None
@@ -108,11 +108,11 @@ def _ensure_windows_gtk_paths():
     seen = set()
 
     def _add_candidate(path_like):
-        """收集可能的GTK安装路径，避免重复并兼容用户自定义目录"""
+        """收集可能的GTK安装Caminho，避免重复并兼容用户自定义Sumario"""
         if not path_like:
             return
         p = Path(path_like)
-        # 如果传入的是安装根目录，尝试拼接 bin
+        # 如果传入的是安装根Sumario，尝试拼接 bin
         if p.is_dir() and p.name.lower() == "bin":
             key = str(p.resolve()).lower()
             if key not in seen:
@@ -140,12 +140,12 @@ def _ensure_windows_gtk_paths():
         Path(program_files_x86) / "GTK3-Runtime",
     ]
 
-    # 常见自定义安装位置（其他盘符 / DevelopSoftware 目录）
+    # 常见自定义安装位置（其他盘符 / DevelopSoftware Sumario）
     common_drives = ["C", "D", "E", "F"]
     common_names = ["GTK3-Runtime Win64", "GTK3-Runtime Win32", "GTK3-Runtime"]
     for drive in common_drives:
         root = Path(f"{drive}:/")
-        # 检测路径是否存在并可访问
+        # 检测Caminho是否存在并可访问
         try:
             if root.exists():
                 for name in common_names:
@@ -155,7 +155,7 @@ def _ensure_windows_gtk_paths():
             # print(f'盘{drive}不存在或被加密，已跳过')
             pass
 
-    # 扫描 Program Files 下所有以 GTK 开头的目录，适配自定义安装目录名
+    # 扫描 Program Files 下所有以 GTK 开头的Sumario，适配自定义安装Sumario名
     for root in (program_files, program_files_x86):
         root_path = Path(root)
         if root_path.exists():
@@ -165,12 +165,12 @@ def _ensure_windows_gtk_paths():
     for d in default_dirs:
         _add_candidate(d)
 
-    # 如果用户已把自定义路径加入 PATH，也尝试识别
+    # 如果用户已把自定义Caminho加入 PATH，也尝试识别
     path_entries = os.environ.get("PATH", "").split(os.pathsep)
     for entry in path_entries:
         if not entry:
             continue
-        # 粗筛包含 gtk 或 pango 的目录
+        # 粗筛包含 gtk 或 pango 的Sumario
         if "gtk" in entry.lower() or "pango" in entry.lower():
             _add_candidate(entry)
 
@@ -198,10 +198,10 @@ def _ensure_windows_gtk_paths():
 
 def prepare_pango_environment():
     """
-    初始化运行所需的本地依赖搜索路径（当前主要针对 Windows 和 macOS）。
+    初始化运行所需的本地依赖搜索Caminho（当前主要针对 Windows 和 macOS）。
 
     Returns:
-        str | None: 成功添加的路径（没有命中则为 None）
+        str | None: 成功添加的Caminho（没有命中则为 None）
     """
     system = platform.system()
     if system == "Windows":
@@ -225,7 +225,7 @@ def _probe_native_libs():
     使用 ctypes 查找关键原生库，帮助定位缺失组件。
 
     Returns:
-        list[str]: 未找到的库标识
+        list[str]: 未Encontrado(s)的库标识
     """
     system = platform.system()
     targets = []
@@ -278,9 +278,9 @@ def check_pango_available():
         platform_instructions = _get_platform_specific_instructions()
         windows_hint = ""
         if platform.system() == "Windows":
-            prefix = "已尝试自动添加 GTK 路径: "
+            prefix = "已尝试自动添加 GTK Caminho: "
             max_path_len = BOX_CONTENT_WIDTH - len(prefix)
-            path_display = added_path or "未找到默认路径"
+            path_display = added_path or "未Encontrado(s)默认Caminho"
             if len(path_display) > max_path_len:
                 path_display = path_display[: max_path_len - 3] + "..."
             windows_hint = _box_line(prefix + path_display)
@@ -298,9 +298,9 @@ def check_pango_available():
             box_bottom = "╚" + "═" * 64 + "╝"
             return False, (
                 box_top
-                + _box_line("⚠️  PDF 导出依赖缺失")
+                + _box_line("⚠️  Dependencias de exportacao PDF ausentes")
                 + _box_line()
-                + _box_line("📄 PDF 导出功能将不可用（其他功能不受影响）")
+                + _box_line("📄 Funcao de exportacao PDF nao estara disponivel (outras funcoes nao sao afetadas)")
                 + _box_line()
                 + windows_hint
                 + arch_note
@@ -318,8 +318,8 @@ def check_pango_available():
             "解决方法: pip install weasyprint"
         )
     except Exception as e:
-        # 其他未知错误
-        return False, f"⚠ PDF 依赖检测失败: {e}"
+        # 其他Erro desconhecido
+        return False, f"⚠ PDF Falha na detecao de dependencias: {e}"
 
 
 def log_dependency_status():

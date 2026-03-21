@@ -1,5 +1,5 @@
 """
-Markdown模板切片工具。
+Ferramenta de fatiamento de template Markdown.
 
 LLM需要“按章调用”，因此必须把Markdown模板解析为结构化章节队列。
 这里通过轻量正则和缩进启发式，兼容“# 标题”与
@@ -19,10 +19,10 @@ SECTION_ORDER_STEP = 10
 @dataclass
 class TemplateSection:
     """
-    模板章节实体。
+    Entidade de capitulo do template.
 
-    记录标题、slug、序号、层级、原始标题、章节编号与提纲，
-    方便后续节点在提示词中引用并保持锚点一致。
+    Registra titulo, slug, numero de ordem, nivel, titulo original, numero do capitulo e esbocos,
+    facilitando que nos subsequentes os referenciem em prompts e mantenham ancoras consistentes.
     """
 
     title: str
@@ -36,9 +36,9 @@ class TemplateSection:
 
     def to_dict(self) -> dict:
         """
-        将章节实体序列化为字典。
+        Serializar entidade de capitulo como dicionario.
 
-        该结构广泛用于提示词上下文以及 layout/word budget 节点的输入。
+        Esta estrutura e amplamente usada no contexto de prompts e como entrada para nos de layout/word budget.
         """
         return {
             "title": self.title,
@@ -51,19 +51,19 @@ class TemplateSection:
         }
 
 
-# 解析表达式刻意避免使用 `.*`，以保持匹配的确定性，
-# 并规避不可信模板文本中常见的正则DoS风险。
+# Expressao de analise evita intencionalmente o uso de `.*`，para manter determinismo na correspondencia,
+# e evitar riscos de regex DoS comuns em textos de template nao confiaveis.
 heading_pattern = re.compile(
     r"""
-    (?P<marker>\#{1,6})       # Markdown标题标记
-    [ \t]+                    # 必需的空白字符
-    (?P<title>[^\r\n]+)       # 不包含换行的标题文本
+    (?P<marker>\#{1,6})       # Marcador de titulo Markdown
+    [ \t]+                    # caractere de espaco obrigatorio
+    (?P<title>[^\r\n]+)       # Texto do titulo sem quebra de linha
     """,
     re.VERBOSE,
 )
 bullet_pattern = re.compile(
     r"""
-    (?P<marker>[-*+])         # 列表项目符号
+    (?P<marker>[-*+])         # Marcador de item de lista
     [ \t]+
     (?P<title>[^\r\n]+)
     """,
@@ -86,17 +86,17 @@ number_pattern = re.compile(
 
 def parse_template_sections(template_md: str) -> List[TemplateSection]:
     """
-    将Markdown模板切分成章节列表（按大标题）。
+    Dividir template Markdown em lista de capitulos (por titulos principais).
 
-    返回的每个TemplateSection都携带slug/order/章节号，
-    方便后续分章调用与锚点生成。解析时会同时兼容
+    Cada TemplateSection retornado carrega slug/order/numero do capitulo,
+    facilitando chamadas por capitulo e geracao de ancoras. A analise e compativel com
     “# 标题”“无符号编号”“列表提纲”等不同写法。
 
-    参数:
-        template_md: 模板Markdown全文。
+    Parametros:
+        template_md: Texto completo do template Markdown.
 
-    返回:
-        list[TemplateSection]: 结构化的章节序列。
+    Retorna:
+        list[TemplateSection]: Sequencia estruturada de capitulos.
     """
 
     sections: List[TemplateSection] = []
@@ -130,12 +130,12 @@ def parse_template_sections(template_md: str) -> List[TemplateSection]:
             order += SECTION_ORDER_STEP
             continue
 
-        # 提纲条目
+        # Entrada de esboco
         if current:
             current.outline.append(meta["title"])
 
     for idx, section in enumerate(sections, start=1):
-        # 为每个章节生成稳定的chapter_id，便于后续引用
+        # Gerar chapter_id estavel para cada capitulo, facilitando referencia posterior
         section.chapter_id = f"S{idx}"
 
     return sections
@@ -143,17 +143,17 @@ def parse_template_sections(template_md: str) -> List[TemplateSection]:
 
 def _classify_line(stripped: str, indent: int) -> Optional[dict]:
     """
-    根据缩进与符号分类行。
+    Classificar linhas por indentacao e simbolos.
 
-    借助正则判断当前行是章节标题、提纲还是普通列表项，
-    并衍生 depth/slug/number 等派生信息。
+    Usando regex para determinar se a linha atual e titulo de capitulo, esboco ou item de lista comum,
+    e derivar informacoes como depth/slug/number.
 
-    参数:
-        stripped: 去除前后空格后的原始行。
-        indent: 行首空格数量，用于区分层级。
+    Parametros:
+        stripped: Linha original apos remover espacos iniciais e finais.
+        indent: Numero de espacos no inicio da linha, usado para distinguir niveis.
 
-    返回:
-        dict | None: 识别后的元数据；无法识别时返回None。
+    Retorna:
+        dict | None: Metadados identificados; retorna None quando nao identificavel.
     """
 
     heading_match = heading_pattern.fullmatch(stripped)
@@ -187,7 +187,7 @@ def _classify_line(stripped: str, indent: int) -> Optional[dict]:
             "slug": slug,
         }
 
-    # 兼容“1.1 ...”没有前缀符号的行
+    # Compativel com“1.1 ...”linhas sem simbolo de prefixo
     number_match = number_pattern.fullmatch(stripped)
     if number_match and number_match.group("label"):
         payload = stripped
@@ -210,7 +210,7 @@ def _classify_line(stripped: str, indent: int) -> Optional[dict]:
 
 
 def _strip_markup(text: str) -> str:
-    """去除包裹的**、__等强调标记，避免干扰标题匹配。"""
+    """Remover marcacoes de enfase como **, __, etc., evitando interferencia na correspondencia de titulos."""
     if text.startswith(("**", "__")) and text.endswith(("**", "__")) and len(text) > 4:
         return text[2:-2].strip()
     return text
@@ -218,16 +218,16 @@ def _strip_markup(text: str) -> str:
 
 def _split_number(payload: str) -> dict:
     """
-    拆分编号与标题。
+    Dividir numero e titulo.
 
-    例如 `1.2 市场趋势` 会被拆成 number=1.2、label=市场趋势，
-    并提供 display 用于回填标题。
+    Ex: `1.2 Tendencia de mercado` sera dividido em number=1.2, label=Tendencia de mercado,
+    e fornece display para repreenchimento do titulo.
 
-    参数:
-        payload: 原始标题字符串。
+    Parametros:
+        payload: String de titulo original.
 
-    返回:
-        dict: 包含 number/title/display。
+    Retorna:
+        dict: Contendo number/title/display.
     """
     match = number_pattern.fullmatch(payload)
     number = match.group("num") if match else ""
@@ -244,14 +244,14 @@ def _split_number(payload: str) -> dict:
 
 def _build_slug(number: str, title: str) -> str:
     """
-    根据编号/标题生成锚点，优先复用编号，缺失时对标题slug化。
+    Gerar ancora com base em numero/titulo, priorizando reutilizacao do numero; slug-ificar titulo quando ausente.
 
-    参数:
-        number: 章节编号。
-        title: 标题文本。
+    Parametros:
+        number: Numero do capitulo.
+        title: Texto do titulo.
 
-    返回:
-        str: 形如 `section-1-0` 的slug。
+    Retorna:
+        str: Slug no formato `section-1-0`.
     """
     if number:
         token = number.replace(".", "-")
@@ -263,9 +263,9 @@ def _build_slug(number: str, title: str) -> str:
 
 def _slugify_text(text: str) -> str:
     """
-    对任意文本做降噪与转写，得到URL友好的slug片段。
+    Fazer reducao de ruido e transliteracao de texto arbitrario para obter fragmento slug compativel com URL.
 
-    会规整大小写、移除特殊符号并保留汉字，确保锚点可读。
+    Normaliza maiusculas/minusculas, remove simbolos especiais e preserva caracteres chineses, garantindo ancoras legiveis.
     """
     text = unicodedata.normalize("NFKD", text)
     text = text.replace("·", "-").replace(" ", "-")
@@ -276,16 +276,16 @@ def _slugify_text(text: str) -> str:
 
 def _ensure_unique_slug(slug: str, used: set) -> str:
     """
-    若slug重复则自动追加序号，直到在used集合中唯一。
+    Se o slug for duplicado, anexar numero automaticamente ate ser unico no conjunto used.
 
-    通过 `-2/-3...` 的方式保证相同标题不会产生重复锚点。
+    Garante que titulos identicos nao produzam ancoras duplicadas usando sufixos `-2/-3...`.
 
-    参数:
-        slug: 初始slug。
-        used: 已使用集合。
+    Parametros:
+        slug: Slug inicial.
+        used: Conjunto utilizado.
 
-    返回:
-        str: 去重后的slug。
+    Retorna:
+        str: Slug deduplicado.
     """
     if slug not in used:
         used.add(slug)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DeepSentimentCrawling模块 - 关键词管理器
-从BroadTopicExtraction模块获取关键词并分配给不同平台进行爬取
+Modulo DeepSentimentCrawling - Gerenciador de palavras-chave
+Obtem palavras-chave do modulo BroadTopicExtraction e distribui para diferentes plataformas para crawling
 """
 
 import sys
@@ -14,28 +14,28 @@ import random
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
-# 添加项目根目录到路径
+# Adicionar diretorio raiz do projeto ao path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 try:
     import config
 except ImportError:
-    raise ImportError("无法导入config.py配置文件")
+    raise ImportError("Nao foi possivel importar o arquivo de configuracao config.py")
 
 from config import settings
 from loguru import logger
 
 class KeywordManager:
-    """关键词管理器"""
-    
+    """Gerenciador de palavras-chave"""
+
     def __init__(self):
-        """初始化关键词管理器"""
+        """Inicializar gerenciador de palavras-chave"""
         self.engine: Engine = None
         self.connect()
-    
+
     def connect(self):
-        """连接数据库"""
+        """Conectar ao banco de dados"""
         try:
             dialect = (settings.DB_DIALECT or "mysql").lower()
             if dialect in ("postgresql", "postgres"):
@@ -43,114 +43,114 @@ class KeywordManager:
             else:
                 url = f"mysql+pymysql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}?charset={settings.DB_CHARSET}"
             self.engine = create_engine(url, future=True)
-            logger.info(f"关键词管理器成功连接到数据库: {settings.DB_NAME}")
+            logger.info(f"Gerenciador de palavras-chave conectado com sucesso ao banco de dados: {settings.DB_NAME}")
         except ModuleNotFoundError as e:
             missing: str = str(e)
             if "psycopg" in missing:
-                logger.error("数据库连接失败: 未安装PostgreSQL驱动 psycopg。请安装: psycopg[binary]。参考指令：uv pip install psycopg[binary]")
+                logger.error("Falha na conexao com o banco de dados: driver PostgreSQL psycopg nao instalado. Instale: psycopg[binary]. Comando: uv pip install psycopg[binary]")
             elif "pymysql" in missing:
-                logger.error("数据库连接失败: 未安装MySQL驱动 pymysql。请安装: pymysql。参考指令：uv pip install pymysql")
+                logger.error("Falha na conexao com o banco de dados: driver MySQL pymysql nao instalado. Instale: pymysql. Comando: uv pip install pymysql")
             else:
-                logger.error(f"数据库连接失败(缺少驱动): {e}")
+                logger.error(f"Falha na conexao com o banco de dados (driver ausente): {e}")
             raise
         except Exception as e:
-            logger.exception(f"关键词管理器数据库连接失败: {e}")
+            logger.exception(f"Falha na conexao do gerenciador de palavras-chave com o banco de dados: {e}")
             raise
-    
+
     def get_latest_keywords(self, target_date: date = None, max_keywords: int = 100) -> List[str]:
         """
-        获取最新的关键词列表
-        
+        Obter a lista de palavras-chave mais recente
+
         Args:
-            target_date: 目标日期，默认为今天
-            max_keywords: 最大关键词数量
-        
+            target_date: Data alvo, padrao e hoje
+            max_keywords: Quantidade maxima de palavras-chave
+
         Returns:
-            关键词列表
+            Lista de palavras-chave
         """
         if not target_date:
             target_date = date.today()
-        
-        logger.info(f"正在获取 {target_date} 的关键词...")
-        
-        # 首先尝试获取指定日期的关键词
+
+        logger.info(f"Obtendo palavras-chave de {target_date}...")
+
+        # Primeiro tentar obter palavras-chave da data especificada
         topics_data = self.get_daily_topics(target_date)
-        
+
         if topics_data and topics_data.get('keywords'):
             keywords = topics_data['keywords']
-            logger.info(f"成功获取 {target_date} 的 {len(keywords)} 个关键词")
-            
-            # 如果关键词太多，随机选择指定数量
+            logger.info(f"Obtidas com sucesso {len(keywords)} palavras-chave de {target_date}")
+
+            # Se houver muitas palavras-chave, selecionar aleatoriamente a quantidade especificada
             if len(keywords) > max_keywords:
                 keywords = random.sample(keywords, max_keywords)
-                logger.info(f"随机选择了 {max_keywords} 个关键词")
-            
+                logger.info(f"Selecionadas aleatoriamente {max_keywords} palavras-chave")
+
             return keywords
-        
-        # 如果没有当天的关键词，尝试获取最近几天的
-        logger.info(f"{target_date} 没有关键词数据，尝试获取最近的关键词...")
+
+        # Se nao houver palavras-chave para o dia, tentar obter dos ultimos dias
+        logger.info(f"Sem dados de palavras-chave para {target_date}, tentando obter palavras-chave recentes...")
         recent_topics = self.get_recent_topics(days=7)
-        
+
         if recent_topics:
-            # 合并最近几天的关键词
+            # Combinar palavras-chave dos ultimos dias
             all_keywords = []
             for topic in recent_topics:
                 if topic.get('keywords'):
                     all_keywords.extend(topic['keywords'])
-            
-            # 去重并限制数量
+
+            # Remover duplicatas e limitar quantidade
             unique_keywords = list(set(all_keywords))
             if len(unique_keywords) > max_keywords:
                 unique_keywords = random.sample(unique_keywords, max_keywords)
-            
-            logger.info(f"从最近7天的数据中获取到 {len(unique_keywords)} 个关键词")
+
+            logger.info(f"Obtidas {len(unique_keywords)} palavras-chave dos dados dos ultimos 7 dias")
             return unique_keywords
-        
-        # 如果都没有，返回默认关键词
-        logger.info("没有找到任何关键词数据，使用默认关键词")
+
+        # Se nenhuma foi encontrada, retornar palavras-chave padrao
+        logger.info("Nenhum dado de palavras-chave encontrado, usando palavras-chave padrao")
         return self._get_default_keywords()
-    
+
     def get_daily_topics(self, extract_date: date = None) -> Optional[Dict]:
         """
-        获取每日话题分析
-        
+        Obter analise de topicos diarios
+
         Args:
-            extract_date: 提取日期，默认为今天
-        
+            extract_date: Data de extracao, padrao e hoje
+
         Returns:
-            话题分析数据，如果不存在返回None
+            Dados de analise de topicos, None se nao existir
         """
         if not extract_date:
             extract_date = date.today()
-        
+
         try:
             with self.engine.connect() as conn:
                 result = conn.execute(
                     text("SELECT * FROM daily_topics WHERE extract_date = :d"),
                     {"d": extract_date},
                 ).mappings().first()
-            
+
             if result:
-                # 转为可变dict再赋值
+                # Converter para dict mutavel antes de atribuir
                 result = dict(result)
                 result['keywords'] = json.loads(result['keywords']) if result.get('keywords') else []
                 return result
             else:
                 return None
-                
+
         except Exception as e:
-            logger.exception(f"获取话题分析失败: {e}")
+            logger.exception(f"Falha ao obter analise de topicos: {e}")
             return None
-    
+
     def get_recent_topics(self, days: int = 7) -> List[Dict]:
         """
-        获取最近几天的话题分析
-        
+        Obter analise de topicos dos ultimos dias
+
         Args:
-            days: 天数
-        
+            days: Numero de dias
+
         Returns:
-            话题分析列表
+            Lista de analises de topicos
         """
         try:
             start_date = date.today() - timedelta(days=days)
@@ -158,136 +158,136 @@ class KeywordManager:
                 results = conn.execute(
                     text(
                         """
-                        SELECT * FROM daily_topics 
+                        SELECT * FROM daily_topics
                         WHERE extract_date >= :start_date
                         ORDER BY extract_date DESC
                         """
                     ),
                     {"start_date": start_date},
                 ).mappings().all()
-            
-            # 转为可变dict列表再处理
+
+            # Converter para lista de dicts mutaveis antes de processar
             results = [dict(r) for r in results]
             for result in results:
                 result['keywords'] = json.loads(result['keywords']) if result.get('keywords') else []
-            
+
             return results
-            
+
         except Exception as e:
-            logger.exception(f"获取最近话题分析失败: {e}")
+            logger.exception(f"Falha ao obter analises de topicos recentes: {e}")
             return []
-    
+
     def _get_default_keywords(self) -> List[str]:
-        """获取默认关键词列表"""
+        """Obter lista de palavras-chave padrao"""
         return [
-            "科技", "人工智能", "AI", "编程", "互联网",
-            "创业", "投资", "理财", "股市", "经济",
-            "教育", "学习", "考试", "大学", "就业",
-            "健康", "养生", "运动", "美食", "旅游",
-            "时尚", "美妆", "购物", "生活", "家居",
-            "电影", "音乐", "游戏", "娱乐", "明星",
-            "新闻", "热点", "社会", "政策", "环保"
+            "tecnologia", "inteligencia artificial", "AI", "programacao", "internet",
+            "empreendedorismo", "investimento", "financas", "bolsa de valores", "economia",
+            "educacao", "aprendizado", "concurso", "universidade", "emprego",
+            "saude", "bem-estar", "esportes", "gastronomia", "turismo",
+            "moda", "beleza", "compras", "estilo de vida", "decoracao",
+            "cinema", "musica", "jogos", "entretenimento", "celebridades",
+            "noticias", "destaques", "sociedade", "politicas", "meio ambiente"
         ]
-    
-    def get_all_keywords_for_platforms(self, platforms: List[str], target_date: date = None, 
+
+    def get_all_keywords_for_platforms(self, platforms: List[str], target_date: date = None,
                                       max_keywords: int = 100) -> List[str]:
         """
-        为所有平台获取相同的关键词列表
-        
+        Obter a mesma lista de palavras-chave para todas as plataformas
+
         Args:
-            platforms: 平台列表
-            target_date: 目标日期
-            max_keywords: 最大关键词数量
-        
+            platforms: Lista de plataformas
+            target_date: Data alvo
+            max_keywords: Quantidade maxima de palavras-chave
+
         Returns:
-            关键词列表（所有平台共用）
+            Lista de palavras-chave (compartilhada por todas as plataformas)
         """
         keywords = self.get_latest_keywords(target_date, max_keywords)
-        
+
         if keywords:
-            logger.info(f"为 {len(platforms)} 个平台准备了相同的 {len(keywords)} 个关键词")
-            logger.info(f"每个关键词将在所有平台上进行爬取")
-        
+            logger.info(f"Preparadas as mesmas {len(keywords)} palavras-chave para {len(platforms)} plataformas")
+            logger.info(f"Cada palavra-chave sera coletada em todas as plataformas")
+
         return keywords
-    
-    def get_keywords_for_platform(self, platform: str, target_date: date = None, 
+
+    def get_keywords_for_platform(self, platform: str, target_date: date = None,
                                 max_keywords: int = 50) -> List[str]:
         """
-        为特定平台获取关键词（现在所有平台使用相同关键词）
-        
+        Obter palavras-chave para uma plataforma especifica (agora todas as plataformas usam as mesmas palavras-chave)
+
         Args:
-            platform: 平台名称
-            target_date: 目标日期
-            max_keywords: 最大关键词数量
-        
+            platform: Nome da plataforma
+            target_date: Data alvo
+            max_keywords: Quantidade maxima de palavras-chave
+
         Returns:
-            关键词列表（与其他平台相同）
+            Lista de palavras-chave (mesma que outras plataformas)
         """
         keywords = self.get_latest_keywords(target_date, max_keywords)
-        
-        logger.info(f"为平台 {platform} 准备了 {len(keywords)} 个关键词（与其他平台相同）")
+
+        logger.info(f"Preparadas {len(keywords)} palavras-chave para plataforma {platform} (mesmas que outras plataformas)")
         return keywords
-    
+
     def _filter_keywords_by_platform(self, keywords: List[str], platform: str) -> List[str]:
         """
-        根据平台特性过滤关键词
-        
+        Filtrar palavras-chave de acordo com as caracteristicas da plataforma
+
         Args:
-            keywords: 原始关键词列表
-            platform: 平台名称
-        
+            keywords: Lista de palavras-chave original
+            platform: Nome da plataforma
+
         Returns:
-            过滤后的关键词列表
+            Lista de palavras-chave filtrada
         """
-        # 平台特性关键词映射（可以根据需要调整）
+        # Mapeamento de palavras-chave por caracteristicas da plataforma (ajustavel conforme necessidade)
         platform_preferences = {
-            'xhs': ['美妆', '时尚', '生活', '美食', '旅游', '购物', '健康', '养生'],
-            'dy': ['娱乐', '音乐', '舞蹈', '搞笑', '美食', '生活', '科技', '教育'],
-            'ks': ['生活', '搞笑', '农村', '美食', '手工', '音乐', '娱乐'],
-            'bili': ['科技', '游戏', '动漫', '学习', '编程', '数码', '科普'],
-            'wb': ['热点', '新闻', '娱乐', '明星', '社会', '时事', '科技'],
-            'tieba': ['游戏', '动漫', '学习', '生活', '兴趣', '讨论'],
-            'zhihu': ['知识', '学习', '科技', '职场', '投资', '教育', '思考']
+            'xhs': ['beleza', 'moda', 'estilo de vida', 'gastronomia', 'turismo', 'compras', 'saude', 'bem-estar'],
+            'dy': ['entretenimento', 'musica', 'danca', 'humor', 'gastronomia', 'estilo de vida', 'tecnologia', 'educacao'],
+            'ks': ['estilo de vida', 'humor', 'rural', 'gastronomia', 'artesanato', 'musica', 'entretenimento'],
+            'bili': ['tecnologia', 'jogos', 'anime', 'aprendizado', 'programacao', 'digital', 'divulgacao cientifica'],
+            'wb': ['destaques', 'noticias', 'entretenimento', 'celebridades', 'sociedade', 'atualidades', 'tecnologia'],
+            'tieba': ['jogos', 'anime', 'aprendizado', 'estilo de vida', 'interesses', 'discussoes'],
+            'zhihu': ['conhecimento', 'aprendizado', 'tecnologia', 'carreira', 'investimento', 'educacao', 'reflexao']
         }
-        
-        # 如果平台有特定偏好，优先选择相关关键词
+
+        # Se a plataforma tem preferencias especificas, priorizar palavras-chave relacionadas
         preferred_keywords = platform_preferences.get(platform, [])
-        
+
         if preferred_keywords:
-            # 先选择平台偏好的关键词
+            # Selecionar primeiro palavras-chave preferidas da plataforma
             filtered = []
             remaining = []
-            
+
             for keyword in keywords:
                 if any(pref in keyword for pref in preferred_keywords):
                     filtered.append(keyword)
                 else:
                     remaining.append(keyword)
-            
-            # 如果偏好关键词不够，补充其他关键词
+
+            # Se palavras-chave preferidas nao forem suficientes, complementar com outras
             if len(filtered) < len(keywords) // 2:
                 filtered.extend(remaining[:len(keywords) - len(filtered)])
-            
+
             return filtered
-        
-        # 如果没有特定偏好，返回原关键词
+
+        # Se nao houver preferencias especificas, retornar palavras-chave originais
         return keywords
-    
+
     def get_crawling_summary(self, target_date: date = None) -> Dict:
         """
-        获取爬取任务摘要
-        
+        Obter resumo da tarefa de crawling
+
         Args:
-            target_date: 目标日期
-        
+            target_date: Data alvo
+
         Returns:
-            爬取摘要信息
+            Informacoes de resumo de crawling
         """
         if not target_date:
             target_date = date.today()
-        
+
         topics_data = self.get_daily_topics(target_date)
-        
+
         if topics_data:
             return {
                 'date': target_date,
@@ -299,37 +299,37 @@ class KeywordManager:
             return {
                 'date': target_date,
                 'keywords_count': 0,
-                'summary': '暂无数据',
+                'summary': 'Sem dados no momento',
                 'has_data': False
             }
-    
+
     def close(self):
-        """关闭数据库连接"""
+        """Fechar conexao com o banco de dados"""
         if self.engine:
             self.engine.dispose()
-            logger.info("关键词管理器数据库连接已关闭")
-    
+            logger.info("Conexao do gerenciador de palavras-chave com o banco de dados fechada")
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
 if __name__ == "__main__":
-    # 测试关键词管理器
+    # Testar gerenciador de palavras-chave
     with KeywordManager() as km:
-        # 测试获取关键词
+        # Testar obtencao de palavras-chave
         keywords = km.get_latest_keywords(max_keywords=20)
-        logger.info(f"获取到的关键词: {keywords}")
-        
-        # 测试平台分配
+        logger.info(f"Palavras-chave obtidas: {keywords}")
+
+        # Testar distribuicao por plataforma
         platforms = ['xhs', 'dy', 'bili']
         distribution = km.distribute_keywords_by_platform(keywords, platforms)
         for platform, kws in distribution.items():
             logger.info(f"{platform}: {kws}")
-        
-        # 测试爬取摘要
+
+        # Testar resumo de crawling
         summary = km.get_crawling_summary()
-        logger.info(f"爬取摘要: {summary}")
-        
-        logger.info("关键词管理器测试完成！")
+        logger.info(f"Resumo de crawling: {summary}")
+
+        logger.info("Teste do gerenciador de palavras-chave concluido!")

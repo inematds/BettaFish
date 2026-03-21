@@ -31,17 +31,17 @@ class MathToSVG:
 
     def convert_to_svg(self, latex: str, display_mode: bool = True) -> Optional[str]:
         """
-        将 LaTeX 公式转换为 SVG 字符串
+        将 LaTeX 公式转换为 SVG string
 
         Args:
-            latex: LaTeX 公式字符串（不包含 $$ 或 $ 符号）
+            latex: LaTeX 公式string（不包含 $$ 或 $ 符号）
             display_mode: True 为显示模式（块级公式），False 为行内模式
 
         Returns:
-            SVG 字符串，如果转换失败则返回 None
+            SVG string，如果转换失败则返回 None
         """
         try:
-            # 清理 LaTeX 字符串，去除外层定界符，兼容 $...$ / $$...$$ / \\( \\) / \\[ \\]
+            # 清理 LaTeX string，去除外层定界符，兼容 $...$ / $$...$$ / \\( \\) / \\[ \\]
             latex = (latex or "").strip()
             patterns = [
                 r'^\$\$(.*)\$\$$',
@@ -54,11 +54,11 @@ class MathToSVG:
                 if m:
                     latex = m.group(1).strip()
                     break
-            # 清理控制字符并做常见兼容
+            # 清理控制caracteres并做常见兼容
             latex = re.sub(r'[\x00-\x1f\x7f]', '', latex)
             latex = latex.replace(r'\\tfrac', r'\\frac').replace(r'\\dfrac', r'\\frac')
             if not latex:
-                logger.warning("空的 LaTeX 公式")
+                logger.warning("Formula LaTeX vazia")
                 return None
 
             # 创建图形
@@ -126,7 +126,7 @@ class MathToSVG:
             return svg_content
 
         except Exception as e:
-            logger.error(f"LaTeX 公式转换失败: {latex[:100]}... 错误: {str(e)}")
+            logger.error(f"Falha na conversao da formula LaTeX: {latex[:100]}... Erro(s): {str(e)}")
             return None
 
     def convert_inline_to_svg(self, latex: str) -> Optional[str]:
@@ -134,10 +134,10 @@ class MathToSVG:
         将行内 LaTeX 公式转换为 SVG
 
         Args:
-            latex: LaTeX 公式字符串
+            latex: LaTeX 公式string
 
         Returns:
-            SVG 字符串，如果转换失败则返回 None
+            SVG string，如果转换失败则返回 None
         """
         return self.convert_to_svg(latex, display_mode=False)
 
@@ -146,10 +146,10 @@ class MathToSVG:
         将显示模式 LaTeX 公式转换为 SVG
 
         Args:
-            latex: LaTeX 公式字符串
+            latex: LaTeX 公式string
 
         Returns:
-            SVG 字符串，如果转换失败则返回 None
+            SVG string，如果转换失败则返回 None
         """
         return self.convert_to_svg(latex, display_mode=True)
 
@@ -163,12 +163,12 @@ def convert_math_block_to_svg(
     便捷函数：将数学公式块转换为 SVG
 
     Args:
-        latex: LaTeX 公式字符串
+        latex: LaTeX 公式string
         font_size: 字体大小
         color: 文字颜色
 
     Returns:
-        SVG 字符串，如果转换失败则返回 None
+        SVG string，如果转换失败则返回 None
     """
     converter = MathToSVG(font_size=font_size, color=color)
     return converter.convert_display_to_svg(latex)
@@ -183,12 +183,12 @@ def convert_math_inline_to_svg(
     便捷函数：将行内数学公式转换为 SVG
 
     Args:
-        latex: LaTeX 公式字符串
+        latex: LaTeX 公式string
         font_size: 字体大小
         color: 文字颜色
 
     Returns:
-        SVG 字符串，如果转换失败则返回 None
+        SVG string，如果转换失败则返回 None
     """
     converter = MathToSVG(font_size=font_size, color=color)
     return converter.convert_inline_to_svg(latex)
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     # 测试代码
     import sys
 
-    # 测试公式
+    # Formula de teste
     test_formulas = [
         r"E = mc^2",
         r"\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}",
@@ -209,15 +209,15 @@ if __name__ == "__main__":
     converter = MathToSVG(font_size=16)
 
     for i, formula in enumerate(test_formulas):
-        logger.info(f"测试公式 {i+1}: {formula}")
+        logger.info(f"Formula de teste {i+1}: {formula}")
         svg = converter.convert_display_to_svg(formula)
         if svg:
-            # 保存到文件
+            # 保存到Arquivo
             filename = f"test_math_{i+1}.svg"
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(svg)
-            logger.info(f"成功保存到 {filename}")
+            logger.info(f"Salvo com sucesso em {filename}")
         else:
             logger.error(f"公式 {i+1} 转换失败")
 
-    logger.info("测试完成")
+    logger.info("Teste concluido")

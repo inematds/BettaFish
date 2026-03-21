@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DeepSentimentCrawling模块 - 主工作流程
-基于BroadTopicExtraction提取的话题进行全平台关键词爬取
+Modulo DeepSentimentCrawling - Fluxo de trabalho principal
+Crawling de palavras-chave em todas as plataformas baseado nos topicos extraidos pelo BroadTopicExtraction
 """
 
 import sys
@@ -11,7 +11,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import List, Dict
 
-# 添加项目根目录到路径
+# Adicionar diretorio raiz do projeto ao path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
@@ -19,263 +19,263 @@ from keyword_manager import KeywordManager
 from platform_crawler import PlatformCrawler
 
 class DeepSentimentCrawling:
-    """深度情感爬取主工作流程"""
-    
+    """Fluxo de trabalho principal do crawling profundo de sentimento"""
+
     def __init__(self):
-        """初始化深度情感爬取"""
+        """Inicializar crawling profundo de sentimento"""
         self.keyword_manager = KeywordManager()
         self.platform_crawler = PlatformCrawler()
         self.supported_platforms = ['xhs', 'dy', 'ks', 'bili', 'wb', 'tieba', 'zhihu']
-    
-    def run_daily_crawling(self, target_date: date = None, platforms: List[str] = None, 
-                          max_keywords_per_platform: int = 50, 
+
+    def run_daily_crawling(self, target_date: date = None, platforms: List[str] = None,
+                          max_keywords_per_platform: int = 50,
                           max_notes_per_platform: int = 50,
                           login_type: str = "qrcode") -> Dict:
         """
-        执行每日爬取任务
-        
+        Executar tarefa de crawling diario
+
         Args:
-            target_date: 目标日期，默认为今天
-            platforms: 要爬取的平台列表，默认为所有支持的平台
-            max_keywords_per_platform: 每个平台最大关键词数量
-            max_notes_per_platform: 每个平台最大爬取内容数量
-            login_type: 登录方式
-        
+            target_date: Data alvo, padrao e hoje
+            platforms: Lista de plataformas para crawling, padrao e todas as plataformas suportadas
+            max_keywords_per_platform: Quantidade maxima de palavras-chave por plataforma
+            max_notes_per_platform: Quantidade maxima de conteudo coletado por plataforma
+            login_type: Metodo de login
+
         Returns:
-            爬取结果统计
+            Estatisticas do resultado do crawling
         """
         if not target_date:
             target_date = date.today()
-        
+
         if not platforms:
             platforms = self.supported_platforms
-        
-        print(f"🚀 开始执行 {target_date} 的深度情感爬取任务")
-        print(f"目标平台: {platforms}")
-        
-        # 1. 获取关键词摘要
+
+        print(f"Iniciando tarefa de crawling profundo de sentimento para {target_date}")
+        print(f"Plataformas alvo: {platforms}")
+
+        # 1. Obter resumo de palavras-chave
         summary = self.keyword_manager.get_crawling_summary(target_date)
-        print(f"📊 关键词摘要: {summary}")
-        
+        print(f"Resumo de palavras-chave: {summary}")
+
         if not summary['has_data']:
-            print("⚠️ 没有找到话题数据，无法进行爬取")
-            print("💡 请先运行以下命令获取今日话题数据:")
+            print("Nenhum dado de topico encontrado, impossivel realizar crawling")
+            print("Por favor, execute primeiro o seguinte comando para obter os topicos de hoje:")
             print("   uv run main.py --broad-topic")
-            return {"success": False, "error": "没有话题数据"}
-        
-        # 2. 获取关键词（不分配，所有平台使用相同关键词）
-        print(f"\n📝 获取关键词...")
+            return {"success": False, "error": "Sem dados de topicos"}
+
+        # 2. Obter palavras-chave (sem distribuicao, todas as plataformas usam as mesmas palavras-chave)
+        print(f"\nObtendo palavras-chave...")
         keywords = self.keyword_manager.get_latest_keywords(target_date, max_keywords_per_platform)
-        
+
         if not keywords:
-            print("⚠️ 没有找到关键词，无法进行爬取")
-            return {"success": False, "error": "没有关键词"}
-        
-        print(f"   获取到 {len(keywords)} 个关键词")
-        print(f"   将在 {len(platforms)} 个平台上爬取每个关键词")
-        print(f"   总爬取任务: {len(keywords)} × {len(platforms)} = {len(keywords) * len(platforms)}")
-        
-        # 3. 执行全平台关键词爬取
-        print(f"\n🔄 开始全平台关键词爬取...")
+            print("Nenhuma palavra-chave encontrada, impossivel realizar crawling")
+            return {"success": False, "error": "Sem palavras-chave"}
+
+        print(f"   {len(keywords)} palavras-chave obtidas")
+        print(f"   Crawling de cada palavra-chave em {len(platforms)} plataformas")
+        print(f"   Total de tarefas de crawling: {len(keywords)} x {len(platforms)} = {len(keywords) * len(platforms)}")
+
+        # 3. Executar crawling de palavras-chave em todas as plataformas
+        print(f"\nIniciando crawling de palavras-chave em todas as plataformas...")
         crawl_results = self.platform_crawler.run_multi_platform_crawl_by_keywords(
             keywords, platforms, login_type, max_notes_per_platform
         )
-        
-        # 4. 生成最终报告
+
+        # 4. Gerar relatorio final
         final_report = {
             "date": target_date.isoformat(),
             "summary": summary,
             "crawl_results": crawl_results,
             "success": crawl_results["successful_tasks"] > 0
         }
-        
-        print(f"\n✅ 深度情感爬取任务完成!")
-        print(f"   日期: {target_date}")
-        print(f"   成功任务: {crawl_results['successful_tasks']}/{crawl_results['total_tasks']}")
-        print(f"   总关键词: {crawl_results['total_keywords']} 个")
-        print(f"   总平台: {crawl_results['total_platforms']} 个")
-        print(f"   总内容: {crawl_results['total_notes']} 条")
-        
+
+        print(f"\nTarefa de crawling profundo de sentimento concluida!")
+        print(f"   Data: {target_date}")
+        print(f"   Tarefas bem-sucedidas: {crawl_results['successful_tasks']}/{crawl_results['total_tasks']}")
+        print(f"   Total de palavras-chave: {crawl_results['total_keywords']}")
+        print(f"   Total de plataformas: {crawl_results['total_platforms']}")
+        print(f"   Total de conteudo: {crawl_results['total_notes']} itens")
+
         return final_report
-    
+
     def run_platform_crawling(self, platform: str, target_date: date = None,
                              max_keywords: int = 50, max_notes: int = 50,
                              login_type: str = "qrcode") -> Dict:
         """
-        执行单个平台的爬取任务
-        
+        Executar tarefa de crawling de uma unica plataforma
+
         Args:
-            platform: 平台名称
-            target_date: 目标日期
-            max_keywords: 最大关键词数量
-            max_notes: 最大爬取内容数量
-            login_type: 登录方式
-        
+            platform: Nome da plataforma
+            target_date: Data alvo
+            max_keywords: Quantidade maxima de palavras-chave
+            max_notes: Quantidade maxima de conteudo coletado
+            login_type: Metodo de login
+
         Returns:
-            爬取结果
+            Resultado do crawling
         """
         if platform not in self.supported_platforms:
-            raise ValueError(f"不支持的平台: {platform}")
-        
+            raise ValueError(f"Plataforma nao suportada: {platform}")
+
         if not target_date:
             target_date = date.today()
-        
-        print(f"🎯 开始执行 {platform} 平台的爬取任务 ({target_date})")
-        
-        # 获取关键词
+
+        print(f"Iniciando tarefa de crawling da plataforma {platform} ({target_date})")
+
+        # Obter palavras-chave
         keywords = self.keyword_manager.get_keywords_for_platform(
             platform, target_date, max_keywords
         )
-        
+
         if not keywords:
-            print(f"⚠️ 没有找到 {platform} 平台的关键词")
-            return {"success": False, "error": "没有关键词"}
-        
-        print(f"📝 准备爬取 {len(keywords)} 个关键词")
-        
-        # 执行爬取
+            print(f"Nenhuma palavra-chave encontrada para a plataforma {platform}")
+            return {"success": False, "error": "Sem palavras-chave"}
+
+        print(f"Preparando crawling de {len(keywords)} palavras-chave")
+
+        # Executar crawling
         result = self.platform_crawler.run_crawler(
             platform, keywords, login_type, max_notes
         )
-        
+
         return result
-    
+
     def list_available_topics(self, days: int = 7):
-        """列出最近可用的话题"""
-        print(f"📋 最近 {days} 天的话题数据:")
-        
+        """Listar topicos disponiveis recentes"""
+        print(f"Dados de topicos dos ultimos {days} dias:")
+
         recent_topics = self.keyword_manager.db_manager.get_recent_topics(days)
-        
+
         if not recent_topics:
-            print("   暂无话题数据")
+            print("   Sem dados de topicos no momento")
             return
-        
+
         for topic in recent_topics:
             extract_date = topic['extract_date']
             keywords_count = len(topic.get('keywords', []))
             summary_preview = topic.get('summary', '')[:100] + "..." if len(topic.get('summary', '')) > 100 else topic.get('summary', '')
-            
-            print(f"   📅 {extract_date}: {keywords_count} 个关键词")
-            print(f"      摘要: {summary_preview}")
+
+            print(f"   {extract_date}: {keywords_count} palavras-chave")
+            print(f"      Resumo: {summary_preview}")
             print()
-    
+
     def show_platform_guide(self):
-        """显示平台使用指南"""
-        print("🔧 平台爬取指南:")
+        """Exibir guia de uso das plataformas"""
+        print("Guia de crawling por plataforma:")
         print()
-        
+
         platform_info = {
-            'xhs': '小红书 - 美妆、生活、时尚内容为主',
-            'dy': '抖音 - 短视频、娱乐、生活内容',
-            'ks': '快手 - 生活、娱乐、农村题材内容',
-            'bili': 'B站 - 科技、学习、游戏、动漫内容',
-            'wb': '微博 - 热点新闻、明星、社会话题',
-            'tieba': '百度贴吧 - 兴趣讨论、游戏、学习',
-            'zhihu': '知乎 - 知识问答、深度讨论'
+            'xhs': 'Xiaohongshu - Conteudo de beleza, estilo de vida, moda',
+            'dy': 'Douyin - Videos curtos, entretenimento, estilo de vida',
+            'ks': 'Kuaishou - Estilo de vida, entretenimento, conteudo rural',
+            'bili': 'Bilibili - Tecnologia, aprendizado, jogos, anime',
+            'wb': 'Weibo - Noticias em destaque, celebridades, topicos sociais',
+            'tieba': 'Baidu Tieba - Discussoes de interesses, jogos, aprendizado',
+            'zhihu': 'Zhihu - Perguntas e respostas, discussoes aprofundadas'
         }
-        
+
         for platform, desc in platform_info.items():
             print(f"   {platform}: {desc}")
-        
+
         print()
-        print("💡 使用建议:")
-        print("   1. 首次使用需要扫码登录各平台")
-        print("   2. 建议先测试单个平台，确认登录正常")
-        print("   3. 爬取数量不宜过大，避免被限制")
-        print("   4. 可以使用 --test 模式进行小规模测试")
-    
+        print("Sugestoes de uso:")
+        print("   1. Na primeira vez e necessario escanear QR code para login em cada plataforma")
+        print("   2. Recomenda-se testar primeiro com uma unica plataforma para confirmar que o login esta normal")
+        print("   3. Nao colete muitos dados para evitar restricoes")
+        print("   4. Use o modo --test para testes em pequena escala")
+
     def close(self):
-        """关闭资源"""
+        """Fechar recursos"""
         if self.keyword_manager:
             self.keyword_manager.close()
 
 def main():
-    """命令行入口"""
-    parser = argparse.ArgumentParser(description="DeepSentimentCrawling - 基于话题的深度情感爬取")
-    
-    # 基本参数
-    parser.add_argument("--date", type=str, help="目标日期 (YYYY-MM-DD)，默认为今天")
-    parser.add_argument("--platform", type=str, choices=['xhs', 'dy', 'ks', 'bili', 'wb', 'tieba', 'zhihu'], 
-                       help="指定单个平台进行爬取")
-    parser.add_argument("--platforms", type=str, nargs='+', 
+    """Ponto de entrada da linha de comando"""
+    parser = argparse.ArgumentParser(description="DeepSentimentCrawling - Crawling profundo de sentimento baseado em topicos")
+
+    # Parametros basicos
+    parser.add_argument("--date", type=str, help="Data alvo (AAAA-MM-DD), padrao e hoje")
+    parser.add_argument("--platform", type=str, choices=['xhs', 'dy', 'ks', 'bili', 'wb', 'tieba', 'zhihu'],
+                       help="Especificar uma unica plataforma para crawling")
+    parser.add_argument("--platforms", type=str, nargs='+',
                        choices=['xhs', 'dy', 'ks', 'bili', 'wb', 'tieba', 'zhihu'],
-                       help="指定多个平台进行爬取")
-    
-    # 爬取参数
-    parser.add_argument("--max-keywords", type=int, default=50, 
-                       help="每个平台最大关键词数量 (默认: 50)")
+                       help="Especificar multiplas plataformas para crawling")
+
+    # Parametros de crawling
+    parser.add_argument("--max-keywords", type=int, default=50,
+                       help="Quantidade maxima de palavras-chave por plataforma (padrao: 50)")
     parser.add_argument("--max-notes", type=int, default=50,
-                       help="每个平台最大爬取内容数量 (默认: 50)")
-    parser.add_argument("--login-type", type=str, choices=['qrcode', 'phone', 'cookie'], 
-                       default='qrcode', help="登录方式 (默认: qrcode)")
-    
-    # 功能参数
-    parser.add_argument("--list-topics", action="store_true", help="列出最近的话题数据")
-    parser.add_argument("--days", type=int, default=7, help="查看最近几天的话题 (默认: 7)")
-    parser.add_argument("--guide", action="store_true", help="显示平台使用指南")
-    parser.add_argument("--test", action="store_true", help="测试模式 (少量数据)")
-    
+                       help="Quantidade maxima de conteudo coletado por plataforma (padrao: 50)")
+    parser.add_argument("--login-type", type=str, choices=['qrcode', 'phone', 'cookie'],
+                       default='qrcode', help="Metodo de login (padrao: qrcode)")
+
+    # Parametros de funcionalidade
+    parser.add_argument("--list-topics", action="store_true", help="Listar dados de topicos recentes")
+    parser.add_argument("--days", type=int, default=7, help="Ver topicos dos ultimos dias (padrao: 7)")
+    parser.add_argument("--guide", action="store_true", help="Exibir guia de uso das plataformas")
+    parser.add_argument("--test", action="store_true", help="Modo de teste (poucos dados)")
+
     args = parser.parse_args()
-    
-    # 解析日期
+
+    # Analisar data
     target_date = None
     if args.date:
         try:
             target_date = datetime.strptime(args.date, "%Y-%m-%d").date()
         except ValueError:
-            print("❌ 日期格式错误，请使用 YYYY-MM-DD 格式")
+            print("Formato de data incorreto, use o formato AAAA-MM-DD")
             return
-    
-    # 创建爬取实例
+
+    # Criar instancia de crawling
     crawler = DeepSentimentCrawling()
-    
+
     try:
-        # 显示指南
+        # Exibir guia
         if args.guide:
             crawler.show_platform_guide()
             return
-        
-        # 列出话题
+
+        # Listar topicos
         if args.list_topics:
             crawler.list_available_topics(args.days)
             return
-        
-        # 测试模式调整参数
+
+        # Modo de teste - ajustar parametros
         if args.test:
             args.max_keywords = min(args.max_keywords, 10)
             args.max_notes = min(args.max_notes, 10)
-            print("测试模式：限制关键词和内容数量")
-        
-        # 单平台爬取
+            print("Modo de teste: quantidade de palavras-chave e conteudo limitada")
+
+        # Crawling de plataforma unica
         if args.platform:
             result = crawler.run_platform_crawling(
-                args.platform, target_date, args.max_keywords, 
+                args.platform, target_date, args.max_keywords,
                 args.max_notes, args.login_type
             )
-            
+
             if result['success']:
-                print(f"\n{args.platform} 爬取成功！")
+                print(f"\nCrawling de {args.platform} concluido com sucesso!")
             else:
-                print(f"\n{args.platform} 爬取失败: {result.get('error', '未知错误')}")
-            
+                print(f"\nFalha no crawling de {args.platform}: {result.get('error', 'Erro desconhecido')}")
+
             return
-        
-        # 多平台爬取
+
+        # Crawling de multiplas plataformas
         platforms = args.platforms if args.platforms else None
         result = crawler.run_daily_crawling(
-            target_date, platforms, args.max_keywords, 
+            target_date, platforms, args.max_keywords,
             args.max_notes, args.login_type
         )
-        
+
         if result['success']:
-            print(f"\n多平台爬取任务完成！")
+            print(f"\nTarefa de crawling multi-plataforma concluida!")
         else:
-            print(f"\n多平台爬取失败: {result.get('error', '未知错误')}")
-    
+            print(f"\nFalha no crawling multi-plataforma: {result.get('error', 'Erro desconhecido')}")
+
     except KeyboardInterrupt:
-        print("\n用户中断操作")
+        print("\nOperacao interrompida pelo usuario")
     except Exception as e:
-        print(f"\n执行出错: {e}")
+        print(f"\nErro na execucao: {e}")
     finally:
         crawler.close()
 

@@ -1,9 +1,9 @@
 """
-通用数据库工具（异步）
+Ferramentas genéricas de banco de dados (assíncrono)
 
-此模块提供基于 SQLAlchemy 2.x 异步引擎的数据库访问封装，支持 MySQL 与 PostgreSQL。
-数据模型定义位置：
-- 无（本模块仅提供连接与查询工具，不定义数据模型）
+Este módulo fornece encapsulamento de acesso ao banco de dados baseado no motor assíncrono do SQLAlchemy 2.x, com suporte a MySQL e PostgreSQL.
+Localização das definições de modelos de dados:
+- Nenhuma (este módulo fornece apenas ferramentas de conexão e consulta, não define modelos de dados)
 """
 
 from __future__ import annotations
@@ -34,15 +34,15 @@ def _build_database_url() -> str:
     db_name: str = settings.DB_NAME or ""
 
     if os.getenv("DATABASE_URL"):
-        return os.getenv("DATABASE_URL")  # 直接使用外部提供的完整URL
+        return os.getenv("DATABASE_URL")  # Usar diretamente a URL completa fornecida externamente
 
     password = quote_plus(password)
 
     if dialect in ("postgresql", "postgres"):
-        # PostgreSQL 使用 asyncpg 驱动
+        # PostgreSQL usa driver asyncpg
         return f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}"
 
-    # 默认 MySQL 使用 aiomysql 驱动
+    # MySQL padrão usa driver aiomysql
     return f"mysql+aiomysql://{user}:{password}@{host}:{port}/{db_name}"
 
 
@@ -60,13 +60,11 @@ def get_async_engine() -> AsyncEngine:
 
 async def fetch_all(query: str, params: Optional[Union[Iterable[Any], Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
     """
-    执行只读查询并返回字典列表。
+    Executar consulta somente leitura e retornar lista de dicionários.
     """
     engine: AsyncEngine = get_async_engine()
     async with engine.connect() as conn:
         result = await conn.execute(text(query), params or {})
         rows = result.mappings().all()
-        # 将 RowMapping 转换为普通字典
+        # Converter RowMapping para dicionários comuns
         return [dict(row) for row in rows]
-
-

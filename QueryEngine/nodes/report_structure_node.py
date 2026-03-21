@@ -1,6 +1,6 @@
 """
-报告结构生成节点
-负责根据查询生成报告的整体结构
+Nó de geração de estrutura do relatório
+Responsável por gerar a estrutura geral do relatório com base na consulta
 """
 
 import json
@@ -20,185 +20,185 @@ from ..utils.text_processing import (
 
 
 class ReportStructureNode(StateMutationNode):
-    """生成报告结构的节点"""
-    
+    """Nó que gera a estrutura do relatório"""
+
     def __init__(self, llm_client, query: str):
         """
-        初始化报告结构节点
-        
+        Inicializar nó de estrutura do relatório
+
         Args:
-            llm_client: LLM客户端
-            query: 用户查询
+            llm_client: Cliente LLM
+            query: Consulta do usuário
         """
         super().__init__(llm_client, "ReportStructureNode")
         self.query = query
-    
+
     def validate_input(self, input_data: Any) -> bool:
-        """验证输入数据"""
+        """Validar dados de entrada"""
         return isinstance(self.query, str) and len(self.query.strip()) > 0
-    
+
     def run(self, input_data: Any = None, **kwargs) -> List[Dict[str, str]]:
         """
-        调用LLM生成报告结构
-        
+        Chamar LLM para gerar estrutura do relatório
+
         Args:
-            input_data: 输入数据（这里不使用，使用初始化时的query）
-            **kwargs: 额外参数
-            
+            input_data: Dados de entrada (não utilizado aqui, usa a query da inicialização)
+            **kwargs: Parâmetros adicionais
+
         Returns:
-            报告结构列表
+            Lista da estrutura do relatório
         """
         try:
-            logger.info(f"正在为查询生成报告结构: {self.query}")
-            
-            # 调用LLM
+            logger.info(f"Gerando estrutura do relatório para a consulta: {self.query}")
+
+            # Chamar LLM
             response = self.llm_client.stream_invoke_to_string(SYSTEM_PROMPT_REPORT_STRUCTURE, self.query)
-            
-            # 处理响应
+
+            # Processar resposta
             processed_response = self.process_output(response)
-            
-            logger.info(f"成功生成 {len(processed_response)} 个段落结构")
+
+            logger.info(f"Geradas com sucesso {len(processed_response)} estruturas de parágrafo")
             return processed_response
-            
+
         except Exception as e:
-            logger.exception(f"生成报告结构失败: {str(e)}")
+            logger.exception(f"Falha ao gerar estrutura do relatório: {str(e)}")
             raise e
-    
+
     def process_output(self, output: str) -> List[Dict[str, str]]:
         """
-        处理LLM输出，提取报告结构
-        
+        Processar saída do LLM, extrair estrutura do relatório
+
         Args:
-            output: LLM原始输出
-            
+            output: Saída bruta do LLM
+
         Returns:
-            处理后的报告结构列表
+            Lista da estrutura do relatório processada
         """
         try:
-            # 清理响应文本
+            # Limpar texto da resposta
             cleaned_output = remove_reasoning_from_output(output)
             cleaned_output = clean_json_tags(cleaned_output)
-            
-            # 记录清理后的输出用于调试
-            logger.info(f"清理后的输出: {cleaned_output}")
-            
-            # 解析JSON
+
+            # Registrar saída limpa para depuração
+            logger.info(f"Saída após limpeza: {cleaned_output}")
+
+            # Analisar JSON
             try:
                 report_structure = json.loads(cleaned_output)
-                logger.info("JSON解析成功")
+                logger.info("Análise JSON bem-sucedida")
             except JSONDecodeError as e:
-                logger.error(f"JSON解析失败: {str(e)}")
-                # 使用更强大的提取方法
+                logger.error(f"Falha na análise JSON: {str(e)}")
+                # Usar método de extração mais robusto
                 report_structure = extract_clean_response(cleaned_output)
                 if "error" in report_structure:
-                    logger.error("JSON解析失败，尝试修复...")
-                    # 尝试修复JSON
+                    logger.error("Falha na análise JSON, tentando reparar...")
+                    # Tentar reparar JSON
                     fixed_json = fix_incomplete_json(cleaned_output)
                     if fixed_json:
                         try:
                             report_structure = json.loads(fixed_json)
-                            logger.info("JSON修复成功")
+                            logger.info("Reparo do JSON bem-sucedido")
                         except JSONDecodeError:
-                            logger.error("JSON修复失败")
-                            # 返回默认结构
+                            logger.error("Falha no reparo do JSON")
+                            # Retornar estrutura padrão
                             return self._generate_default_structure()
                     else:
-                        logger.error("无法修复JSON，使用默认结构")
+                        logger.error("Não foi possível reparar o JSON, usando estrutura padrão")
                         return self._generate_default_structure()
-            
-            # 验证结构
+
+            # Validar estrutura
             if not isinstance(report_structure, list):
-                logger.info("报告结构不是列表，尝试转换...")
+                logger.info("Estrutura do relatório não é uma lista, tentando converter...")
                 if isinstance(report_structure, dict):
-                    # 如果是单个对象，包装成列表
+                    # Se for um único objeto, encapsular em lista
                     report_structure = [report_structure]
                 else:
-                    logger.error("报告结构格式无效，使用默认结构")
+                    logger.error("Formato da estrutura do relatório inválido, usando estrutura padrão")
                     return self._generate_default_structure()
-            
-            # 验证每个段落
+
+            # Validar cada parágrafo
             validated_structure = []
             for i, paragraph in enumerate(report_structure):
                 if not isinstance(paragraph, dict):
-                    logger.warning(f"段落 {i+1} 不是字典格式，跳过")
+                    logger.warning(f"Parágrafo {i+1} não está em formato de dicionário, ignorando")
                     continue
-                
-                title = paragraph.get("title", f"段落 {i+1}")
+
+                title = paragraph.get("title", f"Parágrafo {i+1}")
                 content = paragraph.get("content", "")
-                
+
                 if not title or not content:
-                    logger.warning(f"段落 {i+1} 缺少标题或内容，跳过")
+                    logger.warning(f"Parágrafo {i+1} sem título ou conteúdo, ignorando")
                     continue
-                
+
                 validated_structure.append({
                     "title": title,
                     "content": content
                 })
-            
+
             if not validated_structure:
-                logger.warning("没有有效的段落结构，使用默认结构")
+                logger.warning("Nenhuma estrutura de parágrafo válida, usando estrutura padrão")
                 return self._generate_default_structure()
-            
-            logger.info(f"成功验证 {len(validated_structure)} 个段落结构")
+
+            logger.info(f"Validadas com sucesso {len(validated_structure)} estruturas de parágrafo")
             return validated_structure
-            
+
         except Exception as e:
-            logger.exception(f"处理输出失败: {str(e)}")
+            logger.exception(f"Falha ao processar saída: {str(e)}")
             return self._generate_default_structure()
-    
+
     def _generate_default_structure(self) -> List[Dict[str, str]]:
         """
-        生成默认的报告结构
-        
+        Gerar estrutura padrão do relatório
+
         Returns:
-            默认的报告结构列表
+            Lista da estrutura padrão do relatório
         """
-        logger.info("生成默认报告结构")
+        logger.info("Gerando estrutura padrão do relatório")
         return [
             {
-                "title": "研究概述",
-                "content": "对查询主题进行总体概述和分析"
+                "title": "Visão geral da pesquisa",
+                "content": "Visão geral e análise do tema da consulta"
             },
             {
-                "title": "深度分析",
-                "content": "深入分析查询主题的各个方面"
+                "title": "Análise aprofundada",
+                "content": "Análise aprofundada dos diversos aspectos do tema da consulta"
             }
         ]
-    
+
     def mutate_state(self, input_data: Any = None, state: State = None, **kwargs) -> State:
         """
-        将报告结构写入状态
-        
+        Gravar estrutura do relatório no estado
+
         Args:
-            input_data: 输入数据
-            state: 当前状态，如果为None则创建新状态
-            **kwargs: 额外参数
-            
+            input_data: Dados de entrada
+            state: Estado atual; se None, cria um novo estado
+            **kwargs: Parâmetros adicionais
+
         Returns:
-            更新后的状态
+            Estado atualizado
         """
         if state is None:
             state = State()
-        
+
         try:
-            # 生成报告结构
+            # Gerar estrutura do relatório
             report_structure = self.run(input_data, **kwargs)
-            
-            # 设置查询和报告标题
+
+            # Definir consulta e título do relatório
             state.query = self.query
             if not state.report_title:
-                state.report_title = f"关于'{self.query}'的深度研究报告"
-            
-            # 添加段落到状态
+                state.report_title = f"Relatório de pesquisa profunda sobre '{self.query}'"
+
+            # Adicionar parágrafos ao estado
             for paragraph_data in report_structure:
                 state.add_paragraph(
                     title=paragraph_data["title"],
                     content=paragraph_data["content"]
                 )
-            
-            logger.info(f"已将 {len(report_structure)} 个段落添加到状态中")
+
+            logger.info(f"{len(report_structure)} parágrafos adicionados ao estado")
             return state
-            
+
         except Exception as e:
-            logger.exception(f"状态更新失败: {str(e)}")
+            logger.exception(f"Falha na atualização do estado: {str(e)}")
             raise e

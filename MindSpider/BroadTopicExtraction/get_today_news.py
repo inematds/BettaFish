@@ -1,308 +1,712 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-BroadTopicExtraction模块 - 新闻获取和收集
-整合新闻API调用和数据库存储功能
+Módulo BroadTopicExtraction - Coleta e armazenamento de notícias
+Integra chamadas a feeds RSS internacionais e armazenamento em banco de dados
 """
 
 import sys
 import asyncio
 import httpx
-import json
+import xml.etree.ElementTree as ET
 from datetime import datetime, date
 from pathlib import Path
 from typing import List, Dict, Optional
 from loguru import logger
 
-# 添加项目根目录到路径
+# Adiciona o diretório raiz do projeto ao path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 try:
     from BroadTopicExtraction.database_manager import DatabaseManager
 except ImportError as e:
-    raise ImportError(f"导入模块失败: {e}")
+    raise ImportError(f"Falha ao importar módulo: {e}")
 
-# 新闻API基础URL
-BASE_URL = "https://newsnow.busiyi.world"
-
-# 新闻源中文名称映射
+# Nomes das fontes de notícias organizados por região
 SOURCE_NAMES = {
-    "weibo": "微博热搜",
-    "zhihu": "知乎热榜",
-    "bilibili-hot-search": "B站热搜",
-    "toutiao": "今日头条",
-    "douyin": "抖音热榜",
-    "github-trending-today": "GitHub趋势",
-    "coolapk": "酷安热榜",
-    "tieba": "百度贴吧",
-    "wallstreetcn": "华尔街见闻",
-    "thepaper": "澎湃新闻",
-    "cls-hot": "财联社",
-    "xueqiu": "雪球热榜"
+    # Brasil (fontes primárias)
+    "g1": "G1 (Globo)",
+    "folha": "Folha de São Paulo",
+    "uol": "UOL Notícias",
+    "estadao": "O Estado de S. Paulo",
+    "r7": "R7 Notícias",
+    "bbc-brasil": "BBC Brasil",
+    # Estados Unidos
+    "reuters": "Reuters",
+    "ap-news": "Associated Press",
+    "cnn": "CNN",
+    "nyt": "New York Times",
+    # Europa
+    "bbc": "BBC News",
+    "dw": "Deutsche Welle",
+    "france24": "France 24",
+    "euronews": "Euronews",
+    # América do Sul
+    "clarin": "Clarín (Argentina)",
+    "emol": "EMOL (Chile)",
+    "eltiempo": "El Tiempo (Colombia)",
+    "elcomercio-pe": "El Comercio (Peru)",
+    "elpais-uy": "El País (Uruguay)",
+    "abc-py": "ABC Color (Paraguay)",
+    "eldeber": "El Deber (Bolivia)",
+    "eluniverso": "El Universo (Ecuador)",
+    "ultimasnoticias": "Últimas Notícias (Venezuela)",
+    # Global
+    "github-trending": "GitHub Trending",
 }
 
+# Mapeamento de cada fonte para sua região
+SOURCE_REGIONS = {
+    "g1": "brasil",
+    "folha": "brasil",
+    "uol": "brasil",
+    "estadao": "brasil",
+    "r7": "brasil",
+    "bbc-brasil": "brasil",
+    "reuters": "usa",
+    "ap-news": "usa",
+    "cnn": "usa",
+    "nyt": "usa",
+    "bbc": "europa",
+    "dw": "europa",
+    "france24": "europa",
+    "euronews": "europa",
+    "clarin": "america_do_sul",
+    "emol": "america_do_sul",
+    "eltiempo": "america_do_sul",
+    "elcomercio-pe": "america_do_sul",
+    "elpais-uy": "america_do_sul",
+    "abc-py": "america_do_sul",
+    "eldeber": "america_do_sul",
+    "eluniverso": "america_do_sul",
+    "ultimasnoticias": "america_do_sul",
+    "github-trending": "global",
+}
+
+# Rótulos legíveis para cada região
+REGION_LABELS = {
+    "brasil": "Brasil",
+    "usa": "Estados Unidos",
+    "europa": "Europa",
+    "america_do_sul": "América do Sul",
+    "global": "Global",
+}
+
+# URLs dos feeds RSS para cada fonte
+SOURCE_RSS_FEEDS = {
+    # Brasil
+    "g1": "https://g1.globo.com/rss/g1/",
+    "folha": "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml",
+    "uol": "https://rss.uol.com.br/feed/noticias.xml",
+    "estadao": "https://www.estadao.com.br/pf/rss/ultimas.xml",
+    "r7": "https://noticias.r7.com/feed.xml",
+    "bbc-brasil": "https://www.bbc.com/portuguese/index.xml",
+    # Estados Unidos
+    "reuters": "https://www.rss.reuters.com/news/topNews",
+    "ap-news": "https://rsshub.app/apnews/topics/apf-topnews",
+    "cnn": "http://rss.cnn.com/rss/edition.rss",
+    "nyt": "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
+    # Europa
+    "bbc": "http://feeds.bbci.co.uk/news/rss.xml",
+    "dw": "https://rss.dw.com/xml/rss-br",
+    "france24": "https://www.france24.com/en/rss",
+    "euronews": "https://www.euronews.com/rss",
+    # América do Sul
+    "clarin": "https://www.clarin.com/rss/lo-ultimo/",
+    "emol": "https://www.emol.com/rss/noticias.xml",
+    "eltiempo": "https://www.eltiempo.com/rss/pages.xml",
+    "elcomercio-pe": "https://elcomercio.pe/arcio/rss/",
+    "elpais-uy": "https://www.elpais.com.uy/rss/",
+    "abc-py": "https://www.abc.com.py/rss/",
+    "eldeber": "https://eldeber.com.bo/rss",
+    "eluniverso": "https://www.eluniverso.com/rss/",
+    "ultimasnoticias": "https://www.ultimasnoticias.com.ve/feed/",
+}
+
+# URL da API para GitHub Trending
+GITHUB_TRENDING_URL = "https://api.gitterapp.com/repositories?since=daily"
+
+
 class NewsCollector:
-    """新闻收集器 - 整合API调用和数据库存储"""
-    
+    """Coletor de notícias - Integra parsing de RSS e armazenamento em banco de dados"""
+
     def __init__(self):
-        """初始化新闻收集器"""
+        """Inicializa o coletor de notícias"""
         self.db_manager = DatabaseManager()
         self.supported_sources = list(SOURCE_NAMES.keys())
-    
+
     def close(self):
-        """关闭资源"""
+        """Libera recursos"""
         if self.db_manager:
             self.db_manager.close()
-    
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
-    
+
     async def __aenter__(self):
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         self.close()
-    
-    # ==================== 新闻API调用 ====================
-    
+
+    # ==================== Consultas de região ====================
+
+    @staticmethod
+    def get_sources_by_region(region: str) -> List[str]:
+        """
+        Retorna os IDs das fontes de uma determinada região.
+
+        Args:
+            region: Identificador da região (ex: 'brasil', 'usa', 'europa',
+                    'america_do_sul', 'global')
+
+        Returns:
+            Lista de IDs de fontes pertencentes à região
+        """
+        return [
+            source_id
+            for source_id, source_region in SOURCE_REGIONS.items()
+            if source_region == region
+        ]
+
+    @staticmethod
+    def get_available_regions() -> Dict[str, str]:
+        """
+        Retorna as regiões disponíveis com seus rótulos legíveis.
+
+        Returns:
+            Dicionário {id_regiao: rotulo}
+        """
+        return dict(REGION_LABELS)
+
+    # ==================== Coleta de notícias via RSS ====================
+
     async def fetch_news(self, source: str) -> dict:
-        """从指定源获取最新新闻"""
-        url = f"{BASE_URL}/api/s?id={source}&latest"
+        """
+        Obtém as últimas notícias de uma fonte via feed RSS.
+
+        Para a fonte 'github-trending', utiliza a API dedicada.
+
+        Args:
+            source: Identificador da fonte (ex: 'g1', 'reuters', 'github-trending')
+
+        Returns:
+            Dicionário com status, dados e timestamp da coleta
+        """
+        if source == "github-trending":
+            return await self._fetch_github_trending()
+
+        feed_url = SOURCE_RSS_FEEDS.get(source)
+        if not feed_url:
+            return {
+                "source": source,
+                "status": "error",
+                "error": f"URL de feed RSS não definida para a fonte: {source}",
+                "timestamp": datetime.now().isoformat(),
+            }
+
         headers = {
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+            "Accept": "application/rss+xml, application/xml, text/xml, */*",
+            "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8,es;q=0.7",
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/124.0.0.0 Safari/537.36"
             ),
-            "Referer": BASE_URL,
             "Connection": "keep-alive",
         }
-        
+
         try:
-            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-                response = await client.get(url, headers=headers)
+            async with httpx.AsyncClient(
+                timeout=30.0, follow_redirects=True
+            ) as client:
+                response = await client.get(feed_url, headers=headers)
                 response.raise_for_status()
-                
-                # 解析JSON响应
-                data = response.json()
+
+                # Faz o parsing do XML do feed RSS
+                items = self._parse_rss_feed(response.text)
+
                 return {
                     "source": source,
                     "status": "success",
-                    "data": data,
-                    "timestamp": datetime.now().isoformat()
+                    "data": {"items": items},
+                    "timestamp": datetime.now().isoformat(),
                 }
+
         except httpx.TimeoutException:
             return {
                 "source": source,
                 "status": "timeout",
-                "error": f"请求超时: {source}({url})",
-                "timestamp": datetime.now().isoformat()
+                "error": f"Tempo esgotado ao acessar: {source} ({feed_url})",
+                "timestamp": datetime.now().isoformat(),
             }
         except httpx.HTTPStatusError as e:
             return {
                 "source": source,
                 "status": "http_error",
-                "error": f"HTTP错误: {source}({url}) - {e.response.status_code}",
-                "timestamp": datetime.now().isoformat()
+                "error": (
+                    f"Erro HTTP: {source} ({feed_url}) - "
+                    f"código {e.response.status_code}"
+                ),
+                "timestamp": datetime.now().isoformat(),
             }
         except Exception as e:
             return {
                 "source": source,
                 "status": "error",
-                "error": f"未知错误: {source}({url}) - {str(e)}",
-                "timestamp": datetime.now().isoformat()
+                "error": f"Erro inesperado: {source} ({feed_url}) - {str(e)}",
+                "timestamp": datetime.now().isoformat(),
             }
-    
+
+    def _parse_rss_feed(self, xml_text: str) -> List[Dict]:
+        """
+        Faz o parsing de um feed RSS/XML e extrai os itens de notícia.
+
+        Suporta feeds RSS 2.0 e Atom. Extrai título, link, descrição e
+        data de publicação de cada item.
+
+        Args:
+            xml_text: Conteúdo XML do feed como string
+
+        Returns:
+            Lista de dicionários com as chaves: title, url, description, pubDate
+        """
+        items = []
+        try:
+            root = ET.fromstring(xml_text)
+        except ET.ParseError as e:
+            logger.warning(f"Falha ao fazer parsing do XML do feed: {e}")
+            return items
+
+        # Detecta namespaces comuns do Atom
+        atom_ns = "{http://www.w3.org/2005/Atom}"
+
+        # Tenta encontrar itens RSS 2.0 (<channel><item>)
+        rss_items = root.findall(".//item")
+
+        if rss_items:
+            for item_elem in rss_items:
+                title = self._get_element_text(item_elem, "title")
+                link = self._get_element_text(item_elem, "link")
+                description = self._get_element_text(item_elem, "description")
+                pub_date = self._get_element_text(item_elem, "pubDate")
+
+                if title:
+                    items.append({
+                        "title": title.strip(),
+                        "url": (link or "").strip(),
+                        "description": (description or "").strip(),
+                        "pubDate": (pub_date or "").strip(),
+                    })
+        else:
+            # Tenta encontrar entradas Atom (<entry>)
+            entries = root.findall(f".//{atom_ns}entry")
+            if not entries:
+                entries = root.findall(".//entry")
+
+            for entry in entries:
+                title = (
+                    self._get_element_text(entry, f"{atom_ns}title")
+                    or self._get_element_text(entry, "title")
+                )
+
+                # Em feeds Atom, o link fica no atributo href
+                link_elem = entry.find(f"{atom_ns}link")
+                if link_elem is None:
+                    link_elem = entry.find("link")
+                link = (
+                    link_elem.get("href", "") if link_elem is not None else ""
+                )
+
+                summary = (
+                    self._get_element_text(entry, f"{atom_ns}summary")
+                    or self._get_element_text(entry, "summary")
+                    or self._get_element_text(entry, f"{atom_ns}content")
+                    or self._get_element_text(entry, "content")
+                )
+                updated = (
+                    self._get_element_text(entry, f"{atom_ns}updated")
+                    or self._get_element_text(entry, "updated")
+                    or self._get_element_text(entry, f"{atom_ns}published")
+                    or self._get_element_text(entry, "published")
+                )
+
+                if title:
+                    items.append({
+                        "title": title.strip(),
+                        "url": (link or "").strip(),
+                        "description": (summary or "").strip(),
+                        "pubDate": (updated or "").strip(),
+                    })
+
+        return items
+
+    @staticmethod
+    def _get_element_text(parent, tag: str) -> Optional[str]:
+        """
+        Obtém o texto de um sub-elemento XML de forma segura.
+
+        Args:
+            parent: Elemento XML pai
+            tag: Nome da tag filha
+
+        Returns:
+            Texto do elemento ou None se não encontrado
+        """
+        elem = parent.find(tag)
+        if elem is not None and elem.text:
+            return elem.text
+        return None
+
+    async def _fetch_github_trending(self) -> dict:
+        """
+        Obtém os repositórios em destaque do GitHub Trending.
+
+        Utiliza a API gitterapp para buscar os repositórios mais populares
+        do dia.
+
+        Returns:
+            Dicionário com status, dados e timestamp da coleta
+        """
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+        }
+
+        try:
+            async with httpx.AsyncClient(
+                timeout=30.0, follow_redirects=True
+            ) as client:
+                response = await client.get(
+                    GITHUB_TRENDING_URL, headers=headers
+                )
+                response.raise_for_status()
+
+                repos = response.json()
+                items = []
+                for repo in repos if isinstance(repos, list) else []:
+                    name = repo.get("name", "")
+                    author = repo.get("author", "")
+                    description = repo.get("description", "")
+                    url = repo.get("url", f"https://github.com/{author}/{name}")
+                    stars = repo.get("stars", 0)
+                    items.append({
+                        "title": f"{author}/{name} - {description}",
+                        "url": url,
+                        "description": f"Estrelas: {stars}. {description}",
+                        "pubDate": "",
+                    })
+
+                return {
+                    "source": "github-trending",
+                    "status": "success",
+                    "data": {"items": items},
+                    "timestamp": datetime.now().isoformat(),
+                }
+
+        except Exception as e:
+            return {
+                "source": "github-trending",
+                "status": "error",
+                "error": (
+                    f"Erro ao buscar GitHub Trending: {str(e)}"
+                ),
+                "timestamp": datetime.now().isoformat(),
+            }
+
     async def get_popular_news(self, sources: List[str] = None) -> List[dict]:
-        """获取热门新闻"""
+        """
+        Obtém notícias populares de múltiplas fontes.
+
+        Args:
+            sources: Lista de IDs de fontes. Se None, usa todas as fontes.
+
+        Returns:
+            Lista de resultados de cada fonte
+        """
         if sources is None:
             sources = list(SOURCE_NAMES.keys())
-        
-        logger.info(f"正在获取 {len(sources)} 个新闻源的最新内容...")
+
+        logger.info(
+            f"Buscando notícias de {len(sources)} fonte(s)..."
+        )
         logger.info("=" * 80)
-        
+
         results = []
         for source in sources:
             source_name = SOURCE_NAMES.get(source, source)
-            logger.info(f"正在获取 {source_name} 的新闻...")
+            logger.info(f"Buscando notícias de {source_name}...")
             result = await self.fetch_news(source)
             results.append(result)
-            
+
             if result["status"] == "success":
                 data = result["data"]
-                if 'items' in data and isinstance(data['items'], list):
-                    count = len(data['items'])
-                    logger.info(f"✓ {source_name}: 获取成功，共 {count} 条新闻")
+                if "items" in data and isinstance(data["items"], list):
+                    count = len(data["items"])
+                    logger.info(
+                        f"OK {source_name}: coleta bem-sucedida, "
+                        f"{count} notícia(s)"
+                    )
                 else:
-                    logger.info(f"✓ {source_name}: 获取成功")
+                    logger.info(
+                        f"OK {source_name}: coleta bem-sucedida"
+                    )
             else:
-                logger.error(f"✗ {source_name}: {result.get('error', '获取失败')}")
-            
-            # 避免请求过快
+                logger.error(
+                    f"FALHA {source_name}: "
+                    f"{result.get('error', 'falha na coleta')}"
+                )
+
+            # Pausa breve entre requisições para evitar bloqueios
             await asyncio.sleep(0.5)
-        
+
         return results
-    
-    # ==================== 数据处理和存储 ====================
-    
-    async def collect_and_save_news(self, sources: Optional[List[str]] = None) -> Dict:
+
+    # ==================== Processamento e armazenamento ====================
+
+    async def collect_and_save_news(
+        self,
+        sources: Optional[List[str]] = None,
+        regions: Optional[List[str]] = None,
+    ) -> Dict:
         """
-        收集并保存每日热点新闻
-        
+        Coleta e salva as notícias do dia.
+
         Args:
-            sources: 指定的新闻源列表，None表示使用所有支持的源
-            
+            sources: Lista de IDs de fontes específicas. Se None e regions
+                     também for None, usa todas as fontes.
+            regions: Lista de regiões para filtrar fontes (ex: ['brasil', 'usa']).
+                     Se fornecido, sobrescreve o parâmetro sources.
+
         Returns:
-            包含收集结果的字典
+            Dicionário com o resumo da coleta
         """
         collection_summary_message = ""
-        collection_summary_message += "\n开始收集每日热点新闻...\n"
-        collection_summary_message += f"时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-        
-        # 选择新闻源
+        collection_summary_message += "\nIniciando coleta de notícias do dia...\n"
+        collection_summary_message += (
+            f"Horário: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        )
+
+        # Se regiões foram especificadas, determina as fontes a partir delas
+        if regions is not None:
+            sources = []
+            for region in regions:
+                sources.extend(self.get_sources_by_region(region))
+            if not sources:
+                logger.warning(
+                    f"Nenhuma fonte encontrada para as regiões: {regions}"
+                )
+                return {
+                    "success": False,
+                    "error": f"Nenhuma fonte encontrada para as regiões: {regions}",
+                    "news_list": [],
+                    "total_news": 0,
+                }
+
+        # Se nenhuma fonte foi especificada, usa todas
         if sources is None:
-            # 使用所有支持的新闻源
             sources = list(SOURCE_NAMES.keys())
-        
-        collection_summary_message += f"将从 {len(sources)} 个新闻源收集数据:\n"
+
+        collection_summary_message += (
+            f"Coletando dados de {len(sources)} fonte(s):\n"
+        )
         for source in sources:
             source_name = SOURCE_NAMES.get(source, source)
-            collection_summary_message += f"  - {source_name}\n"
-        
+            region = SOURCE_REGIONS.get(source, "desconhecida")
+            region_label = REGION_LABELS.get(region, region)
+            collection_summary_message += (
+                f"  - {source_name} [{region_label}]\n"
+            )
+
         logger.info(collection_summary_message)
-        
+
         try:
-            # 获取新闻数据
+            # Obtém os dados de notícias
             results = await self.get_popular_news(sources)
-            
-            # 处理结果
+
+            # Processa os resultados
             processed_data = self._process_news_results(results)
-            
-            # 保存到数据库（覆盖模式）
-            if processed_data['news_list']:
+
+            # Salva no banco de dados (modo sobrescrever)
+            if processed_data["news_list"]:
                 saved_count = self.db_manager.save_daily_news(
-                    processed_data['news_list'], 
-                    date.today()
+                    processed_data["news_list"], date.today()
                 )
-                processed_data['saved_count'] = saved_count
-            
-            # 打印统计信息
+                processed_data["saved_count"] = saved_count
+
+            # Exibe o resumo da coleta
             self._print_collection_summary(processed_data)
-            
+
             return processed_data
-            
+
         except Exception as e:
-            logger.exception(f"收集新闻失败: {e}")
+            logger.exception(f"Falha ao coletar notícias: {e}")
             return {
-                'success': False,
-                'error': str(e),
-                'news_list': [],
-                'total_news': 0
+                "success": False,
+                "error": str(e),
+                "news_list": [],
+                "total_news": 0,
             }
-    
+
     def _process_news_results(self, results: List[Dict]) -> Dict:
-        """处理新闻获取结果"""
+        """
+        Processa os resultados obtidos das fontes de notícias.
+
+        Args:
+            results: Lista de resultados brutos de cada fonte
+
+        Returns:
+            Dicionário com a lista de notícias processadas e estatísticas
+        """
         news_list = []
         successful_sources = 0
         total_news = 0
-        
+
         for result in results:
-            source = result['source']
-            status = result['status']
-            
-            if status == 'success':
+            source = result["source"]
+            status = result["status"]
+
+            if status == "success":
                 successful_sources += 1
-                data = result['data']
-                
-                if 'items' in data and isinstance(data['items'], list):
-                    source_news_count = len(data['items'])
+                data = result["data"]
+
+                if "items" in data and isinstance(data["items"], list):
+                    source_news_count = len(data["items"])
                     total_news += source_news_count
-                    
-                    # 处理该源的新闻
-                    for i, item in enumerate(data['items'], 1):
-                        processed_news = self._process_news_item(item, source, i)
+
+                    # Processa cada notícia da fonte
+                    for i, item in enumerate(data["items"], 1):
+                        processed_news = self._process_news_item(
+                            item, source, i
+                        )
                         if processed_news:
                             news_list.append(processed_news)
-        
+
         return {
-            'success': True,
-            'news_list': news_list,
-            'successful_sources': successful_sources,
-            'total_sources': len(results),
-            'total_news': total_news,
-            'collection_time': datetime.now().isoformat()
+            "success": True,
+            "news_list": news_list,
+            "successful_sources": successful_sources,
+            "total_sources": len(results),
+            "total_news": total_news,
+            "collection_time": datetime.now().isoformat(),
         }
-    
-    def _process_news_item(self, item: Dict, source: str, rank: int) -> Optional[Dict]:
-        """处理单条新闻"""
+
+    def _process_news_item(
+        self, item: Dict, source: str, rank: int
+    ) -> Optional[Dict]:
+        """
+        Processa um único item de notícia.
+
+        Args:
+            item: Dicionário com os dados brutos da notícia
+            source: Identificador da fonte
+            rank: Posição/ranking da notícia na fonte
+
+        Returns:
+            Dicionário processado ou None em caso de erro
+        """
         try:
             if isinstance(item, dict):
-                title = item.get('title', '无标题').strip()
-                url = item.get('url', '')
-                
-                # 生成新闻ID
+                title = item.get("title", "Sem título").strip()
+                url = item.get("url", "")
+
+                # Gera um ID único para a notícia
                 news_id = f"{source}_{item.get('id', f'rank_{rank}')}"
-                
+
                 return {
-                    'id': news_id,
-                    'title': title,
-                    'url': url,
-                    'source': source,
-                    'rank': rank
+                    "id": news_id,
+                    "title": title,
+                    "url": url,
+                    "source": source,
+                    "rank": rank,
                 }
             else:
-                # 处理字符串类型的新闻
+                # Trata itens que chegam como string
                 title = str(item)[:100] if len(str(item)) > 100 else str(item)
                 return {
-                    'id': f"{source}_rank_{rank}",
-                    'title': title,
-                    'url': '',
-                    'source': source,
-                    'rank': rank
+                    "id": f"{source}_rank_{rank}",
+                    "title": title,
+                    "url": "",
+                    "source": source,
+                    "rank": rank,
                 }
-                
+
         except Exception as e:
-            logger.exception(f"处理新闻项失败: {e}")
+            logger.exception(f"Falha ao processar item de notícia: {e}")
             return None
-    
+
     def _print_collection_summary(self, data: Dict):
-        """打印收集摘要"""
+        """
+        Exibe o resumo da coleta no log.
+
+        Args:
+            data: Dicionário com as estatísticas da coleta
+        """
         collection_summary_message = ""
-        collection_summary_message += f"\n总新闻源: {data['total_sources']}\n"
-        collection_summary_message += f"成功源数: {data['successful_sources']}\n"
-        collection_summary_message += f"总新闻数: {data['total_news']}\n"
-        if 'saved_count' in data:
-            collection_summary_message += f"已保存数: {data['saved_count']}\n"
+        collection_summary_message += (
+            f"\nTotal de fontes: {data['total_sources']}\n"
+        )
+        collection_summary_message += (
+            f"Fontes com sucesso: {data['successful_sources']}\n"
+        )
+        collection_summary_message += (
+            f"Total de notícias: {data['total_news']}\n"
+        )
+        if "saved_count" in data:
+            collection_summary_message += (
+                f"Notícias salvas: {data['saved_count']}\n"
+            )
         logger.info(collection_summary_message)
-    
+
     def get_today_news(self) -> List[Dict]:
-        """获取今天的新闻"""
+        """
+        Obtém as notícias do dia armazenadas no banco de dados.
+
+        Returns:
+            Lista de dicionários com as notícias do dia
+        """
         try:
             return self.db_manager.get_daily_news(date.today())
         except Exception as e:
-            logger.exception(f"获取今日新闻失败: {e}")
+            logger.exception(f"Falha ao obter notícias do dia: {e}")
             return []
 
+
 async def main():
-    """测试新闻收集器"""
-    logger.info("测试新闻收集器...")
-    
+    """Testa o coletor de notícias com fontes brasileiras"""
+    logger.info("Testando o coletor de notícias...")
+
     async with NewsCollector() as collector:
-        # 收集新闻
+        # Exibe as regiões disponíveis
+        regioes = collector.get_available_regions()
+        logger.info(f"Regiões disponíveis: {regioes}")
+
+        # Exibe as fontes da região Brasil
+        fontes_brasil = collector.get_sources_by_region("brasil")
+        logger.info(f"Fontes do Brasil: {fontes_brasil}")
+
+        # Coleta notícias apenas do Brasil para teste
         result = await collector.collect_and_save_news(
-            sources=["weibo", "zhihu"]  # 测试用，只使用两个源
+            regions=["brasil"]
         )
-        
-        if result['success']:
-            logger.info(f"收集成功！共获取 {result['total_news']} 条新闻")
+
+        if result["success"]:
+            logger.info(
+                f"Coleta bem-sucedida! {result['total_news']} notícia(s) obtidas"
+            )
         else:
-            logger.error(f"收集失败: {result.get('error', '未知错误')}")
+            logger.error(
+                f"Falha na coleta: {result.get('error', 'erro desconhecido')}"
+            )
+
 
 if __name__ == "__main__":
     asyncio.run(main())

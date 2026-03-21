@@ -31,7 +31,7 @@ class KPICardLayout:
     font_size_change: int = 13  # 变化值字号
     padding: int = 20  # 内边距
     min_height: int = 120  # 最小高度
-    value_max_length: int = 10  # 数值最大字符数（超过则缩小字号）
+    value_max_length: int = 10  # 数值最大caracteres数（超过则缩小字号）
 
 
 @dataclass
@@ -156,12 +156,12 @@ class PDFLayoutOptimizer:
     根据内容特征自动优化PDF布局，防止溢出和排版问题。
     """
 
-    # 字符宽度估算系数（基于常见中文字体）
-    # 中文字符通常是等宽的，约等于字号的像素值
+    # caracteres宽度估算系数（基于常见中文字体）
+    # 中文caracteres通常是等宽的，约等于字号的像素值
     # 英文和数字约为字号的0.5-0.6倍
     # 更新：使用更精确的系数以更好地预测溢出
     CHAR_WIDTH_FACTOR = {
-        'chinese': 1.05,     # 中文字符（略微增加以确保安全边界）
+        'chinese': 1.05,     # 中文caracteres（略微增加以确保安全边界）
         'english': 0.58,     # 英文字母
         'number': 0.65,      # 数字（数字通常比字母稍宽）
         'symbol': 0.45,      # 符号
@@ -172,7 +172,7 @@ class PDFLayoutOptimizer:
         """
         初始化优化器
 
-        参数:
+        Parametros:
             config: 布局配置，如果为None则使用默认配置
         """
         self.config = config or self._create_default_config()
@@ -195,13 +195,13 @@ class PDFLayoutOptimizer:
         """
         根据文档IR内容优化布局配置
 
-        参数:
+        Parametros:
             document_ir: Document IR数据
 
-        返回:
+        Retorna:
             PDFLayoutConfig: 优化后的布局配置
         """
-        logger.info("开始分析文档并优化布局...")
+        logger.info("Iniciando analise do documento e otimizacao de layout...")
 
         # 分析文档结构
         stats = self._analyze_document(document_ir)
@@ -218,10 +218,10 @@ class PDFLayoutOptimizer:
         """
         分析文档内容特征
 
-        返回统计信息：
+        返回Informacoes estatisticas：
         - kpi_count: KPI卡片数量
-        - table_count: 表格数量
-        - chart_count: 图表数量
+        - table_count: Quantidade de tabelas
+        - chart_count: Quantidade de graficos
         - max_kpi_value_length: 最长KPI数值长度
         - max_table_columns: 最多表格列数
         - total_content_length: 总内容长度
@@ -264,7 +264,7 @@ class PDFLayoutOptimizer:
         for chapter in chapters:
             self._analyze_chapter(chapter, stats)
 
-        logger.info(f"文档分析完成: {stats}")
+        logger.info(f"Analise do documento concluida: {stats}")
         return stats
 
     def _analyze_chapter(self, chapter: Dict[str, Any], stats: Dict[str, Any]):
@@ -369,11 +369,11 @@ class PDFLayoutOptimizer:
         """
         估算文本的像素宽度
 
-        参数:
+        Parametros:
             text: 要测量的文本
             font_size: 字号（像素）
 
-        返回:
+        Retorna:
             float: 估算的宽度（像素）
         """
         if not text:
@@ -381,7 +381,7 @@ class PDFLayoutOptimizer:
 
         width = 0.0
         for char in text:
-            if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
+            if '\u4e00' <= char <= '\u9fff':  # 中文caracteres范围
                 width += font_size * self.CHAR_WIDTH_FACTOR['chinese']
             elif char.isalpha():
                 width += font_size * self.CHAR_WIDTH_FACTOR['english']
@@ -398,12 +398,12 @@ class PDFLayoutOptimizer:
         """
         检查文本是否会溢出
 
-        参数:
+        Parametros:
             text: 要检查的文本
             font_size: 字号（像素）
             max_width: 最大宽度（像素）
 
-        返回:
+        Retorna:
             bool: True表示会溢出
         """
         estimated_width = self._estimate_text_width(text, font_size)
@@ -419,13 +419,13 @@ class PDFLayoutOptimizer:
         """
         计算安全的字号以避免溢出
 
-        参数:
+        Parametros:
             text: 要显示的文本
             max_width: 最大宽度（像素）
             min_font_size: 最小字号
             max_font_size: 最大字号
 
-        返回:
+        Retorna:
             Tuple[int, bool]: (建议字号, 是否需要调整)
         """
         if not text:
@@ -445,10 +445,10 @@ class PDFLayoutOptimizer:
         """
         检测KPI卡片可能的溢出问题
 
-        参数:
-            stats: 文档统计信息
+        Parametros:
+            stats: 文档Informacoes estatisticas
 
-        返回:
+        Retorna:
             List[str]: 检测到的问题列表
         """
         issues = []
@@ -466,7 +466,7 @@ class PDFLayoutOptimizer:
 
             if self._check_text_overflow(sample_text, current_font_size, kpi_card_width):
                 issues.append(
-                    f"KPI数值过长({max_kpi_length}字符)，"
+                    f"KPI数值过长({max_kpi_length}caracteres)，"
                     f"字号{current_font_size}px可能导致溢出"
                 )
 
@@ -476,7 +476,7 @@ class PDFLayoutOptimizer:
         self,
         stats: Dict[str, Any]
     ) -> PDFLayoutConfig:
-        """根据统计信息调整配置"""
+        """根据Informacoes estatisticas调整配置"""
         config = PDFLayoutConfig(
             page=PageLayout(**asdict(self.config.page)),
             kpi_card=KPICardLayout(**asdict(self.config.kpi_card)),
@@ -495,7 +495,7 @@ class PDFLayoutOptimizer:
         overflow_issues = self._detect_kpi_overflow_issues(stats)
         if overflow_issues:
             for issue in overflow_issues:
-                logger.warning(f"检测到布局问题: {issue}")
+                logger.warning(f"Problema de layout detectado: {issue}")
 
         # KPI卡片宽度（像素）- 更保守的计算，留出更多安全边界
         kpi_card_width = (800 - 20) // 2 - 60  # 2列布局，增加边距以防溢出
@@ -516,13 +516,13 @@ class PDFLayoutOptimizer:
                 # Hero KPI需要更保守的字号
                 config.kpi_card.font_size_value = max(14, safe_font_size - 2)
                 self.optimization_log.append(
-                    f"Hero KPI数值较长({stats['max_hero_kpi_value_length']}字符)，"
+                    f"Hero KPI数值较长({stats['max_hero_kpi_value_length']}caracteres)，"
                     f"字号调整为{config.kpi_card.font_size_value}px"
                 )
 
         # 根据KPI数值长度智能调整字号
         if stats['max_kpi_value_length'] > 0:
-            # 创建示例文本进行测试 - 使用实际可能的字符组合
+            # 创建示例文本进行测试 - 使用实际可能的caracteres组合
             sample_text = '9' * stats['max_kpi_value_length'] + '亿'  # 加上可能的单位
             safe_font_size, needs_adjustment = self._calculate_safe_font_size(
                 sample_text,
@@ -536,14 +536,14 @@ class PDFLayoutOptimizer:
                 # 进一步降低以留出安全边界
                 config.kpi_card.font_size_value = max(16, safe_font_size - 2)
                 self.optimization_log.append(
-                    f"KPI数值过长({stats['max_kpi_value_length']}字符)，"
+                    f"KPI数值过长({stats['max_kpi_value_length']}caracteres)，"
                     f"字号自动调整为{config.kpi_card.font_size_value}px以防止溢出"
                 )
             elif stats['max_kpi_value_length'] > 8:
                 # 对于较长文本，更保守地调整
                 config.kpi_card.font_size_value = min(24, safe_font_size)
                 self.optimization_log.append(
-                    f"KPI数值较长({stats['max_kpi_value_length']}字符)，"
+                    f"KPI数值较长({stats['max_kpi_value_length']}caracteres)，"
                     f"预防性调整字号为{config.kpi_card.font_size_value}px"
                 )
 
@@ -710,10 +710,10 @@ class PDFLayoutOptimizer:
 
     def save_config(self, path: str | Path, log_entry: Optional[Dict] = None):
         """
-        保存配置到文件
+        保存配置到Arquivo
 
-        参数:
-            path: 保存路径
+        Parametros:
+            path: 保存Caminho
             log_entry: 优化日志条目（可选）
         """
         path = Path(path)
@@ -729,23 +729,23 @@ class PDFLayoutOptimizer:
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        logger.info(f"布局配置已保存: {path}")
+        logger.info(f"Configuracao de layout salva: {path}")
 
     @classmethod
     def load_config(cls, path: str | Path) -> PDFLayoutOptimizer:
         """
-        从文件加载配置
+        从Arquivo加载配置
 
-        参数:
-            path: 配置文件路径
+        Parametros:
+            path: 配置ArquivoCaminho
 
-        返回:
+        Retorna:
             PDFLayoutOptimizer: 加载了配置的优化器实例
         """
         path = Path(path)
 
         if not path.exists():
-            logger.warning(f"配置文件不存在: {path}，使用默认配置")
+            logger.warning(f"配置Arquivo nao existe: {path}，使用默认配置")
             return cls()
 
         with open(path, 'r', encoding='utf-8') as f:
@@ -754,15 +754,15 @@ class PDFLayoutOptimizer:
         config = PDFLayoutConfig.from_dict(data['config'])
         optimizer = cls(config)
 
-        logger.info(f"布局配置已加载: {path}")
+        logger.info(f"Configuracao de layout carregada: {path}")
         return optimizer
 
     def generate_pdf_css(self) -> str:
         """
         根据当前配置生成PDF专用CSS
 
-        返回:
-            str: CSS样式字符串
+        Retorna:
+            str: CSS样式string
         """
         cfg = self.config
         db = cfg.data_block
@@ -1324,7 +1324,7 @@ h1, h2, h3, h4, h5, h6 {{
 
 /* ===== 强制页面分离规则 ===== */
 
-/* 目录section强制开始新页并在之后强制分页 */
+/* Sumariosection强制开始新页并在之后强制分页 */
 .toc-section {{
     page-break-before: always !important;
     page-break-after: always !important;

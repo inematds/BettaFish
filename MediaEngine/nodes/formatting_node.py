@@ -1,6 +1,6 @@
 """
-报告格式化节点
-负责将最终研究结果格式化为美观的Markdown报告
+Nó de formatação do relatório
+Responsável por formatar os resultados finais da pesquisa em um relatório Markdown elegante
 """
 
 import json
@@ -16,19 +16,19 @@ from ..utils.text_processing import (
 
 
 class ReportFormattingNode(BaseNode):
-    """格式化最终报告的节点"""
-    
+    """Nó que formata o relatório final"""
+
     def __init__(self, llm_client):
         """
-        初始化报告格式化节点
-        
+        Inicializar nó de formatação do relatório
+
         Args:
-            llm_client: LLM客户端
+            llm_client: Cliente LLM
         """
         super().__init__(llm_client, "ReportFormattingNode")
-    
+
     def validate_input(self, input_data: Any) -> bool:
-        """验证输入数据"""
+        """Validar dados de entrada"""
         if isinstance(input_data, str):
             try:
                 data = json.loads(input_data)
@@ -44,103 +44,103 @@ class ReportFormattingNode(BaseNode):
                 for item in input_data
             )
         return False
-    
+
     def run(self, input_data: Any, **kwargs) -> str:
         """
-        调用LLM生成Markdown格式报告
-        
+        Chamar LLM para gerar relatório em formato Markdown
+
         Args:
-            input_data: 包含所有段落信息的列表
-            **kwargs: 额外参数
-            
+            input_data: Lista contendo informações de todos os parágrafos
+            **kwargs: Parâmetros adicionais
+
         Returns:
-            格式化的Markdown报告
+            Relatório formatado em Markdown
         """
         try:
             if not self.validate_input(input_data):
-                raise ValueError("输入数据格式错误，需要包含title和paragraph_latest_state的列表")
-            
-            # 准备输入数据
+                raise ValueError("Formato de dados de entrada incorreto, necessário lista contendo title e paragraph_latest_state")
+
+            # Preparar dados de entrada
             if isinstance(input_data, str):
                 message = input_data
             else:
                 message = json.dumps(input_data, ensure_ascii=False)
-            
-            logger.info("正在格式化最终报告")
-            
-            # 调用LLM生成Markdown格式（流式，安全拼接UTF-8）
+
+            logger.info("Formatando relatório final")
+
+            # Chamar LLM para gerar formato Markdown (streaming, concatenação segura UTF-8)
             response = self.llm_client.stream_invoke_to_string(
                 SYSTEM_PROMPT_REPORT_FORMATTING,
                 message,
             )
-            
-            # 处理响应
+
+            # Processar resposta
             processed_response = self.process_output(response)
-            
-            logger.info("成功生成格式化报告")
+
+            logger.info("Relatório formatado gerado com sucesso")
             return processed_response
-            
+
         except Exception as e:
-            logger.exception(f"报告格式化失败: {str(e)}")
+            logger.exception(f"Falha na formatação do relatório: {str(e)}")
             raise e
-    
+
     def process_output(self, output: str) -> str:
         """
-        处理LLM输出，清理Markdown格式
-        
+        Processar saída do LLM, limpar formato Markdown
+
         Args:
-            output: LLM原始输出
-            
+            output: Saída bruta do LLM
+
         Returns:
-            清理后的Markdown报告
+            Relatório Markdown limpo
         """
         try:
-            # 清理响应文本
+            # Limpar texto da resposta
             cleaned_output = remove_reasoning_from_output(output)
             cleaned_output = clean_markdown_tags(cleaned_output)
-            
-            # 确保报告有基本结构
+
+            # Garantir que o relatório tenha estrutura básica
             if not cleaned_output.strip():
-                return "# 报告生成失败\n\n无法生成有效的报告内容。"
-            
-            # 如果没有标题，添加一个默认标题
+                return "# Falha na geração do relatório\n\nNão foi possível gerar conteúdo válido para o relatório."
+
+            # Se não houver título, adicionar um título padrão
             if not cleaned_output.strip().startswith('#'):
-                cleaned_output = "# 深度研究报告\n\n" + cleaned_output
-            
+                cleaned_output = "# Relatório de pesquisa aprofundada\n\n" + cleaned_output
+
             return cleaned_output.strip()
-            
+
         except Exception as e:
-            logger.exception(f"处理输出失败: {str(e)}")
-            return "# 报告处理失败\n\n报告格式化过程中发生错误。"
-    
-    def format_report_manually(self, paragraphs_data: List[Dict[str, str]], 
-                             report_title: str = "深度研究报告") -> str:
+            logger.exception(f"Falha ao processar saída: {str(e)}")
+            return "# Falha no processamento do relatório\n\nOcorreu um erro durante a formatação do relatório."
+
+    def format_report_manually(self, paragraphs_data: List[Dict[str, str]],
+                             report_title: str = "Relatório de pesquisa aprofundada") -> str:
         """
-        手动格式化报告（备用方法）
-        
+        Formatar relatório manualmente (método alternativo)
+
         Args:
-            paragraphs_data: 段落数据列表
-            report_title: 报告标题
-            
+            paragraphs_data: Lista de dados dos parágrafos
+            report_title: Título do relatório
+
         Returns:
-            格式化的Markdown报告
+            Relatório formatado em Markdown
         """
         try:
-            logger.info("使用手动格式化方法")
-            
-            # 构建报告
+            logger.info("Usando método de formatação manual")
+
+            # Construir relatório
             report_lines = [
                 f"# {report_title}",
                 "",
                 "---",
                 ""
             ]
-            
-            # 添加各个段落
+
+            # Adicionar cada parágrafo
             for i, paragraph in enumerate(paragraphs_data, 1):
-                title = paragraph.get("title", f"段落 {i}")
+                title = paragraph.get("title", f"Parágrafo {i}")
                 content = paragraph.get("paragraph_latest_state", "")
-                
+
                 if content:
                     report_lines.extend([
                         f"## {title}",
@@ -150,19 +150,19 @@ class ReportFormattingNode(BaseNode):
                         "---",
                         ""
                     ])
-            
-            # 添加结论
+
+            # Adicionar conclusão
             if len(paragraphs_data) > 1:
                 report_lines.extend([
-                    "## 结论",
+                    "## Conclusão",
                     "",
-                    "本报告通过深度搜索和研究，对相关主题进行了全面分析。"
-                    "以上各个方面的内容为理解该主题提供了重要参考。",
+                    "Este relatório realizou uma análise abrangente do tema relacionado através de pesquisa e investigação aprofundada. "
+                    "O conteúdo de cada aspecto acima fornece uma referência importante para a compreensão deste tema.",
                     ""
                 ])
-            
+
             return "\n".join(report_lines)
-            
+
         except Exception as e:
-            logger.exception(f"手动格式化失败: {str(e)}")
-            return "# 报告生成失败\n\n无法完成报告格式化。"
+            logger.exception(f"Falha na formatação manual: {str(e)}")
+            return "# Falha na geração do relatório\n\nNão foi possível concluir a formatação do relatório."

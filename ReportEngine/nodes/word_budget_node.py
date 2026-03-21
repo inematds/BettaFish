@@ -1,5 +1,5 @@
 """
-章节篇幅规划节点。
+No de planejamento de extensao dos capitulos.
 """
 
 from __future__ import annotations
@@ -20,18 +20,18 @@ from .base_node import BaseNode
 
 class WordBudgetNode(BaseNode):
     """
-    规划各章节字数与重点。
+    Planejar contagem de palavras e pontos de enfase de cada capitulo.
 
-    输出总字数、全局写作准则以及每章/小节的 target/min/max 字数约束。
+    Gerar total de palavras, diretrizes de escrita globais e restricoes target/min/max de palavras para cada capitulo/secao.
     """
 
     def __init__(self, llm_client):
-        """仅记录LLM客户端引用，方便run阶段发起请求"""
+        """apenas registrarCliente LLM引用，方便run阶段发起请求"""
         super().__init__(llm_client, "WordBudgetNode")
         # 初始化鲁棒JSON解析器，启用所有修复策略
         self.json_parser = RobustJSONParser(
             enable_json_repair=True,
-            enable_llm_repair=False,  # 可以根据需要启用LLM修复
+            enable_llm_repair=False,  # Pode ativar reparo LLM conforme necessario
             max_repair_attempts=3,
         )
 
@@ -45,18 +45,18 @@ class WordBudgetNode(BaseNode):
         template_overview: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         """
-        根据设计稿和所有素材规划章节字数，让LLM写作时有明确篇幅目标。
+        Planejar contagem de palavras dos capitulos com base no design e todos os materiais, dando ao LLM metas claras de extensao ao escrever.
 
-        参数:
+        Parametros:
             sections: 模板章节列表。
             design: 布局节点返回的设计稿（title/toc/hero等）。
-            reports: 三引擎报告映射。
-            forum_logs: 论坛日志原文。
-            query: 用户查询词。
-            template_overview: 可选的模板概览，含章节元信息。
+            reports: 三引擎relatorio映射。
+            forum_logs: logs do forum原文。
+            query: Palavra de consulta do usuario.
+            template_overview: 可选的模板概览，含Meta-informacoes do capitulo.
 
-        返回:
-            dict: 章节篇幅规划结果，包含 `totalWords`、`globalGuidelines` 与逐章 `chapters`。
+        Retorna:
+            dict: Planejamento de extensao dos capitulos结果，包含 `totalWords`、`globalGuidelines` 与逐章 `chapters`。
         """
         # 输入中除了章节骨架外，还包含布局节点输出，方便约束篇幅时参考视觉主次
         payload = {
@@ -79,27 +79,27 @@ class WordBudgetNode(BaseNode):
             top_p=0.85,
         )
         plan = self._parse_response(response)
-        logger.info("章节字数规划已生成")
+        logger.info("Planejamento de contagem de palavras dos capitulos gerado")
         return plan
 
     def _parse_response(self, raw: str) -> Dict[str, Any]:
         """
-        将LLM输出的JSON文本转为字典，失败时提示规划异常。
+        Converter texto JSON de saida do LLM para dicionario, indicando anomalia de planejamento em caso de falha.
 
         使用鲁棒JSON解析器进行多重修复尝试：
         1. 清理markdown标记和思考内容
-        2. 本地语法修复（括号平衡、逗号补全、控制字符转义等）
+        2. 本地语法修复（括号平衡、逗号补全、控制caracteres转义等）
         3. 使用json_repair库进行高级修复
         4. 可选的LLM辅助修复
 
-        参数:
+        Parametros:
             raw: LLM返回值，可能包含```包裹、思考内容等。
 
-        返回:
+        Retorna:
             dict: 合法的篇幅规划JSON。
 
-        异常:
-            ValueError: 当响应为空或JSON解析失败时抛出。
+        Excecoes:
+            ValueError: 当响应为空或Falha na analise JSON时抛出。
         """
         try:
             result = self.json_parser.parse(
@@ -109,18 +109,18 @@ class WordBudgetNode(BaseNode):
             )
             # 验证关键字段的类型
             if not isinstance(result.get("totalWords"), (int, float)):
-                logger.warning("篇幅规划缺少totalWords字段或类型错误，使用默认值")
+                logger.warning("篇幅规划缺少totalWords字段或类型Erro(s)，使用默认值")
                 result.setdefault("totalWords", 10000)
             if not isinstance(result.get("globalGuidelines"), list):
-                logger.warning("篇幅规划缺少globalGuidelines字段或类型错误，使用空列表")
+                logger.warning("篇幅规划缺少globalGuidelines字段或类型Erro(s)，使用空列表")
                 result.setdefault("globalGuidelines", [])
             if not isinstance(result.get("chapters"), (list, dict)):
-                logger.warning("篇幅规划缺少chapters字段或类型错误，使用空列表")
+                logger.warning("篇幅规划缺少chapters字段或类型Erro(s)，使用空列表")
                 result.setdefault("chapters", [])
             return result
         except JSONParseError as exc:
             # 转换为原有的异常类型以保持向后兼容
-            raise ValueError(f"篇幅规划JSON解析失败: {exc}") from exc
+            raise ValueError(f"篇幅规划Falha na analise JSON: {exc}") from exc
 
 
 __all__ = ["WordBudgetNode"]

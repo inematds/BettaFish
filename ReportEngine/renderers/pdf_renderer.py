@@ -20,7 +20,7 @@ from ReportEngine.utils.dependency_check import (
     check_pango_available,
 )
 
-# 在导入WeasyPrint之前，尝试补充常见的macOS Homebrew动态库路径，
+# 在导入WeasyPrint之前，尝试补充常见的macOS Homebrew动态库Caminho，
 # 避免因未设置DYLD_LIBRARY_PATH而找不到pango/cairo等依赖。
 if sys.platform == 'darwin':
     mac_libs = [Path('/opt/homebrew/lib'), Path('/usr/local/lib')]
@@ -32,11 +32,11 @@ if sys.platform == 'darwin':
     if inserts:
         os.environ['DYLD_LIBRARY_PATH'] = ":".join(inserts + ([current] if current else []))
 
-# Windows: 自动补充常见 GTK/Pango 运行时路径，避免 DLL 加载失败
+# Windows: 自动补充常见 GTK/Pango 运行时Caminho，避免 DLL 加载失败
 if sys.platform.startswith('win'):
     added = prepare_pango_environment()
     if added:
-        logger.debug(f"已自动添加 GTK 运行时路径: {added}")
+        logger.debug(f"已自动添加 GTK 运行时Caminho: {added}")
 
 try:
     from weasyprint import HTML, CSS
@@ -45,7 +45,7 @@ try:
     PDF_DEP_STATUS = "OK"
 except (ImportError, OSError) as e:
     WEASYPRINT_AVAILABLE = False
-    # 判断错误类型以提供更友好的提示，并尝试输出缺失依赖的详细信息
+    # 判断Erro(s)类型以提供更友好的提示，并尝试输出缺失依赖的详细信息
     try:
         _, dep_message = check_pango_available()
     except Exception:
@@ -53,13 +53,13 @@ except (ImportError, OSError) as e:
 
     if isinstance(e, OSError):
         msg = dep_message or (
-            "PDF 导出依赖缺失（系统库未安装或环境变量未设置），"
+            "Dependencias de exportacao PDF ausentes（系统库未安装或环境变量未设置），"
             "PDF 导出功能将不可用。其他功能不受影响。"
         )
         logger.warning(msg)
         PDF_DEP_STATUS = msg
     else:
-        msg = dep_message or "WeasyPrint未安装，PDF导出功能将不可用"
+        msg = dep_message or "WeasyPrint nao instalado, funcao de exportacao PDF nao estara disponivel"
         logger.warning(msg)
         PDF_DEP_STATUS = msg
 except Exception as e:
@@ -97,7 +97,7 @@ class PDFRenderer:
         """
         初始化PDF渲染器
 
-        参数:
+        Parametros:
             config: 渲染器配置
             layout_optimizer: PDF布局优化器（可选）
         """
@@ -116,43 +116,43 @@ class PDFRenderer:
         try:
             font_path = self._get_font_path()
             self.chart_converter = create_chart_converter(font_path=str(font_path))
-            logger.info("图表SVG转换器初始化成功")
+            logger.info("Conversor SVG de graficos inicializado com sucesso")
         except Exception as e:
-            logger.warning(f"图表SVG转换器初始化失败: {e}，将使用表格降级")
+            logger.warning(f"Falha ao inicializar conversor SVG de graficos: {e}，Sera usado fallback para tabela")
 
         # 初始化数学公式转换器
         try:
             self.math_converter = MathToSVG(font_size=16, color='black')
-            logger.info("数学公式SVG转换器初始化成功")
+            logger.info("Conversor SVG de formulas matematicas inicializado com sucesso")
         except Exception as e:
-            logger.warning(f"数学公式SVG转换器初始化失败: {e}，公式将显示为文本")
+            logger.warning(f"Falha ao inicializar conversor SVG de formulas matematicas: {e}，Formulas serao exibidas como texto")
             self.math_converter = None
 
     @staticmethod
     def _get_font_path() -> Path:
-        """获取字体文件路径"""
-        # 优先使用完整字体以确保字符覆盖
+        """获取字体ArquivoCaminho"""
+        # 优先Usando fonte completa以确保caracteres覆盖
         fonts_dir = Path(__file__).parent / "assets" / "fonts"
 
         # 检查完整字体
         full_font = fonts_dir / "SourceHanSerifSC-Medium.otf"
         if full_font.exists():
-            logger.info(f"使用完整字体: {full_font}")
+            logger.info(f"Usando fonte completa: {full_font}")
             return full_font
 
         # 检查TTF子集字体
         subset_ttf = fonts_dir / "SourceHanSerifSC-Medium-Subset.ttf"
         if subset_ttf.exists():
-            logger.info(f"使用TTF子集字体: {subset_ttf}")
+            logger.info(f"Usando fonte subset TTF: {subset_ttf}")
             return subset_ttf
 
         # 检查OTF子集字体
         subset_otf = fonts_dir / "SourceHanSerifSC-Medium-Subset.otf"
         if subset_otf.exists():
-            logger.info(f"使用OTF子集字体: {subset_otf}")
+            logger.info(f"Usando fonte subset OTF: {subset_otf}")
             return subset_otf
 
-        raise FileNotFoundError(f"未找到字体文件，请检查 {fonts_dir} 目录")
+        raise FileNotFoundError(f"Arquivo de fonte nao encontrado, verifique {fonts_dir} Sumario")
 
     def _preprocess_charts(
         self,
@@ -163,17 +163,17 @@ class PDFRenderer:
         预处理图表：使用 ChartReviewService 验证并修复所有图表数据。
 
         使用统一的 ChartReviewService 进行图表审查，修复结果直接写回传入的 IR。
-        如果提供 ir_file_path，修复后会自动保存到文件。
+        如果提供 ir_file_path，修复后会自动保存到Arquivo。
 
-        参数:
+        Parametros:
             document_ir: Document IR数据
-            ir_file_path: 可选，IR 文件路径，提供时修复后会自动保存
+            ir_file_path: 可选，IR ArquivoCaminho，提供时修复后会自动保存
 
-        返回:
+        Retorna:
             Dict[str, Any]: 修复后的Document IR（深拷贝）
         """
         # 使用统一的 ChartReviewService
-        # review_document 返回本次会话的统计信息（线程安全）
+        # review_document 返回本次会话的Informacoes estatisticas（线程安全）
         chart_service = get_chart_review_service()
         review_stats = chart_service.review_document(
             document_ir,
@@ -198,11 +198,11 @@ class PDFRenderer:
         """
         将document_ir中的所有图表转换为SVG
 
-        参数:
+        Parametros:
             document_ir: Document IR数据
 
-        返回:
-            Dict[str, str]: widgetId到SVG字符串的映射
+        Retorna:
+            Dict[str, str]: widgetId到SVGstring的映射
         """
         svg_map = {}
 
@@ -245,9 +245,9 @@ class PDFRenderer:
         svg_map: Dict[str, str]
     ) -> None:
         """
-        递归遍历blocks，找到所有widget并转换为SVG
+        递归遍历blocks，Encontrado(s)所有widget并转换为SVG
 
-        参数:
+        Parametros:
             blocks: block列表
             svg_map: 用于存储转换结果的字典
         """
@@ -291,7 +291,7 @@ class PDFRenderer:
                         else:
                             logger.warning(f"图表 {widget_id} 转换为SVG失败")
                     except Exception as e:
-                        logger.error(f"转换图表 {widget_id} 时出错: {e}")
+                        logger.error(f"转换图表 {widget_id} erro ocorreu: {e}")
 
             # 递归处理嵌套的blocks
             nested_blocks = block.get('blocks')
@@ -321,7 +321,7 @@ class PDFRenderer:
         img_map: Dict[str, str]
     ) -> None:
         """
-        递归遍历blocks，找到词云widget并生成图片
+        递归遍历blocks，Encontrado(s)词云widget并生成图片
         """
         for block in blocks:
             if not isinstance(block, dict):
@@ -404,7 +404,7 @@ class PDFRenderer:
         frequencies = {}
         for item in items:
             weight = item['weight']
-            # 兼容权重为0-1的小数，放大以体现差异
+            # Compativel com权重为0-1的小数，放大以体现差异
             freq = weight * 100 if 0 < weight <= 1.5 else weight
             frequencies[item['word']] = max(1, freq)
 
@@ -430,11 +430,11 @@ class PDFRenderer:
         """
         将document_ir中的所有数学公式转换为SVG
 
-        参数:
+        Parametros:
             document_ir: Document IR数据
 
-        返回:
-            Dict[str, str]: 公式块ID到SVG字符串的映射
+        Retorna:
+            Dict[str, str]: 公式块ID到SVGstring的映射
         """
         svg_map = {}
 
@@ -459,9 +459,9 @@ class PDFRenderer:
         block_counter: list = None
     ) -> None:
         """
-        递归遍历blocks，找到所有math块并转换为SVG
+        递归遍历blocks，Encontrado(s)所有math块并转换为SVG
 
-        参数:
+        Parametros:
             blocks: block列表
             svg_map: 用于存储转换结果的字典
             block_counter: 用于生成唯一ID的计数器
@@ -502,7 +502,7 @@ class PDFRenderer:
                         else:
                             logger.warning(f"公式 {math_id} 转换为SVG失败: {latex[:50]}...")
                     except Exception as exc:
-                        logger.error(f"转换内联公式 {latex[:50]}... 时出错: {exc}")
+                        logger.error(f"转换内联公式 {latex[:50]}... erro ocorreu: {exc}")
                     continue
 
                 # 无math mark，尝试解析文本中的多个公式
@@ -531,7 +531,7 @@ class PDFRenderer:
                         else:
                             logger.warning(f"公式 {math_id} 转换为SVG失败: {latex[:50]}...")
                     except Exception as exc:
-                        logger.error(f"转换内联公式 {latex[:50]}... 时出错: {exc}")
+                        logger.error(f"转换内联公式 {latex[:50]}... erro ocorreu: {exc}")
                 if ids_for_html:
                     # 将ID列表写回run，便于HTML渲染时使用相同ID（顺序对应segments）
                     run['mathIds'] = ids_for_html
@@ -558,7 +558,7 @@ class PDFRenderer:
                         else:
                             logger.warning(f"公式 {math_id} 转换为SVG失败: {latex[:50]}...")
                     except Exception as e:
-                        logger.error(f"转换公式 {latex[:50]}... 时出错: {e}")
+                        logger.error(f"转换公式 {latex[:50]}... erro ocorreu: {e}")
             else:
                 # 提取段落、表格等内部的内联公式
                 inlines = block.get('inlines')
@@ -597,11 +597,11 @@ class PDFRenderer:
         """
         将SVG内容直接注入到HTML中（不使用JavaScript）
 
-        参数:
+        Parametros:
             html: 原始HTML内容
             svg_map: widgetId到SVG内容的映射
 
-        返回:
+        Retorna:
             str: 注入SVG后的HTML
         """
         if not svg_map:
@@ -630,12 +630,12 @@ class PDFRenderer:
                 # 格式: <canvas id="chart-N" data-config-id="chart-config-N"></canvas>
                 canvas_pattern = rf'<canvas[^>]+data-config-id="{re.escape(config_id)}"[^>]*></canvas>'
 
-                # 【修复】替换canvas为SVG，使用lambda避免反斜杠转义问题
+                # [CORRECAO] 替换canvas为SVG，使用lambda避免反斜杠转义问题
                 html, replaced = re.subn(canvas_pattern, lambda m: svg_html, html, count=1)
                 if replaced:
                     logger.debug(f"已替换图表 {widget_id} 的canvas为SVG")
                 else:
-                    logger.warning(f"未找到图表 {widget_id} 的canvas进行替换")
+                    logger.warning(f"未Encontrado(s)图表 {widget_id} 的canvas进行替换")
 
                 # 将对应fallback标记为隐藏，避免PDF中出现重复表格
                 fallback_pattern = rf'<div class="chart-fallback"([^>]*data-widget-id="{re.escape(widget_id)}"[^>]*)>'
@@ -649,7 +649,7 @@ class PDFRenderer:
 
                 html = re.sub(fallback_pattern, _hide_fallback, html, count=1)
             else:
-                logger.warning(f"未找到图表 {widget_id} 对应的配置脚本")
+                logger.warning(f"未Encontrado(s)图表 {widget_id} 对应的配置脚本")
 
         return html
 
@@ -670,7 +670,7 @@ class PDFRenderer:
             if m:
                 latex = m.group(1).strip()
                 break
-        # 清理控制字符、防止mathtext解析失败
+        # 清理控制caracteres、防止mathtext解析失败
         latex = re.sub(r'[\x00-\x1f\x7f]', '', latex)
         # 常见兼容：\tfrac/\dfrac -> \frac
         latex = latex.replace(r'\tfrac', r'\frac').replace(r'\dfrac', r'\frac')
@@ -740,7 +740,7 @@ class PDFRenderer:
             config_pattern = rf'<script[^>]+id="([^"]+)"[^>]*>(?:(?!</script>).)*?"widgetId"\s*:\s*"{re.escape(widget_id)}"(?:(?!</script>).)*?</script>'
             match = re.search(config_pattern, html, re.DOTALL)
             if not match:
-                logger.debug(f"未找到词云 {widget_id} 的配置脚本，跳过注入")
+                logger.debug(f"未Encontrado(s)词云 {widget_id} 的配置脚本，跳过注入")
                 continue
 
             config_id = match.group(1)
@@ -750,7 +750,7 @@ class PDFRenderer:
             if replaced:
                 logger.debug(f"已替换词云 {widget_id} 的canvas为PNG图片")
             else:
-                logger.warning(f"未找到词云 {widget_id} 的canvas进行替换")
+                logger.warning(f"未Encontrado(s)词云 {widget_id} 的canvas进行替换")
 
             fallback_pattern = rf'<div class="chart-fallback"([^>]*data-widget-id="{re.escape(widget_id)}"[^>]*)>'
 
@@ -769,11 +769,11 @@ class PDFRenderer:
         """
         将数学公式SVG内容注入到HTML中
 
-        参数:
+        Parametros:
             html: 原始HTML内容
             svg_map: 公式ID到SVG内容的映射
 
-        返回:
+        Retorna:
             str: 注入SVG后的HTML
         """
         if not svg_map:
@@ -803,7 +803,7 @@ class PDFRenderer:
                     html = re.sub(block_pattern, lambda m: svg_block_html, html, count=1)
                     replaced = True
 
-            # 如果没有找到特定ID，按出现顺序兜底替换
+            # 如果没有Encontrado(s)特定ID，按出现顺序兜底替换
             if not replaced:
                 html, sub_inline = re.subn(r'<span class="math-inline">[^<]*</span>', lambda m: svg_inline_html, html, count=1)
                 if sub_inline:
@@ -829,21 +829,21 @@ class PDFRenderer:
 
         - 移除交互式元素（按钮、导航等）
         - 添加PDF专用样式
-        - 嵌入字体文件
+        - 嵌入字体Arquivo
         - 应用布局优化
         - 将图表转换为SVG矢量图形
 
-        参数:
+        Parametros:
             document_ir: Document IR数据
             optimize_layout: 是否启用布局优化
-            ir_file_path: 可选，IR 文件路径，提供时修复后会自动保存
+            ir_file_path: 可选，IR ArquivoCaminho，提供时修复后会自动保存
 
-        返回:
+        Retorna:
             str: 优化后的HTML内容
         """
         # 如果启用布局优化，先分析文档并生成优化配置
         if optimize_layout:
-            logger.info("启用PDF布局优化...")
+            logger.info("Ativando otimizacao de layout do PDF...")
             layout_config = self.layout_optimizer.optimize_for_document(document_ir)
 
             # 保存优化日志
@@ -862,7 +862,7 @@ class PDFRenderer:
             layout_config = self.layout_optimizer.config
 
         # 关键修复：先预处理图表，确保数据有效
-        logger.info("预处理图表数据...")
+        logger.info("Pre-processando dados dos graficos...")
         preprocessed_ir = self._preprocess_charts(document_ir, ir_file_path)
 
         # 转换图表为SVG（使用预处理后的IR）
@@ -894,7 +894,7 @@ class PDFRenderer:
             html = self._inject_math_svg_into_html(html, math_svg_map)
             logger.info(f"已注入 {len(math_svg_map)} 个SVG公式")
 
-        # 获取字体路径并转换为base64（用于嵌入）
+        # 获取字体Caminho并转换为base64（用于嵌入）
         font_path = self._get_font_path()
         font_data = font_path.read_bytes()
         font_base64 = base64.b64encode(font_data).decode('ascii')
@@ -1046,7 +1046,7 @@ body {{
     background: linear-gradient(145deg, rgba(142,68,173,0.03), rgba(22,160,133,0.04)), #ffffff !important;
 }}
 
-/* 覆盖图表卡片错误状态渐变 */
+/* 覆盖图表卡片Erro(s)状态渐变 */
 .chart-card.chart-card--error {{
     background: linear-gradient(135deg, rgba(0,0,0,0.015), rgba(0,0,0,0.04)) !important;
 }}
@@ -1541,20 +1541,20 @@ button.ghost-btn {{
         ir_file_path: str | None = None
     ) -> Path:
         """
-        将Document IR渲染为PDF文件
+        将Document IR渲染为PDFArquivo
 
-        参数:
+        Parametros:
             document_ir: Document IR数据
-            output_path: PDF输出路径
+            output_path: PDF输出Caminho
             optimize_layout: 是否启用布局优化（默认True）
-            ir_file_path: 可选，IR 文件路径，提供时修复后会自动保存
+            ir_file_path: 可选，IR ArquivoCaminho，提供时修复后会自动保存
 
-        返回:
-            Path: 生成的PDF文件路径
+        Retorna:
+            Path: 生成的PDFArquivoCaminho
         """
         output_path = Path(output_path)
 
-        logger.info(f"开始生成PDF: {output_path}")
+        logger.info(f"Iniciando geracao do PDF: {output_path}")
 
         # 生成HTML内容
         html_content = self._get_pdf_html(document_ir, optimize_layout, ir_file_path)
@@ -1562,10 +1562,10 @@ button.ghost-btn {{
         # 配置字体
         font_config = FontConfiguration()
 
-        # 从HTML字符串创建WeasyPrint HTML对象
+        # 从HTMLstring创建WeasyPrint HTML对象
         html_doc = HTML(string=html_content, base_url=str(Path.cwd()))
 
-        # 生成PDF
+        # Gerar PDF
         try:
             html_doc.write_pdf(
                 output_path,
@@ -1576,7 +1576,7 @@ button.ghost-btn {{
             return output_path
 
         except Exception as e:
-            logger.error(f"PDF生成失败: {e}")
+            logger.error(f"Falha na geracao do PDF: {e}")
             raise
 
     def render_to_bytes(
@@ -1588,13 +1588,13 @@ button.ghost-btn {{
         """
         将Document IR渲染为PDF字节流
 
-        参数:
+        Parametros:
             document_ir: Document IR数据
             optimize_layout: 是否启用布局优化（默认True）
-            ir_file_path: 可选，IR 文件路径，提供时修复后会自动保存
+            ir_file_path: 可选，IR ArquivoCaminho，提供时修复后会自动保存
 
-        返回:
-            bytes: PDF文件的字节内容
+        Retorna:
+            bytes: PDFArquivo的字节内容
         """
         html_content = self._get_pdf_html(document_ir, optimize_layout, ir_file_path)
         font_config = FontConfiguration()

@@ -1,6 +1,6 @@
 """
-节点基类
-定义所有处理节点的基础接口
+Classe base dos nós
+Define a interface base de todos os nós de processamento
 """
 
 from abc import ABC, abstractmethod
@@ -11,15 +11,15 @@ from ..state.state import State
 
 
 class BaseNode(ABC):
-    """节点基类"""
+    """Classe base dos nós"""
 
     def __init__(self, llm_client: LLMClient, node_name: str = ""):
         """
-        初始化节点
+        Inicializar nó
 
         Args:
-            llm_client: LLM客户端
-            node_name: 节点名称
+            llm_client: Cliente LLM
+            node_name: Nome do nó
         """
         self.llm_client = llm_client
         self.node_name = node_name or self.__class__.__name__
@@ -27,68 +27,68 @@ class BaseNode(ABC):
     @abstractmethod
     def run(self, input_data: Any, **kwargs) -> Any:
         """
-        执行节点处理逻辑
+        Executar lógica de processamento do nó
 
         Args:
-            input_data: 输入数据
-            **kwargs: 额外参数
+            input_data: Dados de entrada
+            **kwargs: Parâmetros adicionais
 
         Returns:
-            处理结果
+            Resultado do processamento
         """
         pass
 
     def validate_input(self, input_data: Any) -> bool:
         """
-        验证输入数据
+        Validar dados de entrada
 
         Args:
-            input_data: 输入数据
+            input_data: Dados de entrada
 
         Returns:
-            验证是否通过
+            Se a validação foi aprovada
         """
         return True
 
     def process_output(self, output: Any) -> Any:
         """
-        处理输出数据
+        Processar dados de saída
 
         Args:
-            output: 原始输出
+            output: Saída bruta
 
         Returns:
-            处理后的输出
+            Saída processada
         """
         return output
 
     def log_info(self, message: str):
-        """记录信息日志"""
+        """Registrar log informativo"""
         logger.info(f"[{self.node_name}] {message}")
-    
+
     def log_warning(self, message: str):
-        """记录警告日志"""
-        logger.warning(f"[{self.node_name}] 警告: {message}")
+        """Registrar log de aviso"""
+        logger.warning(f"[{self.node_name}] Aviso: {message}")
 
     def log_error(self, message: str):
-        """记录错误日志"""
-        logger.error(f"[{self.node_name}] 错误: {message}")
+        """Registrar log de erro"""
+        logger.error(f"[{self.node_name}] Erro: {message}")
 
 
 class StateMutationNode(BaseNode):
-    """带状态修改功能的节点基类"""
-    
+    """Classe base de nó com funcionalidade de modificação de estado"""
+
     @abstractmethod
     def mutate_state(self, input_data: Any, state: State, **kwargs) -> State:
         """
-        修改状态
-        
+        Modificar estado
+
         Args:
-            input_data: 输入数据
-            state: 当前状态
-            **kwargs: 额外参数
-            
+            input_data: Dados de entrada
+            state: Estado atual
+            **kwargs: Parâmetros adicionais
+
         Returns:
-            修改后的状态
+            Estado modificado
         """
         pass

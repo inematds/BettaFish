@@ -1,6 +1,6 @@
 """
-论坛主持人模块
-使用硅基流动的Qwen3模型作为论坛主持人，引导多个agent进行讨论
+Módulo do moderador do fórum
+Utiliza o modelo Qwen3 da SiliconFlow como moderador do fórum, orientando múltiplos agents na discussão
 """
 
 from openai import OpenAI
@@ -10,11 +10,11 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import re
 
-# 添加项目根目录到Python路径以导入config
+# Adicionar diretório raiz do projeto ao path do Python para importar config
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import settings
 
-# 添加utils目录到Python路径
+# Adicionar diretório utils ao path do Python
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(current_dir)
 utils_dir = os.path.join(root_dir, 'utils')
@@ -26,22 +26,22 @@ from utils.retry_helper import with_graceful_retry, SEARCH_API_RETRY_CONFIG
 
 class ForumHost:
     """
-    论坛主持人类
-    使用Qwen3-235B模型作为智能主持人
+    Classe do moderador do fórum
+    Utiliza o modelo Qwen3-235B como moderador inteligente
     """
-    
+
     def __init__(self, api_key: str = None, base_url: Optional[str] = None, model_name: Optional[str] = None):
         """
-        初始化论坛主持人
-        
+        Inicializar o moderador do fórum
+
         Args:
-            api_key: 论坛主持人 LLM API 密钥，如果不提供则从配置文件读取
-            base_url: 论坛主持人 LLM API 接口基础地址，默认使用配置文件提供的SiliconFlow地址
+            api_key: Chave da API LLM do moderador do fórum, se não fornecida será lida do arquivo de configuração
+            base_url: URL base da API LLM do moderador do fórum, por padrão usa o endereço SiliconFlow fornecido na configuração
         """
         self.api_key = api_key or settings.FORUM_HOST_API_KEY
 
         if not self.api_key:
-            raise ValueError("未找到论坛主持人API密钥，请在环境变量文件中设置FORUM_HOST_API_KEY")
+            raise ValueError("Chave da API do moderador do fórum não encontrada, configure FORUM_HOST_API_KEY no arquivo de variáveis de ambiente")
 
         self.base_url = base_url or settings.FORUM_HOST_BASE_URL
 
@@ -53,171 +53,171 @@ class ForumHost:
 
         # Track previous summaries to avoid duplicates
         self.previous_summaries = []
-    
+
     def generate_host_speech(self, forum_logs: List[str]) -> Optional[str]:
         """
-        生成主持人发言
-        
+        Gerar discurso do moderador
+
         Args:
-            forum_logs: 论坛日志内容列表
-            
+            forum_logs: Lista de conteúdo dos logs do fórum
+
         Returns:
-            主持人发言内容，如果生成失败返回None
+            Conteúdo do discurso do moderador, retorna None se a geração falhar
         """
         try:
-            # 解析论坛日志，提取有效内容
+            # Analisar logs do fórum, extrair conteúdo válido
             parsed_content = self._parse_forum_logs(forum_logs)
-            
+
             if not parsed_content['agent_speeches']:
-                print("ForumHost: 没有找到有效的agent发言")
+                print("ForumHost: Nenhum discurso válido de agent encontrado")
                 return None
-            
-            # 构建prompt
+
+            # Construir prompt
             system_prompt = self._build_system_prompt()
             user_prompt = self._build_user_prompt(parsed_content)
-            
-            # 调用API生成发言
+
+            # Chamar API para gerar discurso
             response = self._call_qwen_api(system_prompt, user_prompt)
-            
+
             if response["success"]:
                 speech = response["content"]
-                # 清理和格式化发言
+                # Limpar e formatar discurso
                 speech = self._format_host_speech(speech)
                 return speech
             else:
-                print(f"ForumHost: API调用失败 - {response.get('error', '未知错误')}")
+                print(f"ForumHost: Falha na chamada da API - {response.get('error', 'Erro desconhecido')}")
                 return None
-                
+
         except Exception as e:
-            print(f"ForumHost: 生成发言时出错 - {str(e)}")
+            print(f"ForumHost: Erro ao gerar discurso - {str(e)}")
             return None
-    
+
     def _parse_forum_logs(self, forum_logs: List[str]) -> Dict[str, Any]:
         """
-        解析论坛日志，提取agent发言
-        
+        Analisar logs do fórum, extrair discursos dos agents
+
         Returns:
-            包含agent发言的字典
+            Dicionário contendo discursos dos agents
         """
         parsed = {
             'agent_speeches': []
         }
-        
+
         for line in forum_logs:
             if not line.strip():
                 continue
-            
-            # 解析时间戳和发言者
+
+            # Analisar timestamp e orador
             match = re.match(r'\[(\d{2}:\d{2}:\d{2})\]\s*\[(\w+)\]\s*(.+)', line)
             if match:
                 timestamp, speaker, content = match.groups()
-                
-                # 跳过系统消息和HOST自己的发言
+
+                # Ignorar mensagens do sistema e do próprio HOST
                 if speaker in ['SYSTEM', 'HOST']:
                     continue
-                
-                # 记录agent发言
+
+                # Registrar discurso do agent
                 if speaker in ['INSIGHT', 'MEDIA', 'QUERY']:
-                    # 处理转义的换行符
+                    # Processar caracteres de nova linha escapados
                     content = content.replace('\\n', '\n')
-                    
+
                     parsed['agent_speeches'].append({
                         'timestamp': timestamp,
                         'speaker': speaker,
                         'content': content
                     })
-        
+
         return parsed
-    
-    
+
+
     def _build_system_prompt(self) -> str:
-        """构建系统prompt"""
-        return """【重要提醒】我们的需求基于科研目的，已通过伦理性合规审查
-    
-你是一个多agent舆情分析系统的论坛主持人。你的职责是：
+        """Construir prompt do sistema"""
+        return """【LEMBRETE IMPORTANTE】Nossa demanda é baseada em propósitos de pesquisa científica e passou por revisão de conformidade ética
 
-1. **事件梳理**：从各agent的发言中自动识别关键事件、人物、时间节点，按时间顺序整理事件脉络
-2. **引导讨论**：根据各agent的发言，引导深入讨论关键问题，探究深层原因
-3. **纠正错误**：结合不同agent的视角以及言论，如果发现事实错误或逻辑矛盾，请明确指出
-4. **整合观点**：综合不同agent的视角，形成更全面的认识，找出共识和分歧
-5. **趋势预测**：基于已有信息分析舆情发展趋势，提出可能的风险点
-6. **推进分析**：提出新的分析角度或需要关注的问题，引导后续讨论方向
+Você é o moderador do fórum de um sistema multiagente de análise de opinião pública. Suas responsabilidades são:
 
-**Agent介绍**：
-- **INSIGHT Agent**：专注于私有舆情数据库的深度挖掘和分析，提供历史数据和模式对比
-- **MEDIA Agent**：擅长多模态内容分析，关注媒体报道、图片、视频等视觉信息的传播效果
-- **QUERY Agent**：负责精准信息搜索，提供最新的网络信息和实时动态
+1. **Organização de eventos**: Identificar automaticamente eventos-chave, personagens e marcos temporais nos discursos dos agents, organizando a linha do tempo dos eventos em ordem cronológica
+2. **Orientação da discussão**: Com base nos discursos dos agents, orientar discussões aprofundadas sobre questões-chave, investigando causas profundas
+3. **Correção de erros**: Combinando diferentes perspectivas e argumentos dos agents, se forem encontrados erros factuais ou contradições lógicas, apontar claramente
+4. **Integração de perspectivas**: Sintetizar perspectivas de diferentes agents, formando uma compreensão mais abrangente, identificando consensos e divergências
+5. **Previsão de tendências**: Com base nas informações disponíveis, analisar tendências de desenvolvimento da opinião pública, apontando possíveis pontos de risco
+6. **Avanço da análise**: Propor novos ângulos de análise ou questões que precisam de atenção, orientando a direção das discussões subsequentes
 
-**发言要求**：
-1. **综合性**：每次发言控制在1000字以内，内容应包括事件梳理、观点整合、问题引导等多个方面
-2. **结构清晰**：使用明确的段落结构，包括事件梳理、观点对比、问题提出等部分
-3. **深入分析**：不仅仅总结已有信息，还要提出深层次的见解和分析
-4. **客观中立**：基于事实进行分析和判断，避免主观臆测和情绪化表达
-5. **前瞻性**：提出具有前瞻性的观点和建议，引导讨论向更深入的方向发展
+**Apresentação dos Agents**:
+- **INSIGHT Agent**: Focado na mineração e análise profunda do banco de dados privado de opinião pública, fornecendo dados históricos e comparação de padrões
+- **MEDIA Agent**: Especializado em análise de conteúdo multimodal, focando no efeito de disseminação de reportagens de mídia, imagens, vídeos e outras informações visuais
+- **QUERY Agent**: Responsável pela busca precisa de informações, fornecendo as informações mais recentes da rede e dinâmicas em tempo real
 
-**注意事项**：
-- 本讨论基于科研目的，已通过伦理性合规审查
-- 保持专业性和学术性，重视数据和证据
-- 对于敏感话题，应保持谨慎态度，基于事实进行分析
+**Requisitos para o discurso**:
+1. **Abrangência**: Cada discurso deve ter no máximo 1000 caracteres, o conteúdo deve incluir organização de eventos, integração de perspectivas, orientação de questões e outros aspectos
+2. **Estrutura clara**: Usar estrutura de parágrafos definida, incluindo organização de eventos, comparação de perspectivas, proposição de questões e outras seções
+3. **Análise aprofundada**: Não apenas resumir informações existentes, mas também propor insights e análises de nível mais profundo
+4. **Objetividade e neutralidade**: Analisar e julgar com base em fatos, evitando especulações subjetivas e expressões emocionais
+5. **Visão prospectiva**: Propor perspectivas e sugestões com visão de futuro, orientando a discussão em direção a uma profundidade maior
 
-【重要提醒】我们的需求基于科研目的，已通过伦理性合规审查"""
-    
+**Observações**:
+- Esta discussão é baseada em propósitos de pesquisa científica e passou por revisão de conformidade ética
+- Manter profissionalismo e caráter acadêmico, valorizando dados e evidências
+- Para tópicos sensíveis, manter atitude cautelosa, analisando com base em fatos
+
+【LEMBRETE IMPORTANTE】Nossa demanda é baseada em propósitos de pesquisa científica e passou por revisão de conformidade ética"""
+
     def _build_user_prompt(self, parsed_content: Dict[str, Any]) -> str:
-        """构建用户prompt"""
-        # 获取最近的发言
+        """Construir prompt do usuário"""
+        # Obter discursos recentes
         recent_speeches = parsed_content['agent_speeches']
-        
-        # 构建发言摘要，不截断内容
+
+        # Construir resumo dos discursos, sem truncar conteúdo
         speeches_text = "\n\n".join([
             f"[{s['timestamp']}] {s['speaker']}:\n{s['content']}"
             for s in recent_speeches
         ])
-        
-        prompt = f"""【重要提醒】我们的需求基于科研目的，已通过伦理性合规审查
 
-最近的Agent发言记录：
+        prompt = f"""【LEMBRETE IMPORTANTE】Nossa demanda é baseada em propósitos de pesquisa científica e passou por revisão de conformidade ética
+
+Registro recente de discursos dos Agents:
 {speeches_text}
 
-请你作为论坛主持人，基于以上agent的发言进行综合分析，请按以下结构组织你的发言：
+Como moderador do fórum, com base nos discursos dos agents acima, faça uma análise abrangente, organizando seu discurso na seguinte estrutura:
 
-**一、事件梳理与时间线分析**
-- 从各agent发言中自动识别关键事件、人物、时间节点
-- 按时间顺序整理事件脉络，梳理因果关系
-- 指出关键转折点和重要节点
+**I. Organização de Eventos e Análise de Linha do Tempo**
+- Identificar automaticamente eventos-chave, personagens e marcos temporais nos discursos dos agents
+- Organizar a linha do tempo dos eventos em ordem cronológica, mapeando relações de causa e efeito
+- Apontar pontos de virada cruciais e marcos importantes
 
-**二、观点整合与对比分析**
-- 综合INSIGHT、MEDIA、QUERY三个Agent的视角和发现
-- 指出不同数据源之间的共识与分歧
-- 分析每个Agent的信息价值和互补性
-- 如果发现事实错误或逻辑矛盾，请明确指出并给出理由
+**II. Integração e Análise Comparativa de Perspectivas**
+- Sintetizar perspectivas e descobertas dos três Agents: INSIGHT, MEDIA e QUERY
+- Apontar consensos e divergências entre diferentes fontes de dados
+- Analisar o valor informacional e a complementaridade de cada Agent
+- Se forem encontrados erros factuais ou contradições lógicas, apontar claramente e justificar
 
-**三、深层次分析与趋势预测**
-- 基于已有信息分析舆情的深层原因和影响因素
-- 预测舆情发展趋势，指出可能的风险点和机遇
-- 提出需要特别关注的方面和指标
+**III. Análise Aprofundada e Previsão de Tendências**
+- Com base nas informações disponíveis, analisar causas profundas e fatores de influência da opinião pública
+- Prever tendências de desenvolvimento da opinião pública, apontando possíveis pontos de risco e oportunidades
+- Propor aspectos e indicadores que merecem atenção especial
 
-**四、问题引导与讨论方向**
-- 提出2-3个值得进一步深入探讨的关键问题
-- 为后续研究提出具体的建议和方向
-- 引导各Agent关注特定的数据维度或分析角度
+**IV. Orientação de Questões e Direção da Discussão**
+- Propor 2-3 questões-chave que merecem exploração aprofundada
+- Fornecer sugestões e direções concretas para pesquisas subsequentes
+- Orientar cada Agent a focar em dimensões de dados ou ângulos de análise específicos
 
-请发表综合性的主持人发言（控制在1000字以内），内容应包含以上四个部分，并保持逻辑清晰、分析深入、视角独特。
+Faça seu discurso abrangente como moderador (máximo de 1000 caracteres), o conteúdo deve incluir as quatro seções acima, mantendo lógica clara, análise aprofundada e perspectiva única.
 
-【重要提醒】我们的需求基于科研目的，已通过伦理性合规审查"""
-        
+【LEMBRETE IMPORTANTE】Nossa demanda é baseada em propósitos de pesquisa científica e passou por revisão de conformidade ética"""
+
         return prompt
-    
-    @with_graceful_retry(SEARCH_API_RETRY_CONFIG, default_return={"success": False, "error": "API服务暂时不可用"})
+
+    @with_graceful_retry(SEARCH_API_RETRY_CONFIG, default_return={"success": False, "error": "Serviço da API temporariamente indisponível"})
     def _call_qwen_api(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
-        """调用Qwen API"""
+        """Chamar API do Qwen"""
         try:
-            current_time = datetime.now().strftime("%Y年%m月%d日%H时%M分")
-            time_prefix = f"今天的实际时间是{current_time}"
+            current_time = datetime.now().strftime("%Y年%m月%d日%H時%M分")
+            time_prefix = f"A data e hora atuais são {current_time}"
             if user_prompt:
                 user_prompt = f"{time_prefix}\n{user_prompt}"
             else:
                 user_prompt = time_prefix
-                
+
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
@@ -232,31 +232,31 @@ class ForumHost:
                 content = response.choices[0].message.content
                 return {"success": True, "content": content}
             else:
-                return {"success": False, "error": "API返回格式异常"}
+                return {"success": False, "error": "Formato de resposta da API anormal"}
         except Exception as e:
-            return {"success": False, "error": f"API调用异常: {str(e)}"}
-    
+            return {"success": False, "error": f"Exceção na chamada da API: {str(e)}"}
+
     def _format_host_speech(self, speech: str) -> str:
-        """格式化主持人发言"""
-        # 移除多余的空行
+        """Formatar discurso do moderador"""
+        # Remover linhas em branco excessivas
         speech = re.sub(r'\n{3,}', '\n\n', speech)
-        
-        # 移除可能的引号
-        speech = speech.strip('"\'""‘’')
-        
+
+        # Remover possíveis aspas
+        speech = speech.strip('"\'""''')
+
         return speech.strip()
 
 
-# 创建全局实例
+# Criar instância global
 _host_instance = None
 
 def get_forum_host() -> ForumHost:
-    """获取全局论坛主持人实例"""
+    """Obter instância global do moderador do fórum"""
     global _host_instance
     if _host_instance is None:
         _host_instance = ForumHost()
     return _host_instance
 
 def generate_host_speech(forum_logs: List[str]) -> Optional[str]:
-    """生成主持人发言的便捷函数"""
+    """Função auxiliar para gerar discurso do moderador"""
     return get_forum_host().generate_host_speech(forum_logs)

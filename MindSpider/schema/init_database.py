@@ -1,10 +1,10 @@
 """
-MindSpider 数据库初始化（SQLAlchemy 2.x 异步引擎）
+MindSpider - Inicializacao do banco de dados (SQLAlchemy 2.x motor assincrono)
 
-此脚本创建 MindSpider 扩展表（与 MediaCrawler 原始表分离）。
-支持 MySQL 与 PostgreSQL，需已有可连接的数据库实例。
+Este script cria as tabelas de extensao do MindSpider (separadas das tabelas originais do MediaCrawler).
+Suporta MySQL e PostgreSQL, requer uma instancia de banco de dados ja conectavel.
 
-数据模型定义位置：
+Localizacao da definicao dos modelos de dados:
 - MindSpider/schema/models_sa.py
 """
 
@@ -21,13 +21,13 @@ from sqlalchemy import text
 
 from models_sa import Base
 
-# 导入 models_bigdata 以确保所有表类被注册到 Base.metadata
-# models_bigdata 现在也使用 models_sa 的 Base，所以所有表都在同一个 metadata 中
-import models_bigdata  # noqa: F401  # 导入以注册所有表类
+# Importar models_bigdata para garantir que todas as classes de tabela sejam registradas no Base.metadata
+# models_bigdata agora tambem usa o Base de models_sa, entao todas as tabelas estao no mesmo metadata
+import models_bigdata  # noqa: F401  # Importar para registrar todas as classes de tabela
 import sys
 from pathlib import Path
 
-# 添加项目根目录到路径
+# Adicionar diretorio raiz do projeto ao path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
@@ -39,7 +39,7 @@ def _env(key: str, default: Optional[str] = None) -> Optional[str]:
 
 
 def _build_database_url() -> str:
-    # 优先 DATABASE_URL
+    # Prioridade para DATABASE_URL
     database_url = settings.DATABASE_URL if hasattr(settings, "DATABASE_URL") else None
     if database_url:
         return database_url
@@ -59,8 +59,8 @@ def _build_database_url() -> str:
 
 
 async def _create_views_if_needed(engine_dialect: str):
-    # 视图为可选；仅当业务需要时创建。两端使用通用 SQL 聚合避免方言函数。
-    # 如不需要视图，可跳过。
+    # Views sao opcionais; criar apenas quando necessario para o negocio. Ambos os lados usam SQL agregado generico para evitar funcoes especificas de dialeto.
+    # Se nao precisar de views, pode pular.
     engine_dialect = engine_dialect.lower()
     v_topic_crawling_stats = (
         "CREATE OR REPLACE VIEW v_topic_crawling_stats AS\n"
@@ -88,7 +88,7 @@ async def _create_views_if_needed(engine_dialect: str):
         "ORDER BY dn.crawl_date DESC"
     )
 
-    # PostgreSQL 的 CREATE OR REPLACE VIEW 也可用；两端均执行
+    # CREATE OR REPLACE VIEW do PostgreSQL tambem funciona; executar em ambos
     from sqlalchemy.ext.asyncio import AsyncEngine
     engine: AsyncEngine = create_async_engine(_build_database_url())
     async with engine.begin() as conn:
@@ -101,20 +101,18 @@ async def main() -> None:
     database_url = _build_database_url()
     engine = create_async_engine(database_url, pool_pre_ping=True, pool_recycle=1800)
 
-    # 由于 models_bigdata 和 models_sa 现在共享同一个 Base，所有表都在同一个 metadata 中
-    # 只需创建一次，SQLAlchemy 会自动处理表之间的依赖关系
+    # Como models_bigdata e models_sa agora compartilham o mesmo Base, todas as tabelas estao no mesmo metadata
+    # So precisa criar uma vez, o SQLAlchemy trata automaticamente as dependencias entre tabelas
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # 保持原有视图创建和释放逻辑
+    # Manter logica original de criacao de views e liberacao
     dialect_name = engine.url.get_backend_name()
     await _create_views_if_needed(dialect_name)
 
     await engine.dispose()
-    logger.info("[init_database_sa] 数据表与视图创建完成")
+    logger.info("[init_database_sa] Criacao de tabelas e views concluida")
 
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-

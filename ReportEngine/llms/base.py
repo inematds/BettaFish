@@ -1,7 +1,7 @@
 """
-Report Engine 默认的OpenAI兼容LLM客户端封装。
+Encapsulamento padrao do cliente LLM compativel com OpenAI do Report Engine.
 
-提供统一的非流式/流式调用、可选重试、字节安全拼接与模型元信息查询。
+Fornece chamadas unificadas nao-streaming/streaming, retry opcional, concatenacao segura de bytes e consulta de meta-informacoes do modelo.
 """
 
 import os
@@ -21,9 +21,9 @@ try:
     from retry_helper import with_retry, LLM_RETRY_CONFIG
 except ImportError:
     def with_retry(config=None):
-        """简化版with_retry占位，实现与真实装饰器一致的调用签名"""
+        """Placeholder simplificado do with_retry, implementa a mesma assinatura do decorador real"""
         def decorator(func):
-            """直接返回原函数，确保无retry依赖时代码仍可运行"""
+            """Retorna a funcao original diretamente, garantindo que o codigo funcione sem dependencia de retry"""
             return func
         return decorator
 
@@ -31,16 +31,16 @@ except ImportError:
 
 
 class LLMClient:
-    """针对OpenAI Chat Completion API的轻量封装，统一Report Engine调用入口。"""
+    """Encapsulamento leve para a API de Chat Completion da OpenAI, unificando o ponto de entrada do Report Engine."""
 
     def __init__(self, api_key: str, model_name: str, base_url: Optional[str] = None):
         """
-        初始化LLM客户端并保存基础连接信息。
+        Inicializar cliente LLM e salvar informacoes basicas de conexao.
 
         Args:
-            api_key: 用于鉴权的API Token
-            model_name: 具体模型ID，用于定位供应商能力
-            base_url: 自定义兼容接口地址，默认为OpenAI官方
+            api_key: Token de API para autenticacao
+            model_name: ID do modelo especifico, para localizar capacidade do fornecedor
+            base_url: Endereco de interface compativel personalizado, padrao e OpenAI oficial
         """
         if not api_key:
             raise ValueError("Report Engine LLM API key is required.")
@@ -68,15 +68,15 @@ class LLMClient:
     @with_retry(LLM_RETRY_CONFIG)
     def invoke(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
         """
-        以非流式方式调用LLM，并返回一次性完成的完整响应。
+        Chamar LLM de forma nao-streaming e retornar resposta completa de uma vez.
 
         Args:
-            system_prompt: 系统角色提示
-            user_prompt: 用户高优先级指令
-            **kwargs: 允许透传temperature/top_p等采样参数
+            system_prompt: Prompt de papel do sistema
+            user_prompt: Instrucao de alta prioridade do usuario
+            **kwargs: Permite transmissao direta de parametros de amostragem como temperature/top_p
 
         Returns:
-            去除首尾空白后的LLM响应文本
+            Texto de resposta do LLM apos remover espacos em branco iniciais e finais
         """
         messages = [
             {"role": "system", "content": system_prompt},
@@ -101,15 +101,15 @@ class LLMClient:
 
     def stream_invoke(self, system_prompt: str, user_prompt: str, **kwargs) -> Generator[str, None, None]:
         """
-        流式调用LLM，逐步返回响应内容。
+        Chamar LLM em modo streaming, retornando conteudo da resposta gradualmente.
         
-        参数:
-            system_prompt: 系统提示词。
-            user_prompt: 用户提示词。
-            **kwargs: 采样参数（temperature、top_p等）。
+        Parametros:
+            system_prompt: Prompt do sistema.
+            user_prompt: Prompt do usuario.
+            **kwargs: Parametros de amostragem (temperature, top_p, etc.).
             
-        产出:
-            str: 每次yield一段delta文本，方便上层实时渲染。
+        Saida:
+            str: Cada yield de um trecho de texto delta, facilitando renderizacao em tempo real pela camada superior.
         """
         messages = [
             {"role": "system", "content": system_prompt},
@@ -118,7 +118,7 @@ class LLMClient:
 
         allowed_keys = {"temperature", "top_p", "presence_penalty", "frequency_penalty"}
         extra_params = {key: value for key, value in kwargs.items() if key in allowed_keys and value is not None}
-        # 强制使用流式
+        # Forcar uso de streaming
         extra_params["stream"] = True
 
         timeout = kwargs.pop("timeout", self.timeout)
@@ -137,41 +137,41 @@ class LLMClient:
                     if delta and delta.content:
                         yield delta.content
         except Exception as e:
-            logger.error(f"流式请求失败: {str(e)}")
+            logger.error(f"Falha na requisicao de streaming: {str(e)}")
             raise e
     
     @with_retry(LLM_RETRY_CONFIG)
     def stream_invoke_to_string(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
         """
-        流式调用LLM并安全地拼接为完整字符串（避免UTF-8多字节字符截断）。
+        Chamar LLM em modo streaming e concatenar em string completa de forma segura (evitando truncamento de caracteres multibyte UTF-8).
         
-        参数:
-            system_prompt: 系统提示词。
-            user_prompt: 用户提示词。
-            **kwargs: 采样或超时配置。
+        Parametros:
+            system_prompt: Prompt do sistema.
+            user_prompt: Prompt do usuario.
+            **kwargs: Configuracao de amostragem ou timeout.
             
-        返回:
-            str: 将所有delta拼接后的完整响应。
+        Retorna:
+            str: Resposta completa apos concatenar todos os deltas.
         """
-        # 以字节形式收集所有块
+        # Coletar todos os blocos em formato de bytes
         byte_chunks = []
         for chunk in self.stream_invoke(system_prompt, user_prompt, **kwargs):
             byte_chunks.append(chunk.encode('utf-8'))
         
-        # 拼接所有字节，然后一次性解码
+        # Concatenar todos os bytes e decodificar de uma vez
         if byte_chunks:
             return b''.join(byte_chunks).decode('utf-8', errors='replace')
         return ""
 
     @staticmethod
     def validate_response(response: Optional[str]) -> str:
-        """兜底处理None/空白字符串，防止上层逻辑崩溃"""
+        """Tratamento de fallback para None/string，evitando falha na logica superior"""
         if response is None:
             return ""
         return response.strip()
 
     def get_model_info(self) -> Dict[str, Any]:
-        """以字典形式返回当前客户端的模型/提供方/基础URL信息"""
+        """Retorna informacoes do modelo/provedor/URL base do cliente atual em formato de dicionario"""
         return {
             "provider": self.provider,
             "model": self.model_name,

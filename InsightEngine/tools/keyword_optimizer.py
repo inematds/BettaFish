@@ -1,6 +1,6 @@
 """
-关键词优化中间件
-使用Qwen AI将Agent生成的搜索词优化为更适合舆情数据库查询的关键词
+Middleware de otimização de palavras-chave
+Usa Qwen AI para otimizar os termos de busca gerados pelo Agent em palavras-chave mais adequadas para consulta ao banco de dados de opinião pública
 """
 
 from openai import OpenAI
@@ -10,12 +10,12 @@ import os
 from typing import List, Dict, Any
 from dataclasses import dataclass
 
-# 添加项目根目录到Python路径以导入config
+# Adicionar diretório raiz do projeto ao caminho Python para importar config
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config import settings
 from loguru import logger
 
-# 添加utils目录到Python路径
+# Adicionar diretório utils ao caminho Python
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(os.path.dirname(current_dir))
 utils_dir = os.path.join(root_dir, 'utils')
@@ -26,7 +26,7 @@ from retry_helper import with_graceful_retry, SEARCH_API_RETRY_CONFIG
 
 @dataclass
 class KeywordOptimizationResponse:
-    """关键词优化响应"""
+    """Resposta de otimização de palavras-chave"""
     original_query: str
     optimized_keywords: List[str]
     reasoning: str
@@ -35,22 +35,22 @@ class KeywordOptimizationResponse:
 
 class KeywordOptimizer:
     """
-    关键词优化器
-    使用硅基流动的Qwen3模型将Agent生成的搜索词优化为更贴近真实舆情的关键词
+    Otimizador de palavras-chave
+    Usa o modelo Qwen3 da SiliconFlow para otimizar os termos de busca gerados pelo Agent em palavras-chave mais próximas da opinião pública real
     """
-    
+
     def __init__(self, api_key: str = None, base_url: str = None, model_name: str = None):
         """
-        初始化关键词优化器
-        
+        Inicializar o otimizador de palavras-chave
+
         Args:
-            api_key: 硅基流动API密钥，如果不提供则从配置文件读取
-            base_url: 接口基础地址，默认使用配置文件提供的SiliconFlow地址
+            api_key: Chave API da SiliconFlow, se não fornecida será lida do arquivo de configuração
+            base_url: Endereço base da interface, padrão usa o endereço SiliconFlow fornecido na configuração
         """
         self.api_key = api_key or settings.KEYWORD_OPTIMIZER_API_KEY
 
         if not self.api_key:
-            raise ValueError("未找到硅基流动API密钥，请在config.py中设置KEYWORD_OPTIMIZER_API_KEY")
+            raise ValueError("Chave API da SiliconFlow não encontrada, configure KEYWORD_OPTIMIZER_API_KEY em config.py")
 
         self.base_url = base_url or settings.KEYWORD_OPTIMIZER_BASE_URL
 
@@ -59,138 +59,138 @@ class KeywordOptimizer:
             base_url=self.base_url
         )
         self.model = model_name or settings.KEYWORD_OPTIMIZER_MODEL_NAME
-    
+
     def optimize_keywords(self, original_query: str, context: str = "") -> KeywordOptimizationResponse:
         """
-        优化搜索关键词
-        
+        Otimizar palavras-chave de busca
+
         Args:
-            original_query: Agent生成的原始搜索查询
-            context: 额外的上下文信息（如段落标题、内容描述等）
-            
+            original_query: Consulta de busca original gerada pelo Agent
+            context: Informações de contexto adicionais (como título do parágrafo, descrição do conteúdo etc.)
+
         Returns:
-            KeywordOptimizationResponse: 优化后的关键词列表
+            KeywordOptimizationResponse: Lista de palavras-chave otimizadas
         """
-        logger.info(f"🔍 关键词优化中间件: 处理查询 '{original_query}'")
-        
+        logger.info(f"Middleware de otimização de palavras-chave: Processando consulta '{original_query}'")
+
         try:
-            # 构建优化prompt
+            # Construir prompt de otimização
             system_prompt = self._build_system_prompt()
             user_prompt = self._build_user_prompt(original_query, context)
-            
-            # 调用Qwen API
+
+            # Chamar API Qwen
             response = self._call_qwen_api(system_prompt, user_prompt)
-            
+
             if response["success"]:
-                # 解析响应
+                # Analisar resposta
                 content = response["content"]
                 try:
-                    # 尝试解析JSON格式的响应
+                    # Tentar analisar resposta em formato JSON
                     if content.strip().startswith('{'):
                         parsed = json.loads(content)
                         keywords = parsed.get("keywords", [])
                         reasoning = parsed.get("reasoning", "")
                     else:
-                        # 如果不是JSON格式，尝试从文本中提取关键词
+                        # Se não estiver em formato JSON, tentar extrair palavras-chave do texto
                         keywords = self._extract_keywords_from_text(content)
                         reasoning = content
-                    
-                    # 验证关键词质量
+
+                    # Validar qualidade das palavras-chave
                     validated_keywords = self._validate_keywords(keywords)
-                    
+
                     logger.info(
-                        f"✅ 优化成功: {len(validated_keywords)}个关键词" +
+                        f"Otimização bem-sucedida: {len(validated_keywords)} palavras-chave" +
                         ("" if not validated_keywords else "\n" +
                          "\n".join([f"   {i}. '{k}'" for i, k in enumerate(validated_keywords, 1)]))
                     )
-                        
-                    
-                    
+
+
+
                     return KeywordOptimizationResponse(
                         original_query=original_query,
                         optimized_keywords=validated_keywords,
                         reasoning=reasoning,
                         success=True
                     )
-                
+
                 except Exception as e:
-                    logger.exception(f"⚠️ 解析响应失败，使用备用方案: {str(e)}")
-                    # 备用方案：从原始查询中提取关键词
+                    logger.exception(f"Falha ao analisar resposta, usando plano alternativo: {str(e)}")
+                    # Plano alternativo: extrair palavras-chave da consulta original
                     fallback_keywords = self._fallback_keyword_extraction(original_query)
                     return KeywordOptimizationResponse(
                         original_query=original_query,
                         optimized_keywords=fallback_keywords,
-                        reasoning="API响应解析失败，使用备用关键词提取",
+                        reasoning="Falha ao analisar resposta da API, usando extração alternativa de palavras-chave",
                         success=True
                     )
             else:
-                logger.error(f"❌ API调用失败: {response['error']}")
-                # 使用备用方案
+                logger.error(f"Falha na chamada da API: {response['error']}")
+                # Usar plano alternativo
                 fallback_keywords = self._fallback_keyword_extraction(original_query)
                 return KeywordOptimizationResponse(
                     original_query=original_query,
                     optimized_keywords=fallback_keywords,
-                    reasoning="API调用失败，使用备用关键词提取",
+                    reasoning="Falha na chamada da API, usando extração alternativa de palavras-chave",
                     success=True,
                     error_message=response['error']
                 )
-                
+
         except Exception as e:
-            logger.error(f"❌ 关键词优化失败: {str(e)}")
-            # 最终备用方案
+            logger.error(f"Falha na otimização de palavras-chave: {str(e)}")
+            # Plano alternativo final
             fallback_keywords = self._fallback_keyword_extraction(original_query)
             return KeywordOptimizationResponse(
                 original_query=original_query,
                 optimized_keywords=fallback_keywords,
-                reasoning="系统错误，使用备用关键词提取",
+                reasoning="Erro do sistema, usando extração alternativa de palavras-chave",
                 success=False,
                 error_message=str(e)
             )
-    
+
     def _build_system_prompt(self) -> str:
-        """构建系统prompt"""
-        return """你是一位专业的舆情数据挖掘专家。你的任务是将用户提供的搜索查询优化为更适合在社交媒体舆情数据库中查找的关键词。
+        """Construir prompt de sistema"""
+        return """Você é um especialista profissional em mineração de dados de opinião pública. Sua tarefa é otimizar a consulta de busca fornecida pelo usuário em palavras-chave mais adequadas para busca em bancos de dados de opinião pública de mídias sociais.
 
-**核心原则**：
-1. **贴近网民语言**：使用普通网友在社交媒体上会使用的词汇
-2. **避免专业术语**：不使用"舆情"、"传播"、"倾向"、"展望"等官方词汇
-3. **简洁具体**：每个关键词要非常简洁明了，便于数据库匹配
-4. **情感丰富**：包含网民常用的情感表达词汇
-5. **数量控制**：最少提供10个关键词，最多提供20个关键词
-6. **避免重复**：不要脱离初始查询的主题
+**Princípios centrais**:
+1. **Próximo da linguagem dos internautas**: Usar vocabulário que usuários comuns usariam nas mídias sociais
+2. **Evitar terminologia profissional**: Não usar termos oficiais como "opinião pública", "propagação", "tendência", "perspectiva"
+3. **Simples e específico**: Cada palavra-chave deve ser muito concisa e clara, facilitando a correspondência no banco de dados
+4. **Rico em emoções**: Incluir vocabulário de expressão emocional comumente usado por internautas
+5. **Controle de quantidade**: Fornecer no mínimo 10 e no máximo 20 palavras-chave
+6. **Evitar repetições**: Não se desviar do tema da consulta inicial
 
-**重要提醒**：每个关键词都必须是一个不可分割的独立词条，严禁在词条内部包含空格。例如，应使用 "雷军班争议" 而不是错误的 "雷军班 争议"。
+**Aviso importante**: Cada palavra-chave deve ser um termo independente e indivisível, proibido incluir espaços dentro do termo. Por exemplo, usar "turma do Lei Jun polêmica" em vez do incorreto "turma do Lei Jun polêmica".
 
 
-**输出格式**：
-请以JSON格式返回结果：
+**Formato de saída**:
+Retorne o resultado em formato JSON:
 {
-    "keywords": ["关键词1", "关键词2", "关键词3"],
-    "reasoning": "选择这些关键词的理由"
+    "keywords": ["palavra-chave1", "palavra-chave2", "palavra-chave3"],
+    "reasoning": "Motivo da escolha dessas palavras-chave"
 }
 
-**示例**：
-输入："武汉大学舆情管理 未来展望 发展趋势"
-输出：
+**Exemplo**:
+Entrada: "gestão de opinião pública da Universidade de Wuhan perspectivas futuras tendências de desenvolvimento"
+Saída:
 {
-    "keywords": ["武大", "武汉大学", "学校管理", "武大教育"],
-    "reasoning": "选择'武大'和'武汉大学'作为核心词汇，这是网民最常使用的称呼；'学校管理'比'舆情管理'更贴近日常表达；避免使用'未来展望'、'发展趋势'等网民很少使用的专业术语"
+    "keywords": ["Wuda", "Universidade de Wuhan", "gestão escolar", "educação na Wuda"],
+    "reasoning": "Escolhidos 'Wuda' e 'Universidade de Wuhan' como termos centrais, pois são os nomes mais usados pelos internautas; 'gestão escolar' é mais próximo do cotidiano que 'gestão de opinião pública'; evitados termos profissionais como 'perspectivas futuras' e 'tendências de desenvolvimento' que internautas raramente usam"
 }"""
 
     def _build_user_prompt(self, original_query: str, context: str) -> str:
-        """构建用户prompt"""
-        prompt = f"请将以下搜索查询优化为适合舆情数据库查询的关键词：\n\n原始查询：{original_query}"
-        
+        """Construir prompt do usuário"""
+        prompt = f"Otimize a seguinte consulta de busca em palavras-chave adequadas para consulta ao banco de dados de opinião pública:\n\nConsulta original: {original_query}"
+
         if context:
-            prompt += f"\n\n上下文信息：{context}"
-        
-        prompt += "\n\n请记住：要使用网民在社交媒体上真实使用的词汇，避免官方术语和专业词汇。"
-        
+            prompt += f"\n\nInformações de contexto: {context}"
+
+        prompt += "\n\nLembre-se: use vocabulário que os internautas realmente usam nas mídias sociais, evite terminologia oficial e profissional."
+
         return prompt
-    
-    @with_graceful_retry(SEARCH_API_RETRY_CONFIG, default_return={"success": False, "error": "关键词优化服务暂时不可用"})
+
+    @with_graceful_retry(SEARCH_API_RETRY_CONFIG, default_return={"success": False, "error": "Serviço de otimização de palavras-chave temporariamente indisponível"})
     def _call_qwen_api(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
-        """调用Qwen API"""
+        """Chamar API Qwen"""
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -205,93 +205,93 @@ class KeywordOptimizer:
                 content = response.choices[0].message.content
                 return {"success": True, "content": content}
             else:
-                return {"success": False, "error": "API返回格式异常"}
+                return {"success": False, "error": "Formato de retorno da API anormal"}
         except Exception as e:
-            return {"success": False, "error": f"API调用异常: {str(e)}"}
-    
+            return {"success": False, "error": f"Exceção na chamada da API: {str(e)}"}
+
     def _extract_keywords_from_text(self, text: str) -> List[str]:
-        """从文本中提取关键词（当JSON解析失败时使用）"""
-        # 简单的关键词提取逻辑
+        """Extrair palavras-chave do texto (usado quando a análise JSON falha)"""
+        # Lógica simples de extração de palavras-chave
         lines = text.split('\n')
         keywords = []
-        
+
         for line in lines:
             line = line.strip()
-            # 查找可能的关键词
+            # Buscar possíveis palavras-chave
             if '：' in line or ':' in line:
                 parts = line.split('：') if '：' in line else line.split(':')
                 if len(parts) > 1:
                     potential_keywords = parts[1].strip()
-                    # 尝试分割关键词
+                    # Tentar dividir palavras-chave
                     if '、' in potential_keywords:
                         keywords.extend([k.strip() for k in potential_keywords.split('、')])
                     elif ',' in potential_keywords:
                         keywords.extend([k.strip() for k in potential_keywords.split(',')])
                     else:
                         keywords.append(potential_keywords)
-        
-        # 如果没有找到，尝试其他方法
+
+        # Se não encontrar, tentar outros métodos
         if not keywords:
-            # 查找引号中的内容
+            # Buscar conteúdo entre aspas
             import re
             quoted_content = re.findall(r'["""\'](.*?)["""\']', text)
             keywords.extend(quoted_content)
-        
-        # 清理和验证关键词
+
+        # Limpar e validar palavras-chave
         cleaned_keywords = []
-        for keyword in keywords[:20]:  # 最多20个
+        for keyword in keywords[:20]:  # Máximo 20
             keyword = keyword.strip().strip('"\'""''')
-            if keyword and len(keyword) <= 20:  # 合理长度
+            if keyword and len(keyword) <= 20:  # Comprimento razoável
                 cleaned_keywords.append(keyword)
-        
+
         return cleaned_keywords[:20]
-    
+
     def _validate_keywords(self, keywords: List[str]) -> List[str]:
-        """验证和清理关键词"""
+        """Validar e limpar palavras-chave"""
         validated = []
-        
-        # 不良关键词（过于专业或官方）
+
+        # Palavras-chave indesejáveis (muito profissionais ou oficiais)
         bad_keywords = {
             '态度分析', '公众反应', '情绪倾向',
             '未来展望', '发展趋势', '战略规划', '政策导向', '管理机制'
         }
-        
+
         for keyword in keywords:
             if isinstance(keyword, str):
                 keyword = keyword.strip().strip('"\'""''')
-                
-                # 基本验证
-                if (keyword and 
-                    len(keyword) <= 20 and 
+
+                # Validação básica
+                if (keyword and
+                    len(keyword) <= 20 and
                     len(keyword) >= 1 and
                     not any(bad_word in keyword for bad_word in bad_keywords)):
                     validated.append(keyword)
-        
-        return validated[:20]  # 最多返回20个关键词
-    
+
+        return validated[:20]  # Máximo 20 palavras-chave
+
     def _fallback_keyword_extraction(self, original_query: str) -> List[str]:
-        """备用关键词提取方案"""
-        # 简单的关键词提取逻辑
-        # 移除常见的无用词汇
+        """Plano alternativo de extração de palavras-chave"""
+        # Lógica simples de extração de palavras-chave
+        # Remover palavras comuns inúteis
         stop_words = {'、'}
-        
-        # 分割查询
+
+        # Dividir a consulta
         import re
-        # 按空格、标点分割
+        # Dividir por espaços e pontuação
         tokens = re.split(r'[\s，。！？；：、]+', original_query)
-        
+
         keywords = []
         for token in tokens:
             token = token.strip()
             if token and token not in stop_words and len(token) >= 2:
                 keywords.append(token)
-        
-        # 如果没有有效关键词，使用原始查询的第一个词
+
+        # Se não houver palavras-chave válidas, usar a primeira palavra da consulta original
         if not keywords:
             first_word = original_query.split()[0] if original_query.split() else original_query
             keywords = [first_word] if first_word else ["热门"]
-        
+
         return keywords[:20]
 
-# 全局实例
+# Instância global
 keyword_optimizer = KeywordOptimizer()

@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 """
-Report Engine 命令行版本
+Report Engine - Versao Linha de Comando
 
-这是一个不需要前端的命令行报告生成程序。
-主要流程：
-1. 检查PDF依赖
-2. 获取最新的log、md文件
-3. 直接调用Report Engine生成报告（跳过文件增加审核）
-4. 自动保存HTML、PDF（如果有依赖）和Markdown到final_reports/（Markdown 会在 PDF 之后生成）
+Este e um programa de geracao de relatorios via linha de comando sem necessidade de frontend.
+Fluxo principal:
+1. Verificar dependencias do PDF
+2. Obter os arquivos log e md mais recentes
+3. Chamar diretamente o Report Engine para gerar o relatorio (pular revisao de adicao de arquivos)
+4. Salvar automaticamente HTML, PDF (se houver dependencias) e Markdown em final_reports/ (Markdown sera gerado apos o PDF)
 
-使用方法：
-    python report_engine_only.py [选项]
+Modo de uso:
+    python report_engine_only.py [opcoes]
 
-选项：
-    --query QUERY     指定报告主题（可选，默认从文件名提取）
-    --skip-pdf        跳过PDF生成（即使有依赖）
-    --skip-markdown   跳过Markdown生成
-    --verbose         显示详细日志
-    --help            显示帮助信息
+Opcoes:
+    --query QUERY     Especificar o tema do relatorio (opcional, padrao extraido do nome do arquivo)
+    --skip-pdf        Pular geracao do PDF (mesmo com dependencias)
+    --skip-markdown   Pular geracao do Markdown
+    --verbose         Exibir logs detalhados
+    --help            Exibir informacoes de ajuda
 """
 
 import os
@@ -30,16 +30,16 @@ from typing import Dict, Any, Optional
 
 from loguru import logger
 
-# 全局配置
+# Configuracao global
 VERBOSE = False
 
-# 配置日志
+# Configurar log
 def setup_logger(verbose: bool = False):
-    """设置日志配置"""
+    """Configurar o log"""
     global VERBOSE
     VERBOSE = verbose
 
-    logger.remove()  # 移除默认处理器
+    logger.remove()  # Remover handler padrao
     logger.add(
         sys.stdout,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <level>{message}</level>",
@@ -49,15 +49,15 @@ def setup_logger(verbose: bool = False):
 
 def check_dependencies() -> tuple[bool, Optional[str]]:
     """
-    检查PDF生成所需的系统依赖
+    Verificar dependencias do sistema necessarias para geracao de PDF
 
     Returns:
         tuple: (is_available: bool, message: str)
-            - is_available: PDF功能是否可用
-            - message: 依赖检查结果消息
+            - is_available: Se a funcionalidade PDF esta disponivel
+            - message: Mensagem do resultado da verificacao de dependencias
     """
     logger.info("=" * 70)
-    logger.info("步骤 1/4: 检查系统依赖")
+    logger.info("Etapa 1/4: Verificar dependencias do sistema")
     logger.info("=" * 70)
 
     try:
@@ -65,29 +65,29 @@ def check_dependencies() -> tuple[bool, Optional[str]]:
         is_available, message = check_pango_available()
 
         if is_available:
-            logger.success("✓ PDF 依赖检测通过，将同时生成 HTML 和 PDF 文件")
+            logger.success("Dependencias do PDF verificadas com sucesso, serao gerados arquivos HTML e PDF")
         else:
-            logger.warning("⚠ PDF 依赖缺失，仅生成 HTML 文件")
+            logger.warning("Dependencias do PDF ausentes, apenas arquivo HTML sera gerado")
             logger.info("\n" + message)
 
         return is_available, message
     except Exception as e:
-        logger.error(f"依赖检查失败: {e}")
+        logger.error(f"Falha na verificacao de dependencias: {e}")
         return False, str(e)
 
 
 def get_latest_engine_reports() -> Dict[str, str]:
     """
-    获取三个引擎目录中的最新报告文件
+    Obter os arquivos de relatorio mais recentes dos tres diretorios de engines
 
     Returns:
-        Dict[str, str]: 引擎名称到文件路径的映射
+        Dict[str, str]: Mapeamento de nome do engine para caminho do arquivo
     """
     logger.info("\n" + "=" * 70)
-    logger.info("步骤 2/4: 获取最新的分析引擎报告")
+    logger.info("Etapa 2/4: Obter relatorios mais recentes dos engines de analise")
     logger.info("=" * 70)
 
-    # 定义三个引擎的目录
+    # Definir os diretorios dos tres engines
     directories = {
         'insight': 'insight_engine_streamlit_reports',
         'media': 'media_engine_streamlit_reports',
@@ -98,17 +98,17 @@ def get_latest_engine_reports() -> Dict[str, str]:
 
     for engine, directory in directories.items():
         if not os.path.exists(directory):
-            logger.warning(f"⚠ {engine.capitalize()} Engine 目录不存在: {directory}")
+            logger.warning(f"{engine.capitalize()} Engine - diretorio nao existe: {directory}")
             continue
 
-        # 获取所有 .md 文件
+        # Obter todos os arquivos .md
         md_files = [f for f in os.listdir(directory) if f.endswith('.md')]
 
         if not md_files:
-            logger.warning(f"⚠ {engine.capitalize()} Engine 目录中没有找到 .md 文件")
+            logger.warning(f"{engine.capitalize()} Engine - nenhum arquivo .md encontrado no diretorio")
             continue
 
-        # 获取最新文件
+        # Obter arquivo mais recente
         latest_file = max(
             md_files,
             key=lambda x: os.path.getmtime(os.path.join(directory, x))
@@ -116,70 +116,70 @@ def get_latest_engine_reports() -> Dict[str, str]:
         latest_path = os.path.join(directory, latest_file)
         latest_files[engine] = latest_path
 
-        logger.info(f"✓ 找到 {engine.capitalize()} Engine 最新报告")
+        logger.info(f"Relatorio mais recente do {engine.capitalize()} Engine encontrado")
 
     if not latest_files:
-        logger.error("❌ 未找到任何引擎报告文件，请先运行分析引擎生成报告")
+        logger.error("Nenhum arquivo de relatorio de engine encontrado, por favor execute primeiro os engines de analise para gerar relatorios")
         sys.exit(1)
 
-    logger.info(f"\n共找到 {len(latest_files)} 个引擎的最新报告")
+    logger.info(f"\nTotal de {len(latest_files)} relatorios mais recentes de engines encontrados")
 
     return latest_files
 
 
 def confirm_file_selection(latest_files: Dict[str, str]) -> bool:
     """
-    向用户确认选择的文件是否正确
+    Confirmar com o usuario se os arquivos selecionados estao corretos
 
     Args:
-        latest_files: 引擎名称到文件路径的映射
+        latest_files: Mapeamento de nome do engine para caminho do arquivo
 
     Returns:
-        bool: 用户确认则返回True，否则返回False
+        bool: True se o usuario confirmar, False caso contrario
     """
     logger.info("\n" + "=" * 70)
-    logger.info("请确认以下选择的文件：")
+    logger.info("Por favor confirme os arquivos selecionados:")
     logger.info("=" * 70)
 
     for engine, file_path in latest_files.items():
         filename = os.path.basename(file_path)
-        # 获取文件修改时间
+        # Obter data de modificacao do arquivo
         mtime = os.path.getmtime(file_path)
         mtime_str = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')
 
         logger.info(f"  {engine.capitalize()} Engine:")
-        logger.info(f"    文件名: {filename}")
-        logger.info(f"    路径: {file_path}")
-        logger.info(f"    修改时间: {mtime_str}")
+        logger.info(f"    Nome do arquivo: {filename}")
+        logger.info(f"    Caminho: {file_path}")
+        logger.info(f"    Data de modificacao: {mtime_str}")
         logger.info("")
 
     logger.info("=" * 70)
 
-    # 提示用户确认
+    # Solicitar confirmacao do usuario
     try:
-        response = input("是否使用以上文件生成报告? [Y/n]: ").strip().lower()
+        response = input("Deseja usar os arquivos acima para gerar o relatorio? [S/n]: ").strip().lower()
 
-        # 默认是y，所以空输入或y都表示确认
-        if response == '' or response == 'y' or response == 'yes':
-            logger.success("✓ 用户确认，继续生成报告")
+        # Padrao e s, portanto entrada vazia ou s indica confirmacao
+        if response == '' or response == 's' or response == 'sim':
+            logger.success("Usuario confirmou, continuando geracao do relatorio")
             return True
         else:
-            logger.warning("✗ 用户取消操作")
+            logger.warning("Usuario cancelou a operacao")
             return False
     except (KeyboardInterrupt, EOFError):
-        logger.warning("\n✗ 用户取消操作")
+        logger.warning("\nUsuario cancelou a operacao")
         return False
 
 
 def load_engine_reports(latest_files: Dict[str, str]) -> list[str]:
     """
-    加载引擎报告内容
+    Carregar conteudo dos relatorios dos engines
 
     Args:
-        latest_files: 引擎名称到文件路径的映射
+        latest_files: Mapeamento de nome do engine para caminho do arquivo
 
     Returns:
-        list[str]: 报告内容列表
+        list[str]: Lista de conteudos dos relatorios
     """
     reports = []
 
@@ -188,144 +188,144 @@ def load_engine_reports(latest_files: Dict[str, str]) -> list[str]:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 reports.append(content)
-                logger.debug(f"已加载 {engine} 报告，长度: {len(content)} 字符")
+                logger.debug(f"Relatorio {engine} carregado, comprimento: {len(content)} caracteres")
         except Exception as e:
-            logger.error(f"加载 {engine} 报告失败: {e}")
+            logger.error(f"Falha ao carregar relatorio {engine}: {e}")
 
     return reports
 
 
 def extract_query_from_reports(latest_files: Dict[str, str]) -> str:
     """
-    从报告文件名中提取查询主题
+    Extrair o tema da consulta a partir dos nomes dos arquivos de relatorio
 
     Args:
-        latest_files: 引擎名称到文件路径的映射
+        latest_files: Mapeamento de nome do engine para caminho do arquivo
 
     Returns:
-        str: 提取的查询主题
+        str: Tema da consulta extraido
     """
-    # 尝试从文件名中提取主题
+    # Tentar extrair o tema do nome do arquivo
     for engine, file_path in latest_files.items():
         filename = os.path.basename(file_path)
-        # 假设文件名格式为: report_主题_时间戳.md
+        # Supondo formato do nome: report_tema_timestamp.md
         if '_' in filename:
             parts = filename.replace('.md', '').split('_')
             if len(parts) >= 2:
-                # 提取中间部分作为主题
+                # Extrair a parte central como tema
                 topic = '_'.join(parts[1:-1]) if len(parts) > 2 else parts[1]
                 if topic:
                     return topic
 
-    # 如果无法提取，返回默认值
-    return "综合分析报告"
+    # Se nao for possivel extrair, retornar valor padrao
+    return "Relatorio de analise abrangente"
 
 
 def generate_report(reports: list[str], query: str, pdf_available: bool) -> Dict[str, Any]:
     """
-    调用Report Engine生成报告
+    Chamar o Report Engine para gerar o relatorio
 
     Args:
-        reports: 报告内容列表
-        query: 报告主题
-        pdf_available: PDF功能是否可用
+        reports: Lista de conteudos dos relatorios
+        query: Tema do relatorio
+        pdf_available: Se a funcionalidade PDF esta disponivel
 
     Returns:
-        Dict[str, Any]: 包含生成结果的字典
+        Dict[str, Any]: Dicionario contendo os resultados da geracao
     """
     logger.info("\n" + "=" * 70)
-    logger.info("步骤 3/4: 生成综合报告")
+    logger.info("Etapa 3/4: Gerar relatorio abrangente")
     logger.info("=" * 70)
-    logger.info(f"报告主题: {query}")
-    logger.info(f"输入报告数量: {len(reports)}")
+    logger.info(f"Tema do relatorio: {query}")
+    logger.info(f"Quantidade de relatorios de entrada: {len(reports)}")
 
     try:
         from ReportEngine.agent import ReportAgent
 
-        # 初始化Report Agent
-        logger.info("正在初始化 Report Engine...")
+        # Inicializar Report Agent
+        logger.info("Inicializando Report Engine...")
         agent = ReportAgent()
 
-        # 定义流式事件处理器
+        # Definir handler de eventos de streaming
         def stream_handler(event_type: str, payload: Dict[str, Any]):
-            """处理Report Engine的流式事件"""
+            """Processar eventos de streaming do Report Engine"""
             if event_type == 'stage':
                 stage = payload.get('stage', '')
                 if stage == 'agent_start':
-                    logger.info(f"开始生成报告: {payload.get('report_id', '')}")
+                    logger.info(f"Iniciando geracao do relatorio: {payload.get('report_id', '')}")
                 elif stage == 'template_selected':
-                    logger.info(f"✓ 已选择模板: {payload.get('template', '')}")
+                    logger.info(f"Template selecionado: {payload.get('template', '')}")
                 elif stage == 'template_sliced':
-                    logger.info(f"✓ 模板解析完成，共 {payload.get('section_count', 0)} 个章节")
+                    logger.info(f"Parsing do template concluido, total de {payload.get('section_count', 0)} capitulos")
                 elif stage == 'layout_designed':
-                    logger.info(f"✓ 文档布局设计完成")
-                    logger.info(f"  标题: {payload.get('title', '')}")
+                    logger.info(f"Design de layout do documento concluido")
+                    logger.info(f"  Titulo: {payload.get('title', '')}")
                 elif stage == 'word_plan_ready':
-                    logger.info(f"✓ 篇幅规划完成，目标章节数: {payload.get('chapter_targets', 0)}")
+                    logger.info(f"Planejamento de extensao concluido, capitulos alvo: {payload.get('chapter_targets', 0)}")
                 elif stage == 'chapters_compiled':
-                    logger.info(f"✓ 章节生成完成，共 {payload.get('chapter_count', 0)} 个章节")
+                    logger.info(f"Geracao de capitulos concluida, total de {payload.get('chapter_count', 0)} capitulos")
                 elif stage == 'html_rendered':
-                    logger.info(f"✓ HTML 渲染完成")
+                    logger.info(f"Renderizacao HTML concluida")
                 elif stage == 'report_saved':
-                    logger.info(f"✓ 报告已保存")
+                    logger.info(f"Relatorio salvo")
             elif event_type == 'chapter_status':
                 chapter_id = payload.get('chapterId', '')
                 title = payload.get('title', '')
                 status = payload.get('status', '')
                 if status == 'generating':
-                    logger.info(f"  正在生成章节: {title}")
+                    logger.info(f"  Gerando capitulo: {title}")
                 elif status == 'completed':
                     attempt = payload.get('attempt', 1)
                     warning = payload.get('warning', '')
                     if warning:
-                        logger.warning(f"  ✓ 章节完成: {title} (第 {attempt} 次尝试，{payload.get('warningMessage', '')})")
+                        logger.warning(f"  Capitulo concluido: {title} ({attempt}a tentativa, {payload.get('warningMessage', '')})")
                     else:
-                        logger.success(f"  ✓ 章节完成: {title}")
+                        logger.success(f"  Capitulo concluido: {title}")
             elif event_type == 'error':
-                logger.error(f"错误: {payload.get('message', '')}")
+                logger.error(f"Erro: {payload.get('message', '')}")
 
-        # 生成报告
-        logger.info("开始生成报告，这可能需要几分钟时间...")
+        # Gerar relatorio
+        logger.info("Iniciando geracao do relatorio, isso pode levar alguns minutos...")
         result = agent.generate_report(
             query=query,
             reports=reports,
-            forum_logs="",  # 不使用论坛日志
-            custom_template="",  # 使用自动模板选择
-            save_report=True,  # 自动保存报告
+            forum_logs="",  # Nao usar logs do forum
+            custom_template="",  # Usar selecao automatica de template
+            save_report=True,  # Salvar relatorio automaticamente
             stream_handler=stream_handler
         )
 
-        logger.success("✓ 报告生成成功！")
+        logger.success("Relatorio gerado com sucesso!")
         return result
 
     except Exception as e:
-        logger.exception(f"❌ 报告生成失败: {e}")
+        logger.exception(f"Falha na geracao do relatorio: {e}")
         sys.exit(1)
 
 
 def save_pdf(document_ir_path: str, query: str) -> Optional[str]:
     """
-    从IR文件生成并保存PDF
+    Gerar e salvar PDF a partir do arquivo IR
 
     Args:
-        document_ir_path: Document IR文件路径
-        query: 报告主题
+        document_ir_path: Caminho do arquivo Document IR
+        query: Tema do relatorio
 
     Returns:
-        Optional[str]: PDF文件路径，如果失败则返回None
+        Optional[str]: Caminho do arquivo PDF, ou None em caso de falha
     """
-    logger.info("\n正在生成 PDF 文件...")
+    logger.info("\nGerando arquivo PDF...")
 
     try:
-        # 读取IR数据
+        # Ler dados IR
         with open(document_ir_path, 'r', encoding='utf-8') as f:
             document_ir = json.load(f)
 
-        # 创建PDF渲染器
+        # Criar renderizador PDF
         from ReportEngine.renderers import PDFRenderer
         renderer = PDFRenderer()
 
-        # 准备输出路径
+        # Preparar caminho de saida
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         query_safe = "".join(
             c for c in query if c.isalnum() or c in (" ", "-", "_")
@@ -338,8 +338,8 @@ def save_pdf(document_ir_path: str, query: str) -> Optional[str]:
         pdf_filename = f"final_report_{query_safe}_{timestamp}.pdf"
         pdf_path = pdf_dir / pdf_filename
 
-        # 使用 render_to_pdf 方法直接生成PDF文件，传入 IR 文件路径用于修复后保存
-        logger.info(f"开始渲染PDF: {pdf_path}")
+        # Usar metodo render_to_pdf para gerar PDF diretamente, passando caminho do arquivo IR para salvar apos reparo
+        logger.info(f"Iniciando renderizacao do PDF: {pdf_path}")
         result_path = renderer.render_to_pdf(
             document_ir,
             pdf_path,
@@ -347,31 +347,31 @@ def save_pdf(document_ir_path: str, query: str) -> Optional[str]:
             ir_file_path=document_ir_path
         )
 
-        # 显示文件大小
+        # Exibir tamanho do arquivo
         file_size = result_path.stat().st_size
         size_mb = file_size / (1024 * 1024)
-        logger.success(f"✓ PDF 已保存: {pdf_path}")
-        logger.info(f"  文件大小: {size_mb:.2f} MB")
+        logger.success(f"PDF salvo: {pdf_path}")
+        logger.info(f"  Tamanho do arquivo: {size_mb:.2f} MB")
 
         return str(result_path)
 
     except Exception as e:
-        logger.exception(f"❌ PDF 生成失败: {e}")
+        logger.exception(f"Falha na geracao do PDF: {e}")
         return None
 
 
 def save_markdown(document_ir_path: str, query: str) -> Optional[str]:
     """
-    从IR文件生成并保存Markdown
+    Gerar e salvar Markdown a partir do arquivo IR
 
     Args:
-        document_ir_path: Document IR文件路径
-        query: 报告主题
+        document_ir_path: Caminho do arquivo Document IR
+        query: Tema do relatorio
 
     Returns:
-        Optional[str]: Markdown文件路径，如果失败则返回None
+        Optional[str]: Caminho do arquivo Markdown, ou None em caso de falha
     """
-    logger.info("\n正在生成 Markdown 文件...")
+    logger.info("\nGerando arquivo Markdown...")
 
     try:
         with open(document_ir_path, 'r', encoding='utf-8') as f:
@@ -379,7 +379,7 @@ def save_markdown(document_ir_path: str, query: str) -> Optional[str]:
 
         from ReportEngine.renderers import MarkdownRenderer
         renderer = MarkdownRenderer()
-        # 传入 IR 文件路径用于修复后保存
+        # Passar caminho do arquivo IR para salvar apos reparo
         markdown_content = renderer.render(document_ir, ir_file_path=document_ir_path)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -397,30 +397,31 @@ def save_markdown(document_ir_path: str, query: str) -> Optional[str]:
         md_path.write_text(markdown_content, encoding='utf-8')
 
         file_size_kb = md_path.stat().st_size / 1024
-        logger.success(f"✓ Markdown 已保存: {md_path}")
-        logger.info(f"  文件大小: {file_size_kb:.1f} KB")
+        logger.success(f"Markdown salvo: {md_path}")
+        logger.info(f"  Tamanho do arquivo: {file_size_kb:.1f} KB")
 
         return str(md_path)
 
     except Exception as e:
-        logger.exception(f"❌ Markdown 生成失败: {e}")
+        logger.exception(f"Falha na geracao do Markdown: {e}")
         return None
 
 
 def parse_arguments():
-    """解析命令行参数"""
+    """Analisar argumentos da linha de comando"""
     parser = argparse.ArgumentParser(
-        description="Report Engine 命令行版本 - 无需前端的报告生成工具",
+        description="Report Engine - Versao Linha de Comando - Ferramenta de geracao de relatorios sem frontend",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-示例:
+Exemplos:
   python report_engine_only.py
-  python report_engine_only.py --query "土木工程行业分析"
+  python report_engine_only.py --query "Analise do setor de engenharia civil"
   python report_engine_only.py --skip-pdf --verbose
 
-注意:
-  程序会自动获取三个引擎目录中的最新报告文件，
-  不进行文件增加审核，直接生成综合报告，并默认在PDF之后生成Markdown。
+Observacoes:
+  O programa obtera automaticamente os arquivos de relatorio mais recentes dos tres diretorios de engines,
+  sem revisao de adicao de arquivos, gerando diretamente o relatorio abrangente, e por padrao
+  gerando o Markdown apos o PDF.
         """
     )
 
@@ -428,140 +429,140 @@ def parse_arguments():
         '--query',
         type=str,
         default=None,
-        help='指定报告主题（默认从文件名自动提取）'
+        help='Especificar o tema do relatorio (padrao: extraido automaticamente do nome do arquivo)'
     )
 
     parser.add_argument(
         '--skip-pdf',
         action='store_true',
-        help='跳过PDF生成（即使系统支持）'
+        help='Pular geracao do PDF (mesmo que o sistema suporte)'
     )
 
     parser.add_argument(
         '--skip-markdown',
         action='store_true',
-        help='跳过Markdown生成'
+        help='Pular geracao do Markdown'
     )
 
     parser.add_argument(
         '--verbose',
         action='store_true',
-        help='显示详细日志信息'
+        help='Exibir informacoes detalhadas de log'
     )
 
     return parser.parse_args()
 
 
 def main():
-    """主函数"""
-    # 解析命令行参数
+    """Funcao principal"""
+    # Analisar argumentos da linha de comando
     args = parse_arguments()
 
-    # 设置日志
+    # Configurar log
     setup_logger(verbose=args.verbose)
 
     logger.info("\n")
-    logger.info("╔" + "═" * 68 + "╗")
-    logger.info("║" + " " * 20 + "Report Engine 命令行版本" + " " * 24 + "║")
-    logger.info("╚" + "═" * 68 + "╝")
+    logger.info("+" + "=" * 68 + "+")
+    logger.info("|" + " " * 17 + "Report Engine - Versao Linha de Comando" + " " * 12 + "|")
+    logger.info("+" + "=" * 68 + "+")
     logger.info("\n")
 
-    # 步骤 1: 检查依赖
+    # Etapa 1: Verificar dependencias
     pdf_available, _ = check_dependencies()
     markdown_enabled = not args.skip_markdown
 
-    # 如果用户指定跳过PDF，则禁用PDF生成
+    # Se o usuario especificou pular PDF, desabilitar geracao de PDF
     if args.skip_pdf:
-        logger.info("用户指定 --skip-pdf，将跳过 PDF 生成")
+        logger.info("Usuario especificou --skip-pdf, geracao de PDF sera pulada")
         pdf_available = False
 
     if not markdown_enabled:
-        logger.info("用户指定 --skip-markdown，将跳过 Markdown 生成")
+        logger.info("Usuario especificou --skip-markdown, geracao de Markdown sera pulada")
 
-    # 步骤 2: 获取最新文件
+    # Etapa 2: Obter arquivos mais recentes
     latest_files = get_latest_engine_reports()
 
-    # 确认文件选择
+    # Confirmar selecao de arquivos
     if not confirm_file_selection(latest_files):
-        logger.info("\n程序已退出")
+        logger.info("\nPrograma encerrado")
         sys.exit(0)
 
-    # 加载报告内容
+    # Carregar conteudo dos relatorios
     reports = load_engine_reports(latest_files)
 
     if not reports:
-        logger.error("❌ 未能加载任何报告内容")
+        logger.error("Nao foi possivel carregar nenhum conteudo de relatorio")
         sys.exit(1)
 
-    # 提取或使用指定的查询主题
+    # Extrair ou usar o tema de consulta especificado
     query = args.query if args.query else extract_query_from_reports(latest_files)
-    logger.info(f"使用报告主题: {query}")
+    logger.info(f"Usando tema do relatorio: {query}")
 
-    # 步骤 3: 生成报告
+    # Etapa 3: Gerar relatorio
     result = generate_report(reports, query, pdf_available)
 
-    # 步骤 4: 保存文件
+    # Etapa 4: Salvar arquivos
     logger.info("\n" + "=" * 70)
-    logger.info("步骤 4/4: 保存生成的文件")
+    logger.info("Etapa 4/4: Salvar arquivos gerados")
     logger.info("=" * 70)
 
-    # HTML 已经在 generate_report 中自动保存
+    # HTML ja foi salvo automaticamente em generate_report
     html_path = result.get('report_filepath', '')
     ir_path = result.get('ir_filepath', '')
     pdf_path = None
     markdown_path = None
 
     if html_path:
-        logger.success(f"✓ HTML 已保存: {result.get('report_relative_path', html_path)}")
+        logger.success(f"HTML salvo: {result.get('report_relative_path', html_path)}")
 
-    # 如果有PDF依赖，生成并保存PDF
+    # Se houver dependencias de PDF, gerar e salvar PDF
     if pdf_available:
         if ir_path and os.path.exists(ir_path):
             pdf_path = save_pdf(ir_path, query)
         else:
-            logger.warning("⚠ 未找到 IR 文件，无法生成 PDF")
+            logger.warning("Arquivo IR nao encontrado, impossivel gerar PDF")
     else:
-        logger.info("⚠ 跳过 PDF 生成（缺少系统依赖或用户指定跳过）")
+        logger.info("Geracao de PDF pulada (dependencias do sistema ausentes ou usuario especificou pular)")
 
-    # 生成并保存Markdown（在PDF之后）
+    # Gerar e salvar Markdown (apos o PDF)
     if markdown_enabled:
         if ir_path and os.path.exists(ir_path):
             markdown_path = save_markdown(ir_path, query)
         else:
-            logger.warning("⚠ 未找到 IR 文件，无法生成 Markdown")
+            logger.warning("Arquivo IR nao encontrado, impossivel gerar Markdown")
     else:
-        logger.info("⚠ 跳过 Markdown 生成（用户指定）")
+        logger.info("Geracao de Markdown pulada (especificado pelo usuario)")
 
-    # 总结
+    # Resumo
     logger.info("\n" + "=" * 70)
-    logger.success("✓ 报告生成完成！")
+    logger.success("Geracao do relatorio concluida!")
     logger.info("=" * 70)
-    logger.info(f"报告 ID: {result.get('report_id', 'N/A')}")
-    logger.info(f"HTML 文件: {result.get('report_relative_path', 'N/A')}")
+    logger.info(f"ID do relatorio: {result.get('report_id', 'N/A')}")
+    logger.info(f"Arquivo HTML: {result.get('report_relative_path', 'N/A')}")
     if pdf_available:
         if pdf_path:
-            logger.info(f"PDF 文件: {os.path.relpath(pdf_path, os.getcwd())}")
+            logger.info(f"Arquivo PDF: {os.path.relpath(pdf_path, os.getcwd())}")
         else:
-            logger.info("PDF 文件: 生成失败，请检查日志")
+            logger.info("Arquivo PDF: Falha na geracao, verifique os logs")
     else:
-        logger.info("PDF 文件: 已跳过")
+        logger.info("Arquivo PDF: Pulado")
     if markdown_enabled:
         if markdown_path:
-            logger.info(f"Markdown 文件: {os.path.relpath(markdown_path, os.getcwd())}")
+            logger.info(f"Arquivo Markdown: {os.path.relpath(markdown_path, os.getcwd())}")
         else:
-            logger.info("Markdown 文件: 生成失败，请检查日志")
+            logger.info("Arquivo Markdown: Falha na geracao, verifique os logs")
     else:
-        logger.info("Markdown 文件: 已跳过")
+        logger.info("Arquivo Markdown: Pulado")
     logger.info("=" * 70)
-    logger.info("\n程序结束")
+    logger.info("\nPrograma encerrado")
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        logger.warning("\n\n用户中断程序")
+        logger.warning("\n\nPrograma interrompido pelo usuario")
         sys.exit(0)
     except Exception as e:
-        logger.exception(f"\n程序异常退出: {e}")
+        logger.exception(f"\nPrograma encerrado com erro: {e}")
         sys.exit(1)

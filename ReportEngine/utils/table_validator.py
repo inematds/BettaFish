@@ -1,5 +1,5 @@
 """
-表格验证和修复工具。
+Ferramenta de validacao e reparo de tabelas.
 
 提供对 IR 表格数据的验证和修复能力：
 1. 验证表格数据格式是否符合 IR schema 要求
@@ -28,7 +28,7 @@ class TableValidationResult:
     total_cells_count: int = 0
 
     def has_critical_errors(self) -> bool:
-        """是否有严重错误（会导致渲染失败）"""
+        """是否有严重Erro(s)（会导致渲染失败）"""
         return not self.is_valid and len(self.errors) > 0
 
 
@@ -52,7 +52,7 @@ class TableValidator:
     1. 基本结构验证：type, rows 字段
     2. 行结构验证：每行必须有 cells 数组
     3. 单元格结构验证：每个 cell 必须有 blocks 数组
-    4. 嵌套 cells 检测：检测错误的嵌套 cells 结构
+    4. 嵌套 cells 检测：检测Erro(s)的嵌套 cells 结构
     5. 数据完整性验证：检查空单元格和缺失数据
     """
 
@@ -99,7 +99,7 @@ class TableValidator:
             )
 
         if not isinstance(rows, list):
-            errors.append("rows 必须是数组类型")
+            errors.append("rows deve ser um array类型")
             return TableValidationResult(
                 False, errors, warnings, nested_cells_detected,
                 empty_cells_count, total_cells_count
@@ -137,7 +137,7 @@ class TableValidator:
                 f"各行列数不一致: {column_counts}，可能导致渲染问题"
             )
 
-        # 6. 空单元格警告
+        # 6. 空单元格Aviso(s)
         if total_cells_count > 0 and empty_cells_count > total_cells_count * 0.5:
             warnings.append(
                 f"超过50%的单元格为空 ({empty_cells_count}/{total_cells_count})，"
@@ -161,7 +161,7 @@ class TableValidator:
         }
 
         if not isinstance(row, dict):
-            result['errors'].append(f"rows[{row_idx}] 必须是对象类型")
+            result['errors'].append(f"rows[{row_idx}] deve ser um objeto类型")
             return result
 
         cells = row.get('cells')
@@ -170,7 +170,7 @@ class TableValidator:
             return result
 
         if not isinstance(cells, list):
-            result['errors'].append(f"rows[{row_idx}].cells 必须是数组类型")
+            result['errors'].append(f"rows[{row_idx}].cells deve ser um array类型")
             return result
 
         if len(cells) == 0:
@@ -200,15 +200,15 @@ class TableValidator:
 
         if not isinstance(cell, dict):
             result['errors'].append(
-                f"rows[{row_idx}].cells[{cell_idx}] 必须是对象类型"
+                f"rows[{row_idx}].cells[{cell_idx}] deve ser um objeto类型"
             )
             return result
 
-        # 检测嵌套 cells 结构（这是常见的 LLM 错误）
+        # 检测嵌套 cells 结构（这是常见的 LLM Erro(s)）
         if 'cells' in cell and 'blocks' not in cell:
             result['nested_cells_detected'] = True
             result['errors'].append(
-                f"rows[{row_idx}].cells[{cell_idx}] 检测到错误的嵌套 cells 结构，"
+                f"rows[{row_idx}].cells[{cell_idx}] 检测到Erro(s)的嵌套 cells 结构，"
                 "应该是 blocks 而不是 cells"
             )
             return result
@@ -223,7 +223,7 @@ class TableValidator:
 
         if not isinstance(blocks, list):
             result['errors'].append(
-                f"rows[{row_idx}].cells[{cell_idx}].blocks 必须是数组类型"
+                f"rows[{row_idx}].cells[{cell_idx}].blocks deve ser um array类型"
             )
             return result
 
@@ -300,7 +300,7 @@ class TableValidator:
 
 class TableRepairer:
     """
-    表格修复器 - 尝试修复表格数据。
+    表格修复器 - Tentando reparar表格数据。
 
     修复策略：
     1. 展平嵌套 cells 结构
@@ -324,7 +324,7 @@ class TableRepairer:
         validation_result: Optional[TableValidationResult] = None
     ) -> TableRepairResult:
         """
-        尝试修复表格数据。
+        Tentando reparar表格数据。
 
         Args:
             table_block: table 类型的 block
@@ -341,7 +341,7 @@ class TableRepairer:
         if validation_result.is_valid and not validation_result.nested_cells_detected:
             return TableRepairResult(True, table_block, [])
 
-        # 3. 尝试修复
+        # 3. Tentando reparar
         repaired = copy.deepcopy(table_block)
         changes: List[str] = []
 
@@ -382,7 +382,7 @@ class TableRepairer:
 
         if not isinstance(row, dict):
             return {'cells': [self._default_cell()]}, [
-                f"rows[{row_idx}] 类型错误，已重建"
+                f"rows[{row_idx}] 类型Erro(s)，已重建"
             ]
 
         repaired_row = dict(row)
@@ -423,7 +423,7 @@ class TableRepairer:
                     'blocks': [self._text_to_paragraph(str(cell))]
                 }, [f"rows[{row_idx}].cells[{cell_idx}] 转换为标准格式"]
             return self._default_cell(), [
-                f"rows[{row_idx}].cells[{cell_idx}] 类型错误，已重建"
+                f"rows[{row_idx}].cells[{cell_idx}] 类型Erro(s)，已重建"
             ]
 
         repaired_cell = dict(cell)
@@ -444,7 +444,7 @@ class TableRepairer:
         elif not isinstance(repaired_cell['blocks'], list):
             repaired_cell['blocks'] = [self._text_to_paragraph('')]
             changes.append(
-                f"rows[{row_idx}].cells[{cell_idx}].blocks 类型错误，已重建"
+                f"rows[{row_idx}].cells[{cell_idx}].blocks 类型Erro(s)，已重建"
             )
         elif len(repaired_cell['blocks']) == 0:
             repaired_cell['blocks'] = [self._text_to_paragraph('')]
@@ -470,7 +470,7 @@ class TableRepairer:
                     # 继续递归展平
                     result.extend(self._flatten_nested_cells(nested))
                 else:
-                    # 尝试修复
+                    # Tentando reparar
                     repaired, _ = self._repair_cell(nested, 0, 0)
                     result.append(repaired)
             elif isinstance(nested, (str, int, float)):

@@ -4,7 +4,7 @@
 
 执行后会在 `final_reports/ir` 写入一份带时间戳的 IR，
 并分别在 `final_reports/html`、`final_reports/pdf` 与 `final_reports/md`
-输出对应的渲染文件。
+输出对应的渲染Arquivo。
 """
 
 from __future__ import annotations
@@ -166,7 +166,7 @@ def build_chapters() -> list[dict]:
             [
                 {
                     "type": "paragraph",
-                    "inlines": [{"text": "监测新增关联关键词与长尾问题"}],
+                    "inlines": [{"text": "监测novo(s)关联关键词与长尾问题"}],
                 }
             ],
             [
@@ -180,7 +180,7 @@ def build_chapters() -> list[dict]:
 
     table_block = {
         "type": "table",
-        "caption": "核心信源与传播路径",
+        "caption": "核心信源与传播Caminho",
         "zebra": True,
         "colgroup": [{"width": "22%"}, {"width": "38%"}, {"width": "40%"}],
         "rows": [
@@ -689,16 +689,16 @@ def build_chapters() -> list[dict]:
 
     chapter_1 = {
         "chapterId": "S1",
-        "title": "封面与目录",
+        "title": "封面与Sumario",
         "anchor": "overview",
         "order": 10,
         "blocks": [
-            {"type": "heading", "level": 2, "text": "一、封面与目录", "anchor": "overview"},
+            {"type": "heading", "level": 2, "text": "一、封面与Sumario", "anchor": "overview"},
             {
                 "type": "paragraph",
                 "inlines": [
                     {
-                        "text": "模拟社会公共热点事件的摘要，便于快速确认排版与字体效果。",
+                        "text": "Resumo simulado de evento social de interesse publico para verificacao rapida de layout e efeito de fontes.",
                     }
                 ],
             },
@@ -734,7 +734,7 @@ def build_chapters() -> list[dict]:
                 "type": "paragraph",
                 "inlines": [
                     {
-                        "text": "以下内容逐一覆盖 paragraph/list/table/swot/pest/widget 等全部块类型。",
+                        "text": "O conteudo a seguir cobre todos os tipos de bloco: paragraph/list/table/swot/pest/widget etc.",
                     }
                 ],
             },
@@ -806,16 +806,16 @@ def build_chapters() -> list[dict]:
 
 
 def validate_chapters(chapters: list[dict]) -> None:
-    """使用 IRValidator 校验章节结构，发现错误时抛出异常。"""
+    """使用 IRValidator 校验章节结构，EncontradoErro(s)时抛出异常。"""
     validator = IRValidator()
     for chapter in chapters:
         ok, errors = validator.validate_chapter(chapter)
         if not ok:
-            raise ValueError(f"{chapter.get('chapterId', 'unknown')} 校验失败: {errors}")
+            raise ValueError(f"{chapter.get('chapterId', 'unknown')} Falha na validacao: {errors}")
 
 
 def render_and_save(document_ir: dict, timestamp: str) -> tuple[Path, Path, Path, Path]:
-    """将 IR 保存为 JSON，并渲染 HTML / PDF / Markdown，返回四个路径。"""
+    """将 IR 保存为 JSON，并渲染 HTML / PDF / Markdown，返回四个Caminho。"""
     ir_dir = Path(settings.DOCUMENT_IR_OUTPUT_DIR)
     html_dir = Path(settings.OUTPUT_DIR) / "html"
     pdf_dir = Path(settings.OUTPUT_DIR) / "pdf"
@@ -850,14 +850,14 @@ def main() -> int:
     report_id = f"all-blocks-demo-{timestamp}"
     metadata = {
         "title": "社会公共热点事件渲染测试",
-        "subtitle": "覆盖全部 IR 块类型的示例数据，含多种图表与 PEST 演示",
+        "subtitle": "Dados de exemplo cobrindo todos os tipos de bloco IR, com multiplos tipos de graficos e demonstracao PEST",
         "query": "公共事件渲染能力自检 / Chart & PEST",
-        "toc": {"title": "目录", "depth": 3},
+        "toc": {"title": "Sumario", "depth": 3},
         "hero": {
             "summary": "用于验证 Report Engine 在 HTML / PDF 渲染时对各类区块、Chart.js 组件与 PEST 模块的兼容性。",
             "kpis": [
                 {"label": "示例块数量", "value": "20+", "delta": "含 PEST", "tone": "up"},
-                {"label": "图表数", "value": "7", "delta": "新增多类型", "tone": "neutral"},
+                {"label": "图表数", "value": "7", "delta": "novo(s)多类型", "tone": "neutral"},
             ],
             "highlights": ["覆盖全部 block", "含行内/块级公式", "Chart.js 多类型", "PEST + SWOT"],
             "actions": ["重新生成", "导出 PDF"],
@@ -872,7 +872,7 @@ def main() -> int:
 
     ir_path, html_path, pdf_path, md_path = render_and_save(document_ir, timestamp)
 
-    print("✅ 演示 IR 生成完成")
+    print("✅ Geracao do IR de demonstracao concluida")
     print(f"IR:   {ir_path}")
     print(f"HTML: {html_path}")
     print(f"PDF:  {pdf_path}")

@@ -27,20 +27,20 @@ class MarkdownRenderer:
         ir_file_path: str | None = None
     ) -> str:
         """
-        入口：将IR转换为Markdown字符串。
+        入口：将IR转换为Markdownstring。
 
-        参数:
+        Parametros:
             document_ir: Document IR 数据
-            ir_file_path: 可选，IR 文件路径，提供时修复后会自动保存
+            ir_file_path: 可选，IR ArquivoCaminho，提供时修复后会自动保存
 
-        返回:
-            str: Markdown 字符串
+        Retorna:
+            str: Markdown string
         """
         self.document = document_ir or {}
 
-        # 使用统一的 ChartReviewService 进行图表审查与修复
+        # Usar o ChartReviewService unificado para revisao e reparo de graficos
         # 虽然 Markdown 渲染时图表会降级为表格，但仍需确保数据有效
-        # review_document 返回本次会话的统计信息（线程安全，此处不使用）
+        # review_document 返回本次会话的Informacoes estatisticas（线程安全，此处不使用）
         chart_service = get_chart_review_service()
         _ = chart_service.review_document(
             self.document,
@@ -52,7 +52,7 @@ class MarkdownRenderer:
         self.metadata = self.document.get("metadata", {}) or {}
 
         parts: List[str] = []
-        title = self.metadata.get("title") or self.metadata.get("query") or "报告"
+        title = self.metadata.get("title") or self.metadata.get("query") or "relatorio"
         if title:
             parts.append(f"# {self._escape_text(title)}")
             parts.append("")
@@ -158,7 +158,7 @@ class MarkdownRenderer:
         检测段落是否只包含文档元数据 JSON。
         
         某些 LLM 生成的内容会将元数据（如 xrefs、widgets、footnotes、metadata）
-        错误地作为段落内容输出，本方法识别并标记这种情况以便跳过渲染。
+        Erro(s)地作为段落内容输出，本方法识别并标记这种情况以便跳过渲染。
         """
         if not inlines or len(inlines) != 1:
             return False
@@ -197,16 +197,16 @@ class MarkdownRenderer:
 
     def _flatten_nested_cells(self, cells: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        展平错误嵌套的单元格结构。
+        展平Erro(s)嵌套的单元格结构。
 
-        某些 LLM 生成的表格数据中，单元格被错误地递归嵌套：
+        某些 LLM 生成的表格数据中，单元格被Erro(s)地递归嵌套：
         cells[0] 正常, cells[1].cells[0] 正常, cells[1].cells[1].cells[0] 正常...
         本方法将这种嵌套结构展平为标准的平行单元格数组。
 
-        参数:
+        Parametros:
             cells: 可能包含嵌套结构的单元格数组。
 
-        返回:
+        Retorna:
             List[Dict]: 展平后的单元格数组。
         """
         if not cells:
@@ -241,15 +241,15 @@ class MarkdownRenderer:
 
     def _fix_nested_table_rows(self, rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        修复嵌套错误的表格行结构。
+        修复嵌套Erro(s)的表格行结构。
 
         某些 LLM 生成的表格数据中，所有行的单元格都被嵌套在第一行中，
         导致表格只有1行但包含所有数据。本方法检测并修复这种情况。
 
-        参数:
+        Parametros:
             rows: 原始的表格行数组。
 
-        返回:
+        Retorna:
             List[Dict]: 修复后的表格行数组。
         """
         if not rows or len(rows) != 1:
@@ -325,7 +325,7 @@ class MarkdownRenderer:
             }
             return any(kw in text for kw in header_keywords) and len(text) <= 20
 
-        # 计算表头列数：统计连续的表头单元格数量
+        # 计算表头列数：Estatisticas连续的表头单元格数量
         header_count = 0
         for cell in all_cells:
             if _is_header_cell(cell):
@@ -343,10 +343,10 @@ class MarkdownRenderer:
                     header_count = possible_cols
                     break
             else:
-                # 尝试找到最接近的能整除的列数
+                # 尝试Encontrado(s)最接近的能整除的列数
                 for possible_cols in [4, 5, 3, 6, 2]:
                     remainder = total % possible_cols
-                    # 允许最多3个多余的单元格（可能是尾部的总结或注释）
+                    # 允许最多3个多余的单元格（可能是尾部的Resumo或注释）
                     if remainder <= 3:
                         header_count = possible_cols
                         break
@@ -358,10 +358,10 @@ class MarkdownRenderer:
         total = len(all_cells)
         remainder = total % header_count
         if remainder > 0 and remainder <= 3:
-            # 截断尾部多余的单元格（可能是总结或注释）
+            # 截断尾部多余的单元格（可能是Resumo或注释）
             all_cells = all_cells[:total - remainder]
         elif remainder > 3:
-            # 余数太大，可能列数检测错误，返回原始数据
+            # 余数太大，可能列数检测Erro(s)，返回原始数据
             return rows
 
         # 重新组织成多行
@@ -453,7 +453,7 @@ class MarkdownRenderer:
             items = self._normalize_swot_items(block.get(key))
             lines.append(f"#### {label}")
             if not items:
-                lines.append("> 暂无数据")
+                lines.append("> Sem dados disponiveis")
                 continue
             table_lines = [
                 self._markdown_row(["序号", "要点", "详情", "标签"]),
@@ -466,7 +466,7 @@ class MarkdownRenderer:
                 table_lines.append(
                     self._markdown_row([
                         str(idx),
-                        self._escape_text(item.get("title") or "未命名要点", for_table=True),
+                        self._escape_text(item.get("title") or "Ponto nao nomeado", for_table=True),
                         self._escape_text(detail, for_table=True),
                         self._escape_text(tag_text, for_table=True),
                     ])
@@ -492,7 +492,7 @@ class MarkdownRenderer:
             items = self._normalize_pest_items(block.get(key))
             lines.append(f"#### {label}")
             if not items:
-                lines.append("> 暂无数据")
+                lines.append("> Sem dados disponiveis")
                 continue
             table_lines = [
                 self._markdown_row(["序号", "要点", "详情", "标签"]),
@@ -505,7 +505,7 @@ class MarkdownRenderer:
                 table_lines.append(
                     self._markdown_row([
                         str(idx),
-                        self._escape_text(item.get("title") or "未命名要点", for_table=True),
+                        self._escape_text(item.get("title") or "Ponto nao nomeado", for_table=True),
                         self._escape_text(detail, for_table=True),
                         self._escape_text(tag_text, for_table=True),
                     ])
@@ -535,7 +535,7 @@ class MarkdownRenderer:
         return f"$$\n{latex}\n$$"
 
     def _render_figure(self, block: Dict[str, Any]) -> str:
-        caption = block.get("caption") or "图像内容占位"
+        caption = block.get("caption") or "Espaco reservado para conteudo de imagem"
         return f"> ![图示占位]({''}) {self._escape_text(caption)}"
 
     def _render_callout(self, block: Dict[str, Any]) -> str:
@@ -580,7 +580,7 @@ class MarkdownRenderer:
             data_preview = json.dumps(block.get("data") or {}, ensure_ascii=False)[:200]
         except Exception:
             data_preview = ""
-        note = "> 数据组件暂不支持Markdown渲染"
+        note = "> Componente de dados nao suporta renderizacao Markdown no momento"
         return f"{title_prefix}{note}" + (f"\n\n```\n{data_preview}\n```" if data_preview else "")
 
     # ===== 工具方法 =====
@@ -590,7 +590,7 @@ class MarkdownRenderer:
         labels = data.get("labels") or []
         datasets = data.get("datasets") or []
         if not labels or not datasets:
-            return "> 图表数据缺失，无法转为表格"
+            return "> Dados do grafico ausentes, impossivel converter em tabela"
 
         headers = ["类别"] + [
             ds.get("label") or f"系列{idx + 1}"
@@ -609,7 +609,7 @@ class MarkdownRenderer:
     def _render_wordcloud_as_table(self, block: Dict[str, Any]) -> str:
         items = self._collect_wordcloud_items(block)
         if not items:
-            return "> 词云数据缺失，无法转为表格"
+            return "> Dados da nuvem de palavras ausentes, impossivel converter em tabela"
 
         lines = [
             self._markdown_row(["关键词", "权重", "类别"]),
@@ -691,7 +691,7 @@ class MarkdownRenderer:
             text = run if isinstance(run, str) else ""
             marks = []
         
-        # 尝试检测并解析被错误序列化为字符串的 inlineRun JSON
+        # 尝试检测并解析被Erro(s)序列化为string的 inlineRun JSON
         if isinstance(text, str) and text.startswith('{"type": "inlineRun"'):
             parsed = self._try_parse_inline_run_string(text)
             if parsed:
@@ -764,15 +764,15 @@ class MarkdownRenderer:
 
     def _try_parse_inline_run_string(self, text: str) -> dict | None:
         """
-        尝试解析被错误序列化为字符串的 inlineRun JSON。
+        尝试解析被Erro(s)序列化为string的 inlineRun JSON。
         
-        某些 LLM 生成的内容会将 inlineRun 结构意外地作为字符串
+        某些 LLM 生成的内容会将 inlineRun 结构意外地作为string
         存入 text 字段，本方法尝试识别并解析这种情况。
         
-        参数:
-            text: 可能包含 JSON 的字符串
+        Parametros:
+            text: 可能包含 JSON 的string
             
-        返回:
+        Retorna:
             dict | None: 解析成功返回 inlineRun 字典，否则返回 None
         """
         if not text or not isinstance(text, str):
@@ -849,7 +849,7 @@ class MarkdownRenderer:
                 priority = entry.get("priority")
                 evidence = entry.get("evidence")
                 items.append({
-                    "title": title or "未命名要点",
+                    "title": title or "Ponto nao nomeado",
                     "detail": detail,
                     "impact": impact,
                     "priority": priority,
@@ -868,7 +868,7 @@ class MarkdownRenderer:
                 title = entry.get("title") or entry.get("label") or entry.get("text")
                 detail = entry.get("detail") or entry.get("description")
                 items.append({
-                    "title": title or "未命名要点",
+                    "title": title or "Ponto nao nomeado",
                     "detail": detail,
                     "impact": entry.get("impact"),
                     "priority": entry.get("priority"),
@@ -987,7 +987,7 @@ class MarkdownRenderer:
             payload = json.dumps(block, ensure_ascii=False, indent=2)
         except Exception:
             payload = str(block)
-        logger.debug(f"未识别的区块类型，使用JSON兜底: {block}")
+        logger.debug(f"Tipo de bloco nao reconhecido, usando JSON como fallback: {block}")
         return f"```json\n{payload}\n```"
 
 

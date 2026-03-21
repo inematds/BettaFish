@@ -1,6 +1,6 @@
 """
-搜索节点实现
-负责生成搜索查询和反思查询
+Implementação dos nós de busca
+Responsável por gerar consultas de busca e consultas de reflexão
 """
 
 import json
@@ -19,19 +19,19 @@ from ..utils.text_processing import (
 
 
 class FirstSearchNode(BaseNode):
-    """为段落生成首次搜索查询的节点"""
-    
+    """Nó que gera a primeira consulta de busca para o parágrafo"""
+
     def __init__(self, llm_client):
         """
-        初始化首次搜索节点
-        
+        Inicializar nó de primeira busca
+
         Args:
-            llm_client: LLM客户端
+            llm_client: Cliente LLM
         """
         super().__init__(llm_client, "FirstSearchNode")
-    
+
     def validate_input(self, input_data: Any) -> bool:
-        """验证输入数据"""
+        """Validar dados de entrada"""
         if isinstance(input_data, str):
             try:
                 data = json.loads(input_data)
@@ -41,130 +41,130 @@ class FirstSearchNode(BaseNode):
         elif isinstance(input_data, dict):
             return "title" in input_data and "content" in input_data
         return False
-    
+
     def run(self, input_data: Any, **kwargs) -> Dict[str, str]:
         """
-        调用LLM生成搜索查询和理由
-        
+        Chamar LLM para gerar consulta de busca e justificativa
+
         Args:
-            input_data: 包含title和content的字符串或字典
-            **kwargs: 额外参数
-            
+            input_data: String ou dicionário contendo title e content
+            **kwargs: Parâmetros adicionais
+
         Returns:
-            包含search_query和reasoning的字典
+            Dicionário contendo search_query e reasoning
         """
         try:
             if not self.validate_input(input_data):
-                raise ValueError("输入数据格式错误，需要包含title和content字段")
-            
-            # 准备输入数据
+                raise ValueError("Formato de dados de entrada incorreto, necessário conter os campos title e content")
+
+            # Preparar dados de entrada
             if isinstance(input_data, str):
                 message = input_data
             else:
                 message = json.dumps(input_data, ensure_ascii=False)
-            
-            logger.info("正在生成首次搜索查询")
-            
-            # 调用LLM
+
+            logger.info("Gerando primeira consulta de busca")
+
+            # Chamar LLM
             response = self.llm_client.stream_invoke_to_string(SYSTEM_PROMPT_FIRST_SEARCH, message)
-            
-            # 处理响应
+
+            # Processar resposta
             processed_response = self.process_output(response)
-            
-            logger.info(f"生成搜索查询: {processed_response.get('search_query', 'N/A')}")
+
+            logger.info(f"Consulta de busca gerada: {processed_response.get('search_query', 'N/A')}")
             return processed_response
-            
+
         except Exception as e:
-            logger.exception(f"生成首次搜索查询失败: {str(e)}")
+            logger.exception(f"Falha ao gerar primeira consulta de busca: {str(e)}")
             raise e
-    
+
     def process_output(self, output: str) -> Dict[str, str]:
         """
-        处理LLM输出，提取搜索查询和推理
-        
+        Processar saída do LLM, extrair consulta de busca e raciocínio
+
         Args:
-            output: LLM原始输出
-            
+            output: Saída bruta do LLM
+
         Returns:
-            包含search_query和reasoning的字典
+            Dicionário contendo search_query e reasoning
         """
         try:
-            # 清理响应文本
+            # Limpar texto da resposta
             cleaned_output = remove_reasoning_from_output(output)
             cleaned_output = clean_json_tags(cleaned_output)
-            
-            # 记录清理后的输出用于调试
-            logger.info(f"清理后的输出: {cleaned_output}")
-            
-            # 解析JSON
+
+            # Registrar saída limpa para depuração
+            logger.info(f"Saída após limpeza: {cleaned_output}")
+
+            # Analisar JSON
             try:
                 result = json.loads(cleaned_output)
-                logger.info("JSON解析成功")
+                logger.info("Análise JSON bem-sucedida")
             except JSONDecodeError as e:
-                logger.error(f"JSON解析失败: {str(e)}")
-                # 使用更强大的提取方法
+                logger.error(f"Falha na análise JSON: {str(e)}")
+                # Usar método de extração mais robusto
                 result = extract_clean_response(cleaned_output)
                 if "error" in result:
-                    logger.error("JSON解析失败，尝试修复...")
-                    # 尝试修复JSON
+                    logger.error("Falha na análise JSON, tentando reparar...")
+                    # Tentar reparar JSON
                     fixed_json = fix_incomplete_json(cleaned_output)
                     if fixed_json:
                         try:
                             result = json.loads(fixed_json)
-                            logger.info("JSON修复成功")
+                            logger.info("Reparo do JSON bem-sucedido")
                         except JSONDecodeError:
-                            logger.error("JSON修复失败")
-                            # 返回默认查询
+                            logger.error("Falha no reparo do JSON")
+                            # Retornar consulta padrão
                             return self._get_default_search_query()
                     else:
-                        logger.error("无法修复JSON，使用默认查询")
+                        logger.error("Não foi possível reparar o JSON, usando consulta padrão")
                         return self._get_default_search_query()
-            
-            # 验证和清理结果
+
+            # Validar e limpar resultado
             search_query = result.get("search_query", "")
             reasoning = result.get("reasoning", "")
-            
+
             if not search_query:
-                logger.warning("未找到搜索查询，使用默认查询")
+                logger.warning("Consulta de busca não encontrada, usando consulta padrão")
                 return self._get_default_search_query()
-            
+
             return {
                 "search_query": search_query,
                 "reasoning": reasoning
             }
-            
+
         except Exception as e:
-            self.log_error(f"处理输出失败: {str(e)}")
-            # 返回默认查询
+            self.log_error(f"Falha ao processar saída: {str(e)}")
+            # Retornar consulta padrão
             return self._get_default_search_query()
-    
+
     def _get_default_search_query(self) -> Dict[str, str]:
         """
-        获取默认搜索查询
-        
+        Obter consulta de busca padrão
+
         Returns:
-            默认的搜索查询字典
+            Dicionário de consulta de busca padrão
         """
         return {
-            "search_query": "相关主题研究",
-            "reasoning": "由于解析失败，使用默认搜索查询"
+            "search_query": "pesquisa sobre tema relacionado",
+            "reasoning": "Devido a falha na análise, usando consulta de busca padrão"
         }
 
 
 class ReflectionNode(BaseNode):
-    """反思段落并生成新搜索查询的节点"""
-    
+    """Nó que reflete sobre o parágrafo e gera novas consultas de busca"""
+
     def __init__(self, llm_client):
         """
-        初始化反思节点
-        
+        Inicializar nó de reflexão
+
         Args:
-            llm_client: LLM客户端
+            llm_client: Cliente LLM
         """
         super().__init__(llm_client, "ReflectionNode")
-    
+
     def validate_input(self, input_data: Any) -> bool:
-        """验证输入数据"""
+        """Validar dados de entrada"""
         if isinstance(input_data, str):
             try:
                 data = json.loads(input_data)
@@ -176,111 +176,111 @@ class ReflectionNode(BaseNode):
             required_fields = ["title", "content", "paragraph_latest_state"]
             return all(field in input_data for field in required_fields)
         return False
-    
+
     def run(self, input_data: Any, **kwargs) -> Dict[str, str]:
         """
-        调用LLM反思并生成搜索查询
-        
+        Chamar LLM para refletir e gerar consulta de busca
+
         Args:
-            input_data: 包含title、content和paragraph_latest_state的字符串或字典
-            **kwargs: 额外参数
-            
+            input_data: String ou dicionário contendo title, content e paragraph_latest_state
+            **kwargs: Parâmetros adicionais
+
         Returns:
-            包含search_query和reasoning的字典
+            Dicionário contendo search_query e reasoning
         """
         try:
             if not self.validate_input(input_data):
-                raise ValueError("输入数据格式错误，需要包含title、content和paragraph_latest_state字段")
-            
-            # 准备输入数据
+                raise ValueError("Formato de dados de entrada incorreto, necessário conter os campos title, content e paragraph_latest_state")
+
+            # Preparar dados de entrada
             if isinstance(input_data, str):
                 message = input_data
             else:
                 message = json.dumps(input_data, ensure_ascii=False)
-            
-            logger.info("正在进行反思并生成新搜索查询")
-            
-            # 调用LLM
+
+            logger.info("Realizando reflexão e gerando nova consulta de busca")
+
+            # Chamar LLM
             response = self.llm_client.stream_invoke_to_string(SYSTEM_PROMPT_REFLECTION, message)
-            
-            # 处理响应
+
+            # Processar resposta
             processed_response = self.process_output(response)
-            
-            logger.info(f"反思生成搜索查询: {processed_response.get('search_query', 'N/A')}")
+
+            logger.info(f"Consulta de busca gerada por reflexão: {processed_response.get('search_query', 'N/A')}")
             return processed_response
-            
+
         except Exception as e:
-            logger.exception(f"反思生成搜索查询失败: {str(e)}")
+            logger.exception(f"Falha ao gerar consulta de busca por reflexão: {str(e)}")
             raise e
-    
+
     def process_output(self, output: str) -> Dict[str, str]:
         """
-        处理LLM输出，提取搜索查询和推理
-        
+        Processar saída do LLM, extrair consulta de busca e raciocínio
+
         Args:
-            output: LLM原始输出
-            
+            output: Saída bruta do LLM
+
         Returns:
-            包含search_query和reasoning的字典
+            Dicionário contendo search_query e reasoning
         """
         try:
-            # 清理响应文本
+            # Limpar texto da resposta
             cleaned_output = remove_reasoning_from_output(output)
             cleaned_output = clean_json_tags(cleaned_output)
-            
-            # 记录清理后的输出用于调试
-            logger.info(f"清理后的输出: {cleaned_output}")
-            
-            # 解析JSON
+
+            # Registrar saída limpa para depuração
+            logger.info(f"Saída após limpeza: {cleaned_output}")
+
+            # Analisar JSON
             try:
                 result = json.loads(cleaned_output)
-                logger.info("JSON解析成功")
+                logger.info("Análise JSON bem-sucedida")
             except JSONDecodeError as e:
-                logger.error(f"JSON解析失败: {str(e)}")
-                # 使用更强大的提取方法
+                logger.error(f"Falha na análise JSON: {str(e)}")
+                # Usar método de extração mais robusto
                 result = extract_clean_response(cleaned_output)
                 if "error" in result:
-                    logger.error("JSON解析失败，尝试修复...")
-                    # 尝试修复JSON
+                    logger.error("Falha na análise JSON, tentando reparar...")
+                    # Tentar reparar JSON
                     fixed_json = fix_incomplete_json(cleaned_output)
                     if fixed_json:
                         try:
                             result = json.loads(fixed_json)
-                            logger.info("JSON修复成功")
+                            logger.info("Reparo do JSON bem-sucedido")
                         except JSONDecodeError:
-                            logger.error("JSON修复失败")
-                            # 返回默认查询
+                            logger.error("Falha no reparo do JSON")
+                            # Retornar consulta padrão
                             return self._get_default_reflection_query()
                     else:
-                        logger.error("无法修复JSON，使用默认查询")
+                        logger.error("Não foi possível reparar o JSON, usando consulta padrão")
                         return self._get_default_reflection_query()
-            
-            # 验证和清理结果
+
+            # Validar e limpar resultado
             search_query = result.get("search_query", "")
             reasoning = result.get("reasoning", "")
-            
+
             if not search_query:
-                logger.warning("未找到搜索查询，使用默认查询")
+                logger.warning("Consulta de busca não encontrada, usando consulta padrão")
                 return self._get_default_reflection_query()
-            
+
             return {
                 "search_query": search_query,
                 "reasoning": reasoning
             }
-            
+
         except Exception as e:
-            logger.exception(f"处理输出失败: {str(e)}")
-            # 返回默认查询
+            logger.exception(f"Falha ao processar saída: {str(e)}")
+            # Retornar consulta padrão
             return self._get_default_reflection_query()
-    
+
     def _get_default_reflection_query(self) -> Dict[str, str]:
         """
-        获取默认反思搜索查询
-        
+        Obter consulta de busca de reflexão padrão
+
         Returns:
-            默认的反思搜索查询字典
+            Dicionário de consulta de busca de reflexão padrão
         """
         return {
-            "search_query": "深度研究补充信息",
-            "reasoning": "由于解析失败，使用默认反思搜索查询"
+            "search_query": "informações complementares de pesquisa profunda",
+            "reasoning": "Devido a falha na análise, usando consulta de busca de reflexão padrão"
         }

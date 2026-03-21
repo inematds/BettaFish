@@ -1,5 +1,5 @@
 """
-图表验证和修复工具。
+Ferramenta de validacao e reparo de graficos.
 
 提供对Chart.js图表数据的验证和修复能力：
 1. 验证图表数据格式是否符合Chart.js要求
@@ -37,7 +37,7 @@ class ValidationResult:
     warnings: List[str]
 
     def has_critical_errors(self) -> bool:
-        """是否有严重错误（会导致渲染失败）"""
+        """是否有严重Erro(s)（会导致渲染失败）"""
         return not self.is_valid and len(self.errors) > 0
 
 
@@ -128,7 +128,7 @@ class ChartValidator:
 
         # 4. 检查是否支持该图表类型
         if chart_type not in self.SUPPORTED_CHART_TYPES:
-            warnings.append(f"图表类型 '{chart_type}' 可能不被支持，将尝试降级渲染")
+            warnings.append(f"图表类型 '{chart_type}' 可能nao suportado，将尝试降级渲染")
 
         # 5. 验证数据结构
         data = widget_block.get('data')
@@ -222,7 +222,7 @@ class ChartValidator:
                 else:
                     errors.append(f"{chart_type}类型图表必须包含labels字段")
             elif not isinstance(labels, list):
-                errors.append("labels必须是数组类型")
+                errors.append("labelsdeve ser um array类型")
             elif len(labels) == 0:
                 warnings.append("labels数组为空，图表可能无法正常显示")
 
@@ -232,7 +232,7 @@ class ChartValidator:
             return
 
         if not isinstance(datasets, list):
-            errors.append("datasets必须是数组类型")
+            errors.append("datasetsdeve ser um array类型")
             return
 
         if len(datasets) == 0:
@@ -242,7 +242,7 @@ class ChartValidator:
         # 验证每个dataset
         for idx, dataset in enumerate(datasets):
             if not isinstance(dataset, dict):
-                errors.append(f"datasets[{idx}]必须是对象类型")
+                errors.append(f"datasets[{idx}]deve ser um objeto类型")
                 continue
 
             # 验证data字段
@@ -252,7 +252,7 @@ class ChartValidator:
                 continue
 
             if not isinstance(ds_data, list):
-                errors.append(f"datasets[{idx}].data必须是数组类型")
+                errors.append(f"datasets[{idx}].datadeve ser um array类型")
                 continue
 
             if len(ds_data) == 0:
@@ -279,7 +279,7 @@ class ChartValidator:
                         errors.append(
                             f"datasets[{idx}].data[{data_idx}]的值'{value}'不是有效的数值类型"
                         )
-                        break  # 只报告第一个错误
+                        break  # 只relatorio第一个Erro(s)
 
     def _validate_special_data(
         self,
@@ -296,7 +296,7 @@ class ChartValidator:
             return
 
         if not isinstance(datasets, list):
-            errors.append("datasets必须是数组类型")
+            errors.append("datasetsdeve ser um array类型")
             return
 
         if len(datasets) == 0:
@@ -308,7 +308,7 @@ class ChartValidator:
         # 验证每个dataset
         for idx, dataset in enumerate(datasets):
             if not isinstance(dataset, dict):
-                errors.append(f"datasets[{idx}]必须是对象类型")
+                errors.append(f"datasets[{idx}]deve ser um objeto类型")
                 continue
 
             ds_data = dataset.get('data')
@@ -317,7 +317,7 @@ class ChartValidator:
                 continue
 
             if not isinstance(ds_data, list):
-                errors.append(f"datasets[{idx}].data必须是数组类型")
+                errors.append(f"datasets[{idx}].datadeve ser um array类型")
                 continue
 
             if len(ds_data) == 0:
@@ -328,7 +328,7 @@ class ChartValidator:
             for data_idx, point in enumerate(ds_data):
                 if not isinstance(point, dict):
                     errors.append(
-                        f"datasets[{idx}].data[{data_idx}]必须是对象类型（包含{required_keys}字段）"
+                        f"datasets[{idx}].data[{data_idx}]deve ser um objeto类型（包含{required_keys}字段）"
                     )
                     break
 
@@ -365,11 +365,11 @@ class ChartValidator:
 
 class ChartRepairer:
     """
-    图表修复器 - 尝试修复图表数据。
+    图表修复器 - Tentando reparar图表数据。
 
     修复策略：
     1. 本地规则修复：修复常见问题
-    2. API修复：使用LLM修复复杂问题
+    2. API修复：Usando LLM修复复杂问题
     3. 验证修复结果：确保修复后能正常渲染
     """
 
@@ -418,7 +418,7 @@ class ChartRepairer:
         validation_result: Optional[ValidationResult] = None
     ) -> RepairResult:
         """
-        尝试修复图表数据。
+        Tentando reparar图表数据。
 
         Args:
             widget_block: widget类型的block
@@ -450,36 +450,36 @@ class ChartRepairer:
         current_validation = validation_result
         current_block = widget_block
 
-        # 2. 尝试本地修复（即使验证通过也尝试，因为可能有警告）
-        logger.info(f"尝试本地修复图表")
+        # 2. 尝试本地修复（即使验证通过也尝试，因为可能有Aviso(s)）
+        logger.info(f"Tentando reparo local do grafico")
         local_result = self.repair_locally(widget_block, validation_result)
 
         # 3. 验证本地修复结果
         if local_result.has_changes():
             repaired_validation = self.validator.validate(local_result.repaired_block)
             if repaired_validation.is_valid:
-                logger.info(f"本地修复成功: {local_result.changes}")
+                logger.info(f"Reparo local bem-sucedido: {local_result.changes}")
                 return _cache_and_return(
                     RepairResult(True, local_result.repaired_block, 'local', local_result.changes)
                 )
             else:
-                logger.warning(f"本地修复后仍然无效: {repaired_validation.errors}")
-                # 更新当前状态为本地修复后的结果，供API修复使用
+                logger.warning(f"Ainda invalido apos reparo local: {repaired_validation.errors}")
+                # 更新Estado atual为本地修复后的结果，供API修复使用
                 current_validation = repaired_validation
                 current_block = local_result.repaired_block
 
-        # 4. 如果当前仍有严重错误，尝试API修复
+        # 4. 如果当前仍有严重Erro(s)，尝试API修复
         # 注意：使用 current_validation 而非原始 validation_result
         if current_validation.has_critical_errors() and len(self.llm_repair_fns) > 0:
-            logger.info("本地修复失败或不足，尝试API修复")
-            # 传入本地已修复的数据（如果有），避免浪费本地修复的工作
+            logger.info("Reparo local falhou ou insuficiente, tentando reparo via API")
+            # 传入本地Corrigido(s)的数据（如果有），避免浪费本地修复的工作
             api_result = self.repair_with_api(current_block, current_validation)
 
             if api_result.success:
                 # 验证修复结果
                 api_repaired_validation = self.validator.validate(api_result.repaired_block)
                 if api_repaired_validation.is_valid:
-                    logger.info(f"API修复成功: {api_result.changes}")
+                    logger.info(f"APIReparo bem-sucedido: {api_result.changes}")
                     return _cache_and_return(api_result)
                 else:
                     logger.warning(f"API修复后仍然无效: {api_repaired_validation.errors}")
@@ -494,7 +494,7 @@ class ChartRepairer:
                 return _cache_and_return(RepairResult(True, widget_block, 'none', []))
 
         # 6. 所有修复都失败，返回原始数据（或本地部分修复的数据）
-        logger.warning("所有修复尝试失败，保持原始数据")
+        logger.warning("Todas as tentativas de reparo falharam, mantendo dados originais")
         # 如果本地有部分修复，返回本地修复后的数据（虽然验证仍失败，但可能比原始数据好）
         final_block = local_result.repaired_block if local_result.has_changes() else widget_block
         return _cache_and_return(RepairResult(False, final_block, 'none', []))
@@ -509,7 +509,7 @@ class ChartRepairer:
 
         修复规则：
         1. 补全缺失的基本字段
-        2. 修复数据类型错误
+        2. 修复数据类型Erro(s)
         3. 修复数据长度不匹配
         4. 清理无效数据
         5. 添加默认值
@@ -619,7 +619,7 @@ class ChartRepairer:
                         # 尝试转换
                         try:
                             if isinstance(value, str):
-                                # 尝试转换字符串
+                                # 尝试转换string
                                 ds_data[i] = float(value)
                                 converted = True
                         except (ValueError, TypeError):
@@ -674,10 +674,10 @@ class ChartRepairer:
         """
         使用API修复（调用4个Engine的LLM）。
 
-        策略：按顺序尝试不同的Engine，直到修复成功
+        策略：按顺序尝试不同的Engine，直到Reparo bem-sucedido
         """
         if not self.llm_repair_fns:
-            logger.debug("没有可用的LLM修复函数，跳过API修复")
+            logger.debug("Nenhuma funcao de reparo LLM disponivel, ignorando reparo via API")
             return RepairResult(False, None, 'api', [])
 
         widget_id = widget_block.get('widgetId', 'unknown')
@@ -692,23 +692,23 @@ class ChartRepairer:
                     # 验证修复结果
                     repaired_validation = self.validator.validate(repaired)
                     if repaired_validation.is_valid:
-                        logger.info(f"图表 {widget_id} 使用Engine {idx + 1} 修复成功")
+                        logger.info(f"图表 {widget_id} 使用Engine {idx + 1} Reparo bem-sucedido")
                         return RepairResult(
                             True,
                             repaired,
                             'api',
-                            [f"使用Engine {idx + 1}修复成功"]
+                            [f"使用Engine {idx + 1}Reparo bem-sucedido"]
                         )
                     else:
                         logger.warning(
-                            f"图表 {widget_id} Engine {idx + 1} 返回的数据验证失败: "
+                            f"图表 {widget_id} Engine {idx + 1} 返回的数据Falha na validacao: "
                             f"{repaired_validation.errors}"
                         )
                 else:
                     logger.warning(f"图表 {widget_id} Engine {idx + 1} 返回空或无效响应")
             except Exception as e:
                 # 使用 exception 记录完整堆栈
-                logger.exception(f"图表 {widget_id} Engine {idx + 1} 修复过程中发生异常: {e}")
+                logger.exception(f"图表 {widget_id} Engine {idx + 1} 修复过程中发生Excecoes: {e}")
                 continue
 
         logger.warning(f"图表 {widget_id} 所有 {len(self.llm_repair_fns)} 个Engine均修复失败")

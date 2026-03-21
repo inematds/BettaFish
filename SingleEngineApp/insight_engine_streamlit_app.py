@@ -1,6 +1,6 @@
 """
-Streamlit Web界面
-为Insight Agent提供友好的Web界面
+Interface Web Streamlit
+Fornece uma interface Web amigavel para o Insight Agent
 """
 
 import os
@@ -11,11 +11,11 @@ import json
 import locale
 from loguru import logger
 
-# 设置UTF-8编码环境
+# Configurar ambiente de codificacao UTF-8
 os.environ['PYTHONIOENCODING'] = 'utf-8'
 os.environ['PYTHONUTF8'] = '1'
 
-# 设置系统编码
+# Configurar codificacao do sistema
 try:
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 except locale.Error:
@@ -24,7 +24,7 @@ except locale.Error:
     except locale.Error:
         pass
 
-# 添加src目录到Python路径
+# Adicionar diretorio src ao caminho do Python
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from InsightEngine import DeepSearchAgent, Settings
@@ -33,7 +33,7 @@ from utils.github_issues import error_with_issue_link
 
 
 def main():
-    """主函数"""
+    """Funcao principal"""
     st.set_page_config(
         page_title="Insight Agent",
         page_icon="",
@@ -41,44 +41,44 @@ def main():
     )
 
     st.title("Insight Agent")
-    st.markdown("私有舆情数据库深度分析AI代理")
-    st.markdown("24小时全自动从包括微博、知乎、github、酷安等 13个 社媒平台、技术论坛广泛的爬取舆情数据")
+    st.markdown("Agente de IA para analise profunda do banco de dados privado de opiniao publica")
+    st.markdown("Coleta automatica 24 horas de dados de opiniao publica de 13 plataformas de midia social e foruns de tecnologia, incluindo Weibo, Zhihu, GitHub, Coolapk, entre outros")
 
-    # 检查URL参数
+    # Verificar parametros de URL
     try:
-        # 尝试使用新版本的query_params
+        # Tentar usar a versao mais recente de query_params
         query_params = st.query_params
         auto_query = query_params.get('query', '')
         auto_search = query_params.get('auto_search', 'false').lower() == 'true'
     except AttributeError:
-        # 兼容旧版本
+        # Compatibilidade com versao anterior
         query_params = st.experimental_get_query_params()
         auto_query = query_params.get('query', [''])[0]
         auto_search = query_params.get('auto_search', ['false'])[0].lower() == 'true'
 
-    # ----- 配置被硬编码 -----
-    # 强制使用 Kimi
+    # ----- Configuracao codificada -----
+    # Forcar uso do Kimi
     model_name = settings.INSIGHT_ENGINE_MODEL_NAME or "kimi-k2-0711-preview"
-    # 默认高级配置
+    # Configuracao avancada padrao
     max_reflections = 2
-    max_content_length = 500000  # Kimi支持长文本
+    max_content_length = 500000  # Kimi suporta textos longos
 
-    # 简化的研究查询展示区域
+    # Area simplificada de exibicao da consulta de pesquisa
 
-    # 如果有自动查询，使用它作为默认值，否则显示占位符
-    display_query = auto_query if auto_query else "等待从主页面接收分析内容..."
+    # Se houver consulta automatica, usar como valor padrao; caso contrario, exibir placeholder
+    display_query = auto_query if auto_query else "Aguardando conteudo de analise da pagina principal..."
 
-    # 只读的查询展示区域
+    # Area de exibicao de consulta somente leitura
     st.text_area(
-        "当前查询",
+        "Consulta atual",
         value=display_query,
         height=100,
         disabled=True,
-        help="查询内容由主页面的搜索框控制",
+        help="O conteudo da consulta e controlado pela barra de busca da pagina principal",
         label_visibility="hidden"
     )
 
-    # 自动搜索逻辑
+    # Logica de busca automatica
     start_research = False
     query = auto_query
 
@@ -86,22 +86,22 @@ def main():
         st.session_state.auto_search_executed = True
         start_research = True
     elif auto_query and not auto_search:
-        st.warning("等待搜索启动信号...")
+        st.warning("Aguardando sinal de inicio da busca...")
 
-    # 验证配置
+    # Validar configuracao
     if start_research:
         if not query.strip():
-            st.error("请输入研究查询")
-            logger.error("请输入研究查询")
+            st.error("Por favor, insira uma consulta de pesquisa")
+            logger.error("Por favor, insira uma consulta de pesquisa")
             return
 
-        # 检查配置中的LLM密钥
+        # Verificar chave de API do LLM na configuracao
         if not settings.INSIGHT_ENGINE_API_KEY:
-            st.error("请在您的环境变量中设置INSIGHT_ENGINE_API_KEY")
-            logger.error("请在您的环境变量中设置INSIGHT_ENGINE_API_KEY")
+            st.error("Por favor, defina INSIGHT_ENGINE_API_KEY nas suas variaveis de ambiente")
+            logger.error("Por favor, defina INSIGHT_ENGINE_API_KEY nas suas variaveis de ambiente")
             return
 
-        # 自动使用配置文件中的API密钥和数据库配置
+        # Usar automaticamente a chave de API e configuracao do banco de dados do arquivo de configuracao
         db_host = settings.DB_HOST
         db_user = settings.DB_USER
         db_password = settings.DB_PASSWORD
@@ -109,7 +109,7 @@ def main():
         db_port = settings.DB_PORT
         db_charset = settings.DB_CHARSET
 
-        # 创建Settings配置（字段必须用大写，以适配Settings类）
+        # Criar configuracao Settings (campos devem ser em maiusculas para compatibilidade com a classe Settings)
         config = Settings(
             INSIGHT_ENGINE_API_KEY=settings.INSIGHT_ENGINE_API_KEY,
             INSIGHT_ENGINE_BASE_URL=settings.INSIGHT_ENGINE_BASE_URL,
@@ -126,110 +126,110 @@ def main():
             OUTPUT_DIR="insight_engine_streamlit_reports"
         )
 
-        # 执行研究
+        # Executar pesquisa
         execute_research(query, config)
 
 
 def execute_research(query: str, config: Settings):
-    """执行研究"""
+    """Executar pesquisa"""
     try:
-        # 创建进度条
+        # Criar barra de progresso
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        # 初始化Agent
-        status_text.text("正在初始化Agent...")
+        # Inicializar Agent
+        status_text.text("Inicializando Agent...")
         agent = DeepSearchAgent(config)
         st.session_state.agent = agent
 
         progress_bar.progress(10)
 
-        # 生成报告结构
-        status_text.text("正在生成报告结构...")
+        # Gerar estrutura do relatorio
+        status_text.text("Gerando estrutura do relatorio...")
         agent._generate_report_structure(query)
         progress_bar.progress(20)
 
-        # 处理段落
+        # Processar paragrafos
         total_paragraphs = len(agent.state.paragraphs)
         for i in range(total_paragraphs):
-            status_text.text(f"正在处理段落 {i + 1}/{total_paragraphs}: {agent.state.paragraphs[i].title}")
+            status_text.text(f"Processando paragrafo {i + 1}/{total_paragraphs}: {agent.state.paragraphs[i].title}")
 
-            # 初始搜索和总结
+            # Busca inicial e resumo
             agent._initial_search_and_summary(i)
             progress_value = 20 + (i + 0.5) / total_paragraphs * 60
             progress_bar.progress(int(progress_value))
 
-            # 反思循环
+            # Ciclo de reflexao
             agent._reflection_loop(i)
             agent.state.paragraphs[i].research.mark_completed()
 
             progress_value = 20 + (i + 1) / total_paragraphs * 60
             progress_bar.progress(int(progress_value))
 
-        # 生成最终报告
-        status_text.text("正在生成最终报告...")
+        # Gerar relatorio final
+        status_text.text("Gerando relatorio final...")
         final_report = agent._generate_final_report()
         progress_bar.progress(90)
 
-        # 保存报告
-        status_text.text("正在保存报告...")
+        # Salvar relatorio
+        status_text.text("Salvando relatorio...")
         agent._save_report(final_report)
         progress_bar.progress(100)
 
-        status_text.text("研究完成！")
+        status_text.text("Pesquisa concluida!")
 
-        # 显示结果
+        # Exibir resultados
         display_results(agent, final_report)
 
     except Exception as e:
         import traceback
         error_traceback = traceback.format_exc()
         error_display = error_with_issue_link(
-            f"研究过程中发生错误: {str(e)}",
+            f"Ocorreu um erro durante a pesquisa: {str(e)}",
             error_traceback,
             app_name="Insight Engine Streamlit App"
         )
         st.error(error_display)
-        logger.exception(f"研究过程中发生错误: {str(e)}")
+        logger.exception(f"Ocorreu um erro durante a pesquisa: {str(e)}")
 
 
 def display_results(agent: DeepSearchAgent, final_report: str):
-    """显示研究结果"""
-    st.header("工作结束")
+    """Exibir resultados da pesquisa"""
+    st.header("Trabalho Concluido")
 
-    # 结果标签页（已移除下载选项）
-    tab1, tab2 = st.tabs(["研究小结", "引用信息"])
+    # Abas de resultados (opcao de download removida)
+    tab1, tab2 = st.tabs(["Resumo da Pesquisa", "Informacoes de Referencia"])
 
     with tab1:
         st.markdown(final_report)
 
     with tab2:
-        # 段落详情
-        st.subheader("段落详情")
+        # Detalhes dos paragrafos
+        st.subheader("Detalhes dos Paragrafos")
         for i, paragraph in enumerate(agent.state.paragraphs):
-            with st.expander(f"段落 {i + 1}: {paragraph.title}"):
-                st.write("**预期内容:**", paragraph.content)
-                st.write("**最终内容:**", paragraph.research.latest_summary[:300] + "..."
+            with st.expander(f"Paragrafo {i + 1}: {paragraph.title}"):
+                st.write("**Conteudo esperado:**", paragraph.content)
+                st.write("**Conteudo final:**", paragraph.research.latest_summary[:300] + "..."
                 if len(paragraph.research.latest_summary) > 300
                 else paragraph.research.latest_summary)
-                st.write("**搜索次数:**", paragraph.research.get_search_count())
-                st.write("**反思次数:**", paragraph.research.reflection_iteration)
+                st.write("**Numero de buscas:**", paragraph.research.get_search_count())
+                st.write("**Numero de reflexoes:**", paragraph.research.reflection_iteration)
 
-        # 搜索历史
-        st.subheader("搜索历史")
+        # Historico de buscas
+        st.subheader("Historico de Buscas")
         all_searches = []
         for paragraph in agent.state.paragraphs:
             all_searches.extend(paragraph.research.search_history)
 
         if all_searches:
             for i, search in enumerate(all_searches):
-                with st.expander(f"搜索 {i + 1}: {search.query}"):
+                with st.expander(f"Busca {i + 1}: {search.query}"):
                     st.write("**URL:**", search.url)
-                    st.write("**标题:**", search.title)
-                    st.write("**内容预览:**",
+                    st.write("**Titulo:**", search.title)
+                    st.write("**Previa do conteudo:**",
                              search.content[:200] + "..." if len(search.content) > 200 else search.content)
                     if search.score:
-                        st.write("**相关度评分:**", search.score)
+                        st.write("**Pontuacao de relevancia:**", search.score)
 
 
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ try:
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
-    logger.warning("Matplotlib未安装，PDF图表矢量渲染功能将不可用")
+    logger.warning("Matplotlib nao instalado, funcao de renderizacao vetorial de graficos PDF nao estara disponivel")
 
 # 可选依赖：scipy用于曲线平滑
 try:
@@ -39,7 +39,7 @@ try:
     SCIPY_AVAILABLE = True
 except ImportError:
     SCIPY_AVAILABLE = False
-    logger.info("Scipy未安装，折线图将不支持曲线平滑功能（不影响基本渲染）")
+    logger.info("Scipy nao instalado, graficos de linha nao suportarao suavizacao de curva (nao afeta renderizacao basica)")
 
 
 class ChartToSVGConverter:
@@ -96,8 +96,8 @@ class ChartToSVGConverter:
         """
         初始化转换器
 
-        参数:
-            font_path: 中文字体路径（可选）
+        Parametros:
+            font_path: 中文字体Caminho（可选）
         """
         if not MATPLOTLIB_AVAILABLE:
             raise RuntimeError("Matplotlib未安装，请运行: pip install matplotlib")
@@ -115,16 +115,16 @@ class ChartToSVGConverter:
                 font_prop = fm.FontProperties(fname=self.font_path)
                 plt.rcParams['font.family'] = font_prop.get_name()
                 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
-                logger.info(f"已加载中文字体: {self.font_path}")
+                logger.info(f"Fonte chinesa carregada: {self.font_path}")
             except Exception as e:
-                logger.warning(f"加载中文字体失败: {e}，将使用系统默认字体")
+                logger.warning(f"Falha ao carregar fonte chinesa: {e}，将使用系统默认字体")
         else:
             # 尝试使用系统中文字体
             try:
                 plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS', 'DejaVu Sans']
                 plt.rcParams['axes.unicode_minus'] = False
             except Exception as e:
-                logger.warning(f"配置中文字体失败: {e}")
+                logger.warning(f"Falha ao configurar fonte chinesa: {e}")
 
     def convert_widget_to_svg(
         self,
@@ -134,22 +134,22 @@ class ChartToSVGConverter:
         dpi: int = 100
     ) -> Optional[str]:
         """
-        将widget数据转换为SVG字符串
+        将widget数据转换为SVGstring
 
-        参数:
+        Parametros:
             widget_data: widget块数据（包含widgetType、data、props）
             width: 图表宽度（像素）
             height: 图表高度（像素）
             dpi: DPI设置
 
-        返回:
-            str: SVG字符串，失败返回None
+        Retorna:
+            str: SVGstring，失败返回None
         """
         try:
             # 提取图表类型
             widget_type = widget_data.get('widgetType', '')
             if not widget_type or not widget_type.startswith('chart.js'):
-                logger.warning(f"不支持的widget类型: {widget_type}")
+                logger.warning(f"Tipo de widget nao suportado: {widget_type}")
                 return None
 
             # 从widgetType中提取图表类型，例如 "chart.js/line" -> "line"
@@ -176,7 +176,7 @@ class ChartToSVGConverter:
             # 提取数据
             data = widget_data.get('data', {})
             if not data:
-                logger.warning("图表数据为空")
+                logger.warning("Dados do grafico vazios")
                 return None
 
             # 根据图表类型调用相应的渲染方法
@@ -193,14 +193,14 @@ class ChartToSVGConverter:
             else:
                 render_method = getattr(self, f'_render_{chart_type}', None)
                 if not render_method:
-                    logger.warning(f"不支持的图表类型: {chart_type}")
+                    logger.warning(f"Tipo de grafico nao suportado: {chart_type}")
                     return None
 
             # 创建图表并转换为SVG
             return render_method(data, props, width, height, dpi)
 
         except Exception as e:
-            logger.error(f"转换图表为SVG失败: {e}", exc_info=True)
+            logger.error(f"Falha ao converter grafico para SVG: {e}", exc_info=True)
             return None
 
     def _create_figure(
@@ -213,7 +213,7 @@ class ChartToSVGConverter:
         """
         创建matplotlib图表
 
-        返回:
+        Retorna:
             tuple: (fig, ax)
         """
         fig, ax = plt.subplots(figsize=(width/dpi, height/dpi), dpi=dpi)
@@ -227,11 +227,11 @@ class ChartToSVGConverter:
         """
         解析颜色值，将CSS格式转换为matplotlib支持的格式
 
-        参数:
+        Parametros:
             color: 颜色值（可能是CSS格式如rgba()或十六进制或CSS变量）
 
-        返回:
-            matplotlib支持的颜色格式（hex字符串或RGB(A)元组）
+        Retorna:
+            matplotlib支持的颜色格式（hexstring或RGB(A)元组）
         """
         if color is None:
             return None
@@ -241,7 +241,7 @@ class ChartToSVGConverter:
         if _np is not None and hasattr(_np, "ndarray") and isinstance(color, _np.ndarray):
             color = color.tolist()
 
-        # 直接透传已经是序列的颜色（如 (r,g,b,a)），避免被转成字符串后失效
+        # 直接透传已经是序列的颜色（如 (r,g,b,a)），避免被转成string后失效
         if isinstance(color, (list, tuple)):
             if len(color) in (3, 4) and all(isinstance(c, (int, float)) for c in color):
                 normalized = []
@@ -263,7 +263,7 @@ class ChartToSVGConverter:
             except Exception:
                 return color
 
-        # 其余非字符串类型保持原有字符串回退策略
+        # 其余非string类型保持原有string回退策略
         if not isinstance(color, str):
             return str(color)
 
@@ -276,7 +276,7 @@ class ChartToSVGConverter:
             var_name, alpha_str = match.groups()
             rgb_tuple = self.CSS_VAR_RGB_MAP.get(var_name)
 
-            # 兼容缺少 -rgb 后缀的写法
+            # Compativel com缺少 -rgb 后缀的写法
             if not rgb_tuple:
                 if var_name.endswith('-rgb'):
                     rgb_tuple = self.CSS_VAR_RGB_MAP.get(var_name[:-4])
@@ -389,7 +389,7 @@ class ChartToSVGConverter:
         """
         对齐类别型图表的标签与数据长度，并清理非数值值。
 
-        Matplotlib的饼图/圆环图要求labels与数据长度一致，否则会抛出错误。
+        Matplotlib的饼图/圆环图要求labels与数据长度一致，否则会抛出Erro(s)。
         """
         original_label_len = len(labels) if isinstance(labels, list) else 0
         original_data_len = len(dataset_data) if isinstance(dataset_data, list) else 0
@@ -432,7 +432,7 @@ class ChartToSVGConverter:
 
     def _figure_to_svg(self, fig: Any) -> str:
         """
-        将matplotlib图表转换为SVG字符串
+        将matplotlib图表转换为SVGstring
         """
         svg_buffer = io.BytesIO()
         fig.savefig(svg_buffer, format='svg', bbox_inches='tight', transparent=False, facecolor='white')
@@ -504,7 +504,7 @@ class ChartToSVGConverter:
             axes = {'y': ax1}
 
             if has_multiple_axes:
-                # 统计每个位置(left/right)的轴数量,用于计算偏移
+                # Estatisticas每个位置(left/right)的轴数量,用于计算偏移
                 left_axes_count = 0
                 right_axes_count = 0
 
@@ -697,7 +697,7 @@ class ChartToSVGConverter:
             return self._figure_to_svg(fig)
 
         except Exception as e:
-            logger.error(f"渲染折线图失败: {e}", exc_info=True)
+            logger.error(f"Falha ao renderizar grafico de linhas: {e}", exc_info=True)
             return None
 
     def _render_bar(
@@ -775,7 +775,7 @@ class ChartToSVGConverter:
             return self._figure_to_svg(fig)
 
         except Exception as e:
-            logger.error(f"渲染柱状图失败: {e}")
+            logger.error(f"Falha ao renderizar grafico de barras: {e}")
             return None
 
     def _render_bubble(
@@ -862,7 +862,7 @@ class ChartToSVGConverter:
             return self._figure_to_svg(fig)
 
         except Exception as e:
-            logger.error(f"渲染气泡图失败: {e}", exc_info=True)
+            logger.error(f"Falha ao renderizar grafico de bolhas: {e}", exc_info=True)
             return None
 
     def _render_pie(
@@ -931,7 +931,7 @@ class ChartToSVGConverter:
             return self._figure_to_svg(fig)
 
         except Exception as e:
-            logger.error(f"渲染饼图失败: {e}")
+            logger.error(f"Falha ao renderizar grafico de pizza: {e}")
             return None
 
     def _render_doughnut(
@@ -1001,7 +1001,7 @@ class ChartToSVGConverter:
             return self._figure_to_svg(fig)
 
         except Exception as e:
-            logger.error(f"渲染圆环图失败: {e}")
+            logger.error(f"Falha ao renderizar grafico de rosca: {e}")
             return None
 
     def _render_radar(
@@ -1059,7 +1059,7 @@ class ChartToSVGConverter:
             return self._figure_to_svg(fig)
 
         except Exception as e:
-            logger.error(f"渲染雷达图失败: {e}")
+            logger.error(f"Falha ao renderizar grafico de radar: {e}")
             return None
 
     def _render_scatter(
@@ -1118,7 +1118,7 @@ class ChartToSVGConverter:
             return self._figure_to_svg(fig)
 
         except Exception as e:
-            logger.error(f"渲染散点图失败: {e}")
+            logger.error(f"Falha ao renderizar grafico de dispersao: {e}")
             return None
 
     def _render_polarArea(
@@ -1194,7 +1194,7 @@ class ChartToSVGConverter:
             return self._figure_to_svg(fig)
 
         except Exception as e:
-            logger.error(f"渲染极地区域图失败: {e}")
+            logger.error(f"Falha ao renderizar grafico de area polar: {e}")
             return None
 
 
@@ -1202,10 +1202,10 @@ def create_chart_converter(font_path: Optional[str] = None) -> ChartToSVGConvert
     """
     创建图表转换器实例
 
-    参数:
-        font_path: 中文字体路径（可选）
+    Parametros:
+        font_path: 中文字体Caminho（可选）
 
-    返回:
+    Retorna:
         ChartToSVGConverter: 转换器实例
     """
     return ChartToSVGConverter(font_path=font_path)

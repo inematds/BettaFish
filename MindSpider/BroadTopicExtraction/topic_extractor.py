@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-BroadTopicExtraction模块 - 话题提取器
-基于DeepSeek直接提取关键词和生成新闻总结
+Modulo BroadTopicExtraction - Extrator de topicos
+Baseado em DeepSeek para extracao direta de palavras-chave e geracao de resumo de noticias
 """
 
 import sys
@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 from openai import OpenAI
 
-# 添加项目根目录到路径
+# Adicionar diretorio raiz do projeto ao path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
@@ -20,270 +20,268 @@ try:
     import config
     from config import settings
 except ImportError:
-    raise ImportError("无法导入settings.py配置文件")
+    raise ImportError("Nao foi possivel importar o arquivo de configuracao settings.py")
 
 class TopicExtractor:
-    """话题提取器"""
+    """Extrator de topicos"""
 
     def __init__(self):
-        """初始化话题提取器"""
+        """Inicializar extrator de topicos"""
         self.client = OpenAI(
             api_key=settings.MINDSPIDER_API_KEY,
             base_url=settings.MINDSPIDER_BASE_URL
         )
         self.model = settings.MINDSPIDER_MODEL_NAME
-    
+
     def extract_keywords_and_summary(self, news_list: List[Dict], max_keywords: int = 100) -> Tuple[List[str], str]:
         """
-        从新闻列表中提取关键词和生成总结
-        
+        Extrair palavras-chave e gerar resumo a partir da lista de noticias
+
         Args:
-            news_list: 新闻列表
-            max_keywords: 最大关键词数量
-            
+            news_list: Lista de noticias
+            max_keywords: Quantidade maxima de palavras-chave
+
         Returns:
-            (关键词列表, 新闻分析总结)
+            (lista de palavras-chave, resumo da analise de noticias)
         """
         if not news_list:
-            return [], "今日暂无热点新闻"
-        
-        # 构建新闻摘要文本
+            return [], "Sem noticias em destaque hoje"
+
+        # Construir texto resumido das noticias
         news_text = self._build_news_summary(news_list)
-        
-        # 构建提示词
+
+        # Construir prompt
         prompt = self._build_analysis_prompt(news_text, max_keywords)
-        
+
         try:
-            # 调用DeepSeek API
+            # Chamar API DeepSeek
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "你是一个专业的新闻分析师，擅长从热点新闻中提取关键词和撰写分析总结。"},
+                    {"role": "system", "content": "Voce e um analista de noticias profissional, especializado em extrair palavras-chave e escrever resumos analiticos a partir de noticias em destaque."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=1500,
                 temperature=0.3
             )
-            
-            # 解析返回结果
+
+            # Analisar resultado retornado
             result_text = response.choices[0].message.content
             keywords, summary = self._parse_analysis_result(result_text)
-            
-            print(f"成功提取 {len(keywords)} 个关键词并生成新闻总结")
-            return keywords[:max_keywords], summary
-            
-        except Exception as e:
-            print(f"话题提取失败: {e}")
-            # 返回简单的fallback结果
-            fallback_keywords = self._extract_simple_keywords(news_list)
-            fallback_summary = f"今日共收集到 {len(news_list)} 条热点新闻，涵盖多个平台的热门话题。"
-            return fallback_keywords[:max_keywords], fallback_summary
-    
-    def _build_news_summary(self, news_list: List[Dict]) -> str:
-        """构建新闻摘要文本"""
-        news_items = []
-        
-        for i, news in enumerate(news_list, 1):
-            title = news.get('title', '无标题')
-            source = news.get('source_platform', news.get('source', '未知'))
-            
-            # 清理标题中的特殊字符
-            title = re.sub(r'[#@]', '', title).strip()
-            
-            news_items.append(f"{i}. 【{source}】{title}")
-        
-        return "\n".join(news_items)
-    
-    def _build_analysis_prompt(self, news_text: str, max_keywords: int) -> str:
-        """构建分析提示词"""
-        news_count = len(news_text.split('\n'))
-        
-        prompt = f"""
-请分析以下{news_count}条今日热点新闻，完成两个任务：
 
-新闻列表：
+            print(f"Extraidas com sucesso {len(keywords)} palavras-chave e resumo de noticias gerado")
+            return keywords[:max_keywords], summary
+
+        except Exception as e:
+            print(f"Falha na extracao de topicos: {e}")
+            # Retornar resultado fallback simples
+            fallback_keywords = self._extract_simple_keywords(news_list)
+            fallback_summary = f"Hoje foram coletadas {len(news_list)} noticias em destaque, cobrindo topicos populares de multiplas plataformas."
+            return fallback_keywords[:max_keywords], fallback_summary
+
+    def _build_news_summary(self, news_list: List[Dict]) -> str:
+        """Construir texto resumido das noticias"""
+        news_items = []
+
+        for i, news in enumerate(news_list, 1):
+            title = news.get('title', 'Sem titulo')
+            source = news.get('source_platform', news.get('source', 'Desconhecido'))
+
+            # Limpar caracteres especiais do titulo
+            title = re.sub(r'[#@]', '', title).strip()
+
+            news_items.append(f"{i}. [{source}] {title}")
+
+        return "\n".join(news_items)
+
+    def _build_analysis_prompt(self, news_text: str, max_keywords: int) -> str:
+        """Construir prompt de analise"""
+        news_count = len(news_text.split('\n'))
+
+        prompt = f"""
+Por favor, analise as seguintes {news_count} noticias em destaque de hoje e complete duas tarefas:
+
+Lista de noticias:
 {news_text}
 
-任务1：提取关键词（最多{max_keywords}个）
-- 提取能代表今日热点话题的关键词
-- 关键词应该适合用于社交媒体平台搜索
-- 优先选择热度高、讨论量大的话题
-- 避免过于宽泛或过于具体的词汇
+Tarefa 1: Extrair palavras-chave (maximo {max_keywords})
+- Extrair palavras-chave que representem os topicos em destaque de hoje
+- As palavras-chave devem ser adequadas para busca em plataformas de midia social
+- Priorizar topicos com alta popularidade e grande volume de discussao
+- Evitar termos muito amplos ou muito especificos
 
-任务2：撰写新闻分析总结（150-300字）
-- 简要概括今日热点新闻的主要内容
-- 指出当前社会关注的重点话题方向
-- 分析这些热点反映的社会现象或趋势
-- 语言简洁明了，客观中性
+Tarefa 2: Escrever resumo analitico das noticias (150-300 palavras)
+- Resumir brevemente o conteudo principal das noticias em destaque de hoje
+- Apontar os principais topicos de atencao social atual
+- Analisar os fenomenos ou tendencias sociais refletidos por esses destaques
+- Linguagem concisa, clara e objetiva
 
-请严格按照以下JSON格式输出：
+Por favor, produza o resultado estritamente no seguinte formato JSON:
 ```json
 {{
-  "keywords": ["关键词1", "关键词2", "关键词3"],
-  "summary": "今日新闻分析总结内容..."
+  "keywords": ["palavra-chave1", "palavra-chave2", "palavra-chave3"],
+  "summary": "Conteudo do resumo analitico das noticias de hoje..."
 }}
 ```
 
-请直接输出JSON格式的结果，不要包含其他文字说明。
+Por favor, produza diretamente o resultado em formato JSON, sem incluir outras explicacoes textuais.
 """
         return prompt
-    
+
     def _parse_analysis_result(self, result_text: str) -> Tuple[List[str], str]:
-        """解析分析结果"""
+        """Analisar resultado da analise"""
         try:
-            # 尝试提取JSON部分
+            # Tentar extrair parte JSON
             json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
             if json_match:
                 json_text = json_match.group(1)
             else:
-                # 如果没有代码块，尝试直接解析
+                # Se nao houver bloco de codigo, tentar analisar diretamente
                 json_text = result_text.strip()
-            
-            # 解析JSON
+
+            # Analisar JSON
             data = json.loads(json_text)
-            
+
             keywords = data.get('keywords', [])
             summary = data.get('summary', '')
-            
-            # 验证和清理关键词
+
+            # Validar e limpar palavras-chave
             clean_keywords = []
             for keyword in keywords:
                 keyword = str(keyword).strip()
                 if keyword and len(keyword) > 1 and keyword not in clean_keywords:
                     clean_keywords.append(keyword)
-            
-            # 验证总结
+
+            # Validar resumo
             if not summary or len(summary.strip()) < 10:
-                summary = "今日热点新闻涵盖多个领域，反映了当前社会的多元化关注点。"
-            
+                summary = "As noticias em destaque de hoje cobrem multiplas areas, refletindo os diversos pontos de atencao da sociedade atual."
+
             return clean_keywords, summary.strip()
-            
+
         except json.JSONDecodeError as e:
-            print(f"解析JSON失败: {e}")
-            print(f"原始返回: {result_text}")
-            
-            # 尝试手动解析
+            print(f"Falha ao analisar JSON: {e}")
+            print(f"Retorno original: {result_text}")
+
+            # Tentar analise manual
             return self._manual_parse_result(result_text)
-        
+
         except Exception as e:
-            print(f"处理分析结果失败: {e}")
-            return [], "分析结果处理失败，请稍后重试。"
-    
+            print(f"Falha ao processar resultado da analise: {e}")
+            return [], "Falha no processamento do resultado da analise, tente novamente mais tarde."
+
     def _manual_parse_result(self, text: str) -> Tuple[List[str], str]:
-        """手动解析结果（当JSON解析失败时的后备方案）"""
-        print("尝试手动解析结果...")
-        
+        """Analise manual do resultado (plano de contingencia quando a analise JSON falha)"""
+        print("Tentando analise manual do resultado...")
+
         keywords = []
         summary = ""
-        
+
         lines = text.split('\n')
-        
+
         for line in lines:
             line = line.strip()
             if not line:
                 continue
-            
-            # 寻找关键词
-            if '关键词' in line or 'keywords' in line.lower():
-                # 提取关键词
+
+            # Procurar palavras-chave
+            if 'keywords' in line.lower():
+                # Extrair palavras-chave
                 keyword_match = re.findall(r'[""](.*?)["""]', line)
                 if keyword_match:
                     keywords.extend(keyword_match)
                 else:
-                    # 尝试其他分隔符
+                    # Tentar outros separadores
                     parts = re.split(r'[,，、]', line)
                     for part in parts:
-                        clean_part = re.sub(r'[关键词：:keywords\[\]"]', '', part).strip()
+                        clean_part = re.sub(r'[keywords\[\]"]', '', part).strip()
                         if clean_part and len(clean_part) > 1:
                             keywords.append(clean_part)
-            
-            # 寻找总结
-            elif '总结' in line or '分析' in line or 'summary' in line.lower():
-                if '：' in line or ':' in line:
-                    summary = line.split('：')[-1].split(':')[-1].strip()
-            
-            # 如果这一行看起来像总结内容
-            elif len(line) > 50 and ('今日' in line or '热点' in line or '新闻' in line):
+
+            # Procurar resumo
+            elif 'summary' in line.lower():
+                if ':' in line:
+                    summary = line.split(':')[-1].strip()
+
+            # Se a linha parecer conteudo de resumo
+            elif len(line) > 50:
                 if not summary:
                     summary = line
-        
-        # 清理关键词
+
+        # Limpar palavras-chave
         clean_keywords = []
         for keyword in keywords:
             keyword = keyword.strip()
             if keyword and len(keyword) > 1 and keyword not in clean_keywords:
                 clean_keywords.append(keyword)
-        
-        # 如果没有找到总结，生成一个简单的
+
+        # Se nenhum resumo foi encontrado, gerar um simples
         if not summary:
-            summary = "今日热点新闻内容丰富，涵盖了社会各个层面的关注点。"
-        
+            summary = "As noticias em destaque de hoje sao ricas em conteudo, cobrindo diversas areas de atencao da sociedade."
+
         return clean_keywords[:max_keywords], summary
-    
+
     def _extract_simple_keywords(self, news_list: List[Dict]) -> List[str]:
-        """简单关键词提取（fallback方案）"""
+        """Extracao simples de palavras-chave (plano fallback)"""
         keywords = []
-        
+
         for news in news_list:
             title = news.get('title', '')
-            
-            # 简单的关键词提取
-            # 移除常见的无意义词汇
+
+            # Extracao simples de palavras-chave
+            # Remover palavras comuns sem significado
             title_clean = re.sub(r'[#@【】\[\]()（）]', ' ', title)
             words = title_clean.split()
-            
+
             for word in words:
                 word = word.strip()
-                if (len(word) > 1 and 
-                    word not in ['的', '了', '在', '和', '与', '或', '但', '是', '有', '被', '将', '已', '正在'] and
+                if (len(word) > 1 and
                     word not in keywords):
                     keywords.append(word)
-        
+
         return keywords[:10]
-    
+
     def get_search_keywords(self, keywords: List[str], limit: int = 10) -> List[str]:
         """
-        获取用于搜索的关键词
-        
+        Obter palavras-chave para busca
+
         Args:
-            keywords: 关键词列表
-            limit: 限制数量
-            
+            keywords: Lista de palavras-chave
+            limit: Limite de quantidade
+
         Returns:
-            适合搜索的关键词列表
+            Lista de palavras-chave adequadas para busca
         """
-        # 过滤和优化关键词
+        # Filtrar e otimizar palavras-chave
         search_keywords = []
-        
+
         for keyword in keywords:
             keyword = str(keyword).strip()
-            
-            # 过滤条件
-            if (len(keyword) > 1 and 
-                len(keyword) < 20 and  # 不能太长
+
+            # Condicoes de filtro
+            if (len(keyword) > 1 and
+                len(keyword) < 20 and  # Nao pode ser muito longo
                 keyword not in search_keywords and
-                not keyword.isdigit() and  # 不是纯数字
-                not re.match(r'^[a-zA-Z]+$', keyword)):  # 不是纯英文（除非是专有名词）
-                
+                not keyword.isdigit()):  # Nao pode ser apenas numeros
+
                 search_keywords.append(keyword)
-        
+
         return search_keywords[:limit]
 
 if __name__ == "__main__":
-    # 测试话题提取器
+    # Testar extrator de topicos
     extractor = TopicExtractor()
-    
-    # 模拟新闻数据
+
+    # Dados de noticias simulados
     test_news = [
-        {"title": "AI技术发展迅速", "source_platform": "科技新闻"},
-        {"title": "股市行情分析", "source_platform": "财经新闻"},
-        {"title": "明星最新动态", "source_platform": "娱乐新闻"}
+        {"title": "Tecnologia AI avanca rapidamente", "source_platform": "Noticias de Tecnologia"},
+        {"title": "Analise do mercado de acoes", "source_platform": "Noticias Financeiras"},
+        {"title": "Ultimas novidades de celebridades", "source_platform": "Entretenimento"}
     ]
-    
+
     keywords, summary = extractor.extract_keywords_and_summary(test_news)
-    
-    print(f"提取的关键词: {keywords}")
-    print(f"新闻总结: {summary}")
-    
+
+    print(f"Palavras-chave extraidas: {keywords}")
+    print(f"Resumo das noticias: {summary}")
+
     search_keywords = extractor.get_search_keywords(keywords)
-    print(f"搜索关键词: {search_keywords}")
+    print(f"Palavras-chave de busca: {search_keywords}")

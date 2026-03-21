@@ -1,7 +1,7 @@
 """
-章节装订器：负责把多个章节JSON合并为整本IR。
+Montador de capitulos: responsavel por combinar multiplos JSONs de capitulos em um IR completo.
 
-DocumentComposer 会注入缺失锚点、统一顺序，并补齐 IR 级元数据。
+DocumentComposer injeta ancoras ausentes, unifica a ordem e completa metadados em nivel de IR.
 """
 
 from __future__ import annotations
@@ -14,16 +14,16 @@ from ..ir import IR_VERSION
 
 class DocumentComposer:
     """
-    将章节拼接成Document IR的简单装订器。
+    Montador simples que une capitulos no Document IR.
 
-    作用：
-        - 按order排序章节，补充默认chapterId；
-        - 防止anchor重复，生成全局唯一锚点；
-        - 注入 IR 版本与生成时间戳。
+    Funcao:
+        - Ordenar capitulos por order, completar chapterId padrao;
+        - Prevenir ancoras duplicadas, gerar ancoras globalmente unicas;
+        - Injetar versao do IR e timestamp de geracao.
     """
 
     def __init__(self):
-        """初始化装订器并记录已使用的锚点，避免重复"""
+        """Inicializar montador e registrar ancoras utilizadas, evitando duplicatas"""
         self._seen_anchors: Set[str] = set()
 
     def build_document(
@@ -33,26 +33,26 @@ class DocumentComposer:
         chapters: List[Dict[str, object]],
     ) -> Dict[str, object]:
         """
-        把所有章节按order排序并注入唯一锚点，形成整本IR。
+        Ordenar todos os capitulos por order e injetar ancoras unicas, formando o IR completo.
 
-        同时合并 metadata/themeTokens/assets，供渲染器直接消费。
+        Ao mesmo tempo mesclar metadata/themeTokens/assets para consumo direto pelo renderizador.
 
-        参数:
-            report_id: 本次报告ID。
-            metadata: 全局元信息（标题、主题、toc等）。
-            chapters: 章节payload列表。
+        Parametros:
+            report_id: ID deste relatorio.
+            metadata: Meta-informacoes globais (titulo, tema, sumario, etc.).
+            chapters: Lista de payloads de capitulos.
 
-        返回:
-            dict: 满足渲染器需求的Document IR。
+        Retorna:
+            dict: Document IR que atende as necessidades do renderizador.
         """
-        # 构建从chapterId到toc anchor的映射
+        # Construir mapeamento de chapterId para ancora do toc
         toc_anchor_map = self._build_toc_anchor_map(metadata)
 
         ordered = sorted(chapters, key=lambda c: c.get("order", 0))
         for idx, chapter in enumerate(ordered, start=1):
             chapter.setdefault("chapterId", f"S{idx}")
 
-            # 优先级：1. 目录配置的anchor 2. 章节自带的anchor 3. 默认anchor
+            # Prioridade: 1. ancora configurada no sumario 2. ancora propria do capitulo 3. ancora padrao
             chapter_id = chapter.get("chapterId")
             anchor = (
                 toc_anchor_map.get(chapter_id) or
@@ -79,7 +79,7 @@ class DocumentComposer:
         return document
 
     def _ensure_unique_anchor(self, anchor: str) -> str:
-        """若存在重复锚点则追加序号，确保全局唯一。"""
+        """Se houver ancoras duplicadas, anexar numero sequencial para garantir unicidade global."""
         base = anchor
         counter = 2
         while anchor in self._seen_anchors:
@@ -90,13 +90,13 @@ class DocumentComposer:
 
     def _build_toc_anchor_map(self, metadata: Dict[str, object]) -> Dict[str, str]:
         """
-        从metadata.toc.customEntries构建chapterId到anchor的映射。
+        Construir mapeamento de chapterId para anchor a partir de metadata.toc.customEntries.
 
-        参数:
-            metadata: 文档元信息。
+        Parametros:
+            metadata: Meta-informacoes do documento.
 
-        返回:
-            dict: chapterId -> anchor 的映射。
+        Retorna:
+            dict: Mapeamento de chapterId -> anchor.
         """
         toc_config = metadata.get("toc") or {}
         custom_entries = toc_config.get("customEntries") or []
@@ -112,7 +112,7 @@ class DocumentComposer:
         return anchor_map
 
     def _ensure_heading_block(self, chapter: Dict[str, object]) -> None:
-        """保证占位章节仍然拥有可用于目录的heading block。"""
+        """Garantir que o capitulo reservado ainda possua heading block utilizavel no sumario."""
         blocks = chapter.get("blocks")
         if isinstance(blocks, list):
             for block in blocks:
@@ -121,7 +121,7 @@ class DocumentComposer:
         heading = {
             "type": "heading",
             "level": 2,
-            "text": chapter.get("title") or "占位章节",
+            "text": chapter.get("title") or "Capitulo reservado",
             "anchor": chapter.get("anchor"),
         }
         if isinstance(blocks, list):

@@ -1,5 +1,5 @@
 """
-使用最新的章节JSON重新装订并渲染HTML报告。
+Reencadernar e renderizar relatorio HTML usando os JSONs de capitulos mais recentes.
 """
 
 import json
@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from loguru import logger
 
-# 确保可以找到项目内模块
+# Garantir que os modulos do projeto possam ser encontrados
 sys.path.insert(0, str(Path(__file__).parent))
 
 from ReportEngine.core import ChapterStorage, DocumentComposer
@@ -19,20 +19,20 @@ from ReportEngine.utils.config import settings
 
 def find_latest_run_dir(chapter_root: Path):
     """
-    定位章节根目录下最新一次运行的输出目录。
+    Localizar o diretorio de saida da execucao mais recente sob o diretorio raiz de capitulos.
 
-    扫描 `chapter_root` 下所有子目录，筛选出包含 `manifest.json`
-    的候选，按修改时间倒序取最新一条。若目录不存在或没有有效
-    manifest，会记录错误并返回 None。
+    Varre todos os subdiretorios de `chapter_root`, filtra os candidatos que contem
+    `manifest.json`, e seleciona o mais recente por data de modificacao. Se o diretorio
+    nao existir ou nao houver manifest valido, registra o erro e retorna None.
 
-    参数:
-        chapter_root: 章节输出的根目录（通常是 settings.CHAPTER_OUTPUT_DIR）
+    Parametros:
+        chapter_root: Diretorio raiz de saida dos capitulos (geralmente settings.CHAPTER_OUTPUT_DIR)
 
-    返回:
-        Path | None: 最新的 run 目录路径；若未找到则为 None。
+    Retorno:
+        Path | None: Caminho do diretorio de execucao mais recente; None se nao encontrado.
     """
     if not chapter_root.exists():
-        logger.error(f"章节目录不存在: {chapter_root}")
+        logger.error(f"Diretorio de capitulos nao existe: {chapter_root}")
         return None
 
     run_dirs = []
@@ -44,25 +44,26 @@ def find_latest_run_dir(chapter_root: Path):
             run_dirs.append((candidate, manifest_path.stat().st_mtime))
 
     if not run_dirs:
-        logger.error("未找到带 manifest.json 的章节目录")
+        logger.error("Nenhum diretorio de capitulos com manifest.json encontrado")
         return None
 
     latest_dir = sorted(run_dirs, key=lambda item: item[1], reverse=True)[0][0]
-    logger.info(f"找到最新run目录: {latest_dir.name}")
+    logger.info(f"Diretorio de execucao mais recente encontrado: {latest_dir.name}")
     return latest_dir
 
 
 def load_manifest(run_dir: Path):
     """
-    读取单次运行目录内的 manifest.json。
+    Ler o manifest.json dentro do diretorio de uma execucao.
 
-    成功时返回 reportId 以及元数据字典；读取或解析失败会记录错误
-    并返回 (None, None)，以便上层提前终止流程。
+    Em caso de sucesso retorna o reportId e o dicionario de metadados; em caso de falha
+    na leitura ou parsing, registra o erro e retorna (None, None), permitindo que o
+    fluxo superior encerre antecipadamente.
 
-    参数:
-        run_dir: 包含 manifest.json 的章节输出目录
+    Parametros:
+        run_dir: Diretorio de saida dos capitulos contendo manifest.json
 
-    返回:
+    Retorno:
         tuple[str | None, dict | None]: (report_id, metadata)
     """
     manifest_path = run_dir / "manifest.json"
@@ -71,43 +72,43 @@ def load_manifest(run_dir: Path):
             manifest = json.load(f)
         report_id = manifest.get("reportId") or run_dir.name
         metadata = manifest.get("metadata") or {}
-        logger.info(f"报告ID: {report_id}")
+        logger.info(f"ID do relatorio: {report_id}")
         if manifest.get("createdAt"):
-            logger.info(f"创建时间: {manifest['createdAt']}")
+            logger.info(f"Data de criacao: {manifest['createdAt']}")
         return report_id, metadata
     except Exception as exc:
-        logger.error(f"读取manifest失败: {exc}")
+        logger.error(f"Falha ao ler manifest: {exc}")
         return None, None
 
 
 def load_chapters(run_dir: Path):
     """
-    读取指定 run 目录下的所有章节 JSON。
+    Ler todos os JSONs de capitulos do diretorio de execucao especificado.
 
-    会复用 ChapterStorage 的 load_chapters 能力，自动按 order 排序。
-    读取后打印章节数量，便于确认完整性。
+    Reutiliza a capacidade load_chapters do ChapterStorage, ordenando automaticamente por order.
+    Apos a leitura, imprime a quantidade de capitulos para confirmacao de integridade.
 
-    参数:
-        run_dir: 单次报告的章节目录
+    Parametros:
+        run_dir: Diretorio de capitulos de um unico relatorio
 
-    返回:
-        list[dict]: 章节 JSON 列表（若目录为空则为空列表）
+    Retorno:
+        list[dict]: Lista de JSONs de capitulos (lista vazia se o diretorio estiver vazio)
     """
     storage = ChapterStorage(settings.CHAPTER_OUTPUT_DIR)
     chapters = storage.load_chapters(run_dir)
-    logger.info(f"加载章节数: {len(chapters)}")
+    logger.info(f"Capitulos carregados: {len(chapters)}")
     return chapters
 
 
 def validate_chapters(chapters):
     """
-    使用 IRValidator 对章节结构做快速校验。
+    Realizar validacao rapida da estrutura dos capitulos usando IRValidator.
 
-    仅记录未通过的章节及前三条错误，不会中断流程；目的是在
-    重装订前发现潜在结构问题。
+    Apenas registra os capitulos que nao passaram e os tres primeiros erros, sem interromper
+    o fluxo; o objetivo e detectar problemas estruturais potenciais antes da reencadernacao.
 
-    参数:
-        chapters: 章节 JSON 列表
+    Parametros:
+        chapters: Lista de JSONs de capitulos
     """
     validator = IRValidator()
     invalid = []
@@ -117,50 +118,50 @@ def validate_chapters(chapters):
             invalid.append((chapter.get("chapterId") or "unknown", errors))
 
     if invalid:
-        logger.warning(f"有 {len(invalid)} 个章节未通过结构校验，将继续装订：")
+        logger.warning(f"{len(invalid)} capitulos nao passaram na validacao estrutural, a encadernacao continuara:")
         for chapter_id, errors in invalid:
             preview = "; ".join(errors[:3])
             logger.warning(f"  - {chapter_id}: {preview}")
     else:
-        logger.info("章节结构校验通过")
+        logger.info("Validacao estrutural dos capitulos aprovada")
 
 
 def stitch_document(report_id, metadata, chapters):
     """
-    将各章节与元数据装订为完整的 Document IR。
+    Encadernar os capitulos e metadados em um Document IR completo.
 
-    使用 DocumentComposer 统一处理章节顺序、全局元数据等，并打印
-    装订完成的章节与图表数量。
+    Usa o DocumentComposer para tratar uniformemente a ordem dos capitulos, metadados globais,
+    etc., e imprime a quantidade de capitulos e graficos da encadernacao concluida.
 
-    参数:
-        report_id: 报告 ID（来自 manifest 或目录名）
-        metadata: manifest 中的全局元数据
-        chapters: 已加载的章节列表
+    Parametros:
+        report_id: ID do relatorio (vindo do manifest ou nome do diretorio)
+        metadata: Metadados globais do manifest
+        chapters: Lista de capitulos carregados
 
-    返回:
-        dict: 完整的 Document IR 对象
+    Retorno:
+        dict: Objeto Document IR completo
     """
     composer = DocumentComposer()
     document_ir = composer.build_document(report_id, metadata, chapters)
     logger.info(
-        f"装订完成: {len(document_ir.get('chapters', []))} 个章节，"
-        f"{count_charts(document_ir)} 个图表"
+        f"Encadernacao concluida: {len(document_ir.get('chapters', []))} capitulos, "
+        f"{count_charts(document_ir)} graficos"
     )
     return document_ir
 
 
 def count_charts(document_ir):
     """
-    统计整本 Document IR 中的 Chart.js 图表数量。
+    Contar a quantidade de graficos Chart.js em todo o Document IR.
 
-    会遍历每章的 blocks，递归查找 widget 类型中以 `chart.js`
-    开头的组件，便于快速感知图表规模。
+    Percorre os blocks de cada capitulo, buscando recursivamente componentes do tipo widget
+    que comecam com `chart.js`, para percepcao rapida da escala de graficos.
 
-    参数:
-        document_ir: 完整的 Document IR
+    Parametros:
+        document_ir: Document IR completo
 
-    返回:
-        int: 图表总数
+    Retorno:
+        int: Total de graficos
     """
     chart_count = 0
     for chapter in document_ir.get("chapters", []):
@@ -171,15 +172,16 @@ def count_charts(document_ir):
 
 def _count_chart_blocks(blocks):
     """
-    递归统计 block 列表中的 Chart.js 组件数量。
+    Contar recursivamente a quantidade de componentes Chart.js na lista de blocks.
 
-    兼容嵌套的 blocks/list/table 结构，确保所有层级的图表都被计入。
+    Compativel com estruturas aninhadas blocks/list/table, garantindo que graficos em
+    todos os niveis sejam contados.
 
-    参数:
-        blocks: 任意层级的 block 列表
+    Parametros:
+        blocks: Lista de blocks de qualquer nivel
 
-    返回:
-        int: 统计到的 chart.js 图表数量
+    Retorno:
+        int: Quantidade de graficos chart.js contados
     """
     count = 0
     for block in blocks:
@@ -206,46 +208,46 @@ def _count_chart_blocks(blocks):
 
 def save_document_ir(document_ir, base_name, timestamp):
     """
-    将重新装订好的整本 Document IR 落盘。
+    Salvar o Document IR reencadernado em disco.
 
-    按 `report_ir_{slug}_{timestamp}_regen.json` 命名写入
-    `settings.DOCUMENT_IR_OUTPUT_DIR`，确保目录存在并返回保存路径。
+    Nomeado como `report_ir_{slug}_{timestamp}_regen.json` e salvo em
+    `settings.DOCUMENT_IR_OUTPUT_DIR`, garantindo que o diretorio exista e retornando o caminho.
 
-    参数:
-        document_ir: 已装订完成的整本 IR
-        base_name: 由主题/标题生成的安全文件名片段
-        timestamp: 时间戳字符串，用于区分多次重生成
+    Parametros:
+        document_ir: IR completo ja encadernado
+        base_name: Fragmento seguro de nome de arquivo gerado a partir do tema/titulo
+        timestamp: String de timestamp, usada para diferenciar multiplas regeneracoes
 
-    返回:
-        Path: 保存的 IR 文件路径
+    Retorno:
+        Path: Caminho do arquivo IR salvo
     """
     output_dir = Path(settings.DOCUMENT_IR_OUTPUT_DIR)
     output_dir.mkdir(parents=True, exist_ok=True)
     ir_filename = f"report_ir_{base_name}_{timestamp}_regen.json"
     ir_path = output_dir / ir_filename
     ir_path.write_text(json.dumps(document_ir, ensure_ascii=False, indent=2), encoding="utf-8")
-    logger.info(f"IR已保存: {ir_path}")
+    logger.info(f"IR salvo: {ir_path}")
     return ir_path
 
 
 def render_html(document_ir, base_name, timestamp, ir_path=None):
     """
-    使用 HTMLRenderer 将 Document IR 渲染为 HTML 并保存。
+    Renderizar o Document IR em HTML usando HTMLRenderer e salvar.
 
-    渲染后落盘到 `final_reports/html`，打印图表验证统计信息，方便
-    观察 Chart.js 数据的修复/失败情况。
+    Apos renderizacao, salva em `final_reports/html`, imprimindo estatisticas de validacao
+    de graficos para observar a situacao de reparo/falha dos dados Chart.js.
 
-    参数:
-        document_ir: 装订完成的整本 IR
-        base_name: 文件名片段（来源于报告主题/标题）
-        timestamp: 时间戳字符串
-        ir_path: 可选，IR 文件路径，提供时修复后会自动保存
+    Parametros:
+        document_ir: IR completo encadernado
+        base_name: Fragmento do nome de arquivo (originado do tema/titulo do relatorio)
+        timestamp: String de timestamp
+        ir_path: Opcional, caminho do arquivo IR; quando fornecido, salva automaticamente apos reparo
 
-    返回:
-        Path: 生成的 HTML 文件路径
+    Retorno:
+        Path: Caminho do arquivo HTML gerado
     """
     renderer = HTMLRenderer()
-    # 传入 ir_file_path，修复后自动保存
+    # Passar ir_file_path para salvar automaticamente apos reparo
     html_content = renderer.render(document_ir, ir_file_path=str(ir_path) if ir_path else None)
 
     output_dir = Path(settings.OUTPUT_DIR) / "html"
@@ -255,9 +257,9 @@ def render_html(document_ir, base_name, timestamp, ir_path=None):
     html_path.write_text(html_content, encoding="utf-8")
 
     file_size_mb = html_path.stat().st_size / (1024 * 1024)
-    logger.info(f"HTML生成成功: {html_path} ({file_size_mb:.2f} MB)")
+    logger.info(f"HTML gerado com sucesso: {html_path} ({file_size_mb:.2f} MB)")
     logger.info(
-        "图表验证统计: "
+        "Estatisticas de validacao de graficos: "
         f"total={renderer.chart_validation_stats.get('total', 0)}, "
         f"valid={renderer.chart_validation_stats.get('valid', 0)}, "
         f"repaired={renderer.chart_validation_stats.get('repaired_locally', 0) + renderer.chart_validation_stats.get('repaired_api', 0)}, "
@@ -268,16 +270,16 @@ def render_html(document_ir, base_name, timestamp, ir_path=None):
 
 def build_slug(text):
     """
-    将主题/标题转换为文件系统安全的片段。
+    Converter tema/titulo em um fragmento seguro para o sistema de arquivos.
 
-    仅保留字母/数字/空格/下划线/连字符，空格统一为下划线，并限制
-    最长 60 字符，避免过长文件名。
+    Mantem apenas letras/numeros/espacos/underscores/hifens, substitui espacos por underscores,
+    e limita a no maximo 60 caracteres para evitar nomes de arquivo muito longos.
 
-    参数:
-        text: 原始主题或标题
+    Parametros:
+        text: Tema ou titulo original
 
-    返回:
-        str: 清洗后的安全字符串
+    Retorno:
+        str: String segura apos limpeza
     """
     text = str(text or "report")
     sanitized = "".join(c for c in text if c.isalnum() or c in (" ", "-", "_")).strip()
@@ -287,18 +289,18 @@ def build_slug(text):
 
 def main():
     """
-    主入口：读取最新章节、装订 IR 并渲染 HTML。
+    Ponto de entrada principal: ler os capitulos mais recentes, encadernar IR e renderizar HTML.
 
-    流程：
-        1) 找到最新的章节 run 目录并读取 manifest；
-        2) 加载章节并执行结构校验（仅警告）；
-        3) 装订整本 IR，保存 IR 副本；
-        4) 渲染 HTML 并输出路径与统计信息。
+    Fluxo:
+        1) Encontrar o diretorio de execucao mais recente e ler o manifest;
+        2) Carregar capitulos e executar validacao estrutural (apenas aviso);
+        3) Encadernar o IR completo e salvar copia do IR;
+        4) Renderizar HTML e exibir caminho e estatisticas.
 
-    返回:
-        int: 0 表示成功，其余表示失败。
+    Retorno:
+        int: 0 indica sucesso, outros indicam falha.
     """
-    logger.info("🚀 使用最新的LLM章节重新装订并渲染HTML")
+    logger.info("Reencadernando e renderizando HTML usando os capitulos LLM mais recentes")
 
     chapter_root = Path(settings.CHAPTER_OUTPUT_DIR)
     latest_run = find_latest_run_dir(chapter_root)
@@ -311,7 +313,7 @@ def main():
 
     chapters = load_chapters(latest_run)
     if not chapters:
-        logger.error("未找到章节JSON，无法装订")
+        logger.error("Nenhum JSON de capitulo encontrado, impossivel encadernar")
         return 1
 
     validate_chapters(chapters)
@@ -324,13 +326,13 @@ def main():
     )
 
     ir_path = save_document_ir(document_ir, base_name, timestamp)
-    # 传入 ir_path，修复后的图表会自动保存到 IR 文件
+    # Passar ir_path para que graficos reparados sejam salvos automaticamente no arquivo IR
     html_path = render_html(document_ir, base_name, timestamp, ir_path=ir_path)
 
     logger.info("")
-    logger.info("🎉 HTML装订与渲染完成")
-    logger.info(f"IR文件: {ir_path.resolve()}")
-    logger.info(f"HTML文件: {html_path.resolve()}")
+    logger.info("Encadernacao e renderizacao HTML concluidas")
+    logger.info(f"Arquivo IR: {ir_path.resolve()}")
+    logger.info(f"Arquivo HTML: {html_path.resolve()}")
     return 0
 
 

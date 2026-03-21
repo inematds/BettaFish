@@ -1,5 +1,5 @@
 """
-根据模板目录与多源报告，生成整本报告的标题/目录/主题设计。
+根据模板Sumario与多源relatorio，生成整本relatorio的标题/Sumario/主题设计。
 """
 
 from __future__ import annotations
@@ -20,18 +20,18 @@ from .base_node import BaseNode
 
 class DocumentLayoutNode(BaseNode):
     """
-    负责生成全局标题、目录与Hero设计。
+    负责生成全局标题、Sumario与Hero设计。
 
-    结合模板切片、报告摘要与论坛讨论，指导整本书的视觉与结构基调。
+    结合模板切片、relatorio摘要与论坛讨论，指导整本书的视觉与结构基调。
     """
 
     def __init__(self, llm_client):
-        """记录LLM客户端并设置节点名字，供BaseNode日志使用"""
+        """记录Cliente LLM并设置节点名字，供BaseNode日志使用"""
         super().__init__(llm_client, "DocumentLayoutNode")
         # 初始化鲁棒JSON解析器，启用所有修复策略
         self.json_parser = RobustJSONParser(
             enable_json_repair=True,
-            enable_llm_repair=False,  # 可以根据需要启用LLM修复
+            enable_llm_repair=False,  # Pode ativar reparo LLM conforme necessario
             max_repair_attempts=3,
         )
 
@@ -45,20 +45,20 @@ class DocumentLayoutNode(BaseNode):
         template_overview: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         """
-        综合模板+多源内容，生成全书的标题、目录结构与主题色板。
+        综合模板+多源内容，生成全书的标题、Sumario结构与主题色板。
 
-        参数:
+        Parametros:
             sections: 模板切片后的章节列表。
             template_markdown: 模板原文，用于LLM理解上下文。
             reports: 三个引擎的内容映射。
             forum_logs: 论坛讨论摘要。
-            query: 用户查询词。
+            query: Palavra de consulta do usuario.
             template_overview: 预生成的模板概览，可复用以减少提示词长度。
 
-        返回:
+        Retorna:
             dict: 包含 title/subtitle/toc/hero/themeTokens 等设计信息的字典。
         """
-        # 将模板原文、切片结构与多源报告一并喂给LLM，便于其理解层级与素材
+        # 将模板原文、切片结构与多源relatorio一并喂给LLM，便于其理解层级与素材
         payload = {
             "query": query,
             "template": {
@@ -82,72 +82,72 @@ class DocumentLayoutNode(BaseNode):
             top_p=0.9,
         )
         design = self._parse_response(response)
-        logger.info("文档标题/目录设计已生成")
+        logger.info("Design de titulo/sumario do documento gerado")
         return design
 
     def _parse_response(self, raw: str) -> Dict[str, Any]:
         """
-        解析LLM返回的JSON文本，若失败则抛出友好错误。
+        解析LLM返回的JSON文本，若失败则抛出友好Erro(s)。
 
         使用鲁棒JSON解析器进行多重修复尝试：
         1. 清理markdown标记和思考内容
-        2. 本地语法修复（括号平衡、逗号补全、控制字符转义等）
+        2. 本地语法修复（括号平衡、逗号补全、控制caracteres转义等）
         3. 使用json_repair库进行高级修复
         4. 可选的LLM辅助修复
 
-        参数:
-            raw: LLM原始返回字符串，允许带```包裹、思考内容等。
+        Parametros:
+            raw: LLM原始返回string，允许带```包裹、思考内容等。
 
-        返回:
+        Retorna:
             dict: 结构化的设计稿。
 
-        异常:
-            ValueError: 当响应为空或JSON解析失败时抛出。
+        Excecoes:
+            ValueError: 当响应为空或Falha na analise JSON时抛出。
         """
         try:
             result = self.json_parser.parse(
                 raw,
-                context_name="文档设计",
-                # 目录字段已更名为 tocPlan，这里跟随最新Schema校验
+                context_name="Design do documento",
+                # Sumario字段已更名为 tocPlan，这里跟随最新Schema校验
                 expected_keys=["title", "tocPlan", "hero"],
             )
             # 验证关键字段的类型
             if not isinstance(result.get("title"), str):
-                logger.warning("文档设计缺少title字段或类型错误，使用默认值")
-                result.setdefault("title", "未命名报告")
+                logger.warning("Design do documento缺少title字段或类型Erro(s)，使用默认值")
+                result.setdefault("title", "未命名relatorio")
 
             # 处理tocPlan字段
             toc_plan = result.get("tocPlan", [])
             if not isinstance(toc_plan, list):
-                logger.warning("文档设计缺少tocPlan字段或类型错误，使用空列表")
+                logger.warning("Design do documento缺少tocPlan字段或类型Erro(s)，使用空列表")
                 result["tocPlan"] = []
             else:
                 # 清理tocPlan中的description字段
                 result["tocPlan"] = self._clean_toc_plan_descriptions(toc_plan)
 
             if not isinstance(result.get("hero"), dict):
-                logger.warning("文档设计缺少hero字段或类型错误，使用空对象")
+                logger.warning("Design do documento缺少hero字段或类型Erro(s)，使用空对象")
                 result.setdefault("hero", {})
 
             return result
         except JSONParseError as exc:
             # 转换为原有的异常类型以保持向后兼容
-            raise ValueError(f"文档设计JSON解析失败: {exc}") from exc
+            raise ValueError(f"Design do documentoFalha na analise JSON: {exc}") from exc
 
     def _clean_toc_plan_descriptions(self, toc_plan: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        清理tocPlan中每个条目的description字段，移除可能的JSON片段。
+        Limpar campo description de cada entrada no tocPlan, removendo possiveis fragmentos JSON.
 
-        参数:
-            toc_plan: 原始的目录计划列表
+        Parametros:
+            toc_plan: 原始的Sumario计划列表
 
-        返回:
-            List[Dict[str, Any]]: 清理后的目录计划列表
+        Retorna:
+            List[Dict[str, Any]]: 清理后的Sumario计划列表
         """
         import re
 
         def clean_text(text: Any) -> str:
-            """清理文本中的JSON片段"""
+            """Limpar fragmentos JSON do texto"""
             if not text or not isinstance(text, str):
                 return ""
 
@@ -194,9 +194,9 @@ class DocumentLayoutNode(BaseNode):
 
                 if cleaned_desc != original_desc:
                     logger.warning(
-                        f"清理目录项 '{entry.get('display', 'unknown')}' 的description字段中的JSON片段:\n"
-                        f"  原文: {original_desc[:100]}...\n"
-                        f"  清理后: {cleaned_desc[:100]}..."
+                        f"清理Sumario项 '{entry.get('display', 'unknown')}' fragmentos JSON no campo description de:\n"
+                        f"  Original: {original_desc[:100]}...\n"
+                        f"  Apos limpeza: {cleaned_desc[:100]}..."
                     )
                     entry["description"] = cleaned_desc
 

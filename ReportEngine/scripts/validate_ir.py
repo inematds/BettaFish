@@ -3,8 +3,8 @@
 IR 文档验证工具。
 
 命令行工具，用于：
-- 扫描指定 JSON 文件中的所有图表和表格
-- 报告结构问题和数据缺失
+- 扫描指定 JSON Arquivo中的所有图表和表格
+- relatorio结构问题和数据缺失
 - 支持自动修复常见问题
 - 支持批量处理
 
@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
-# 添加项目根目录到路径
+# 添加项目根Sumario到Caminho
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -55,7 +55,7 @@ class BlockIssue:
 
 @dataclass
 class DocumentReport:
-    """文档验证报告"""
+    """文档验证relatorio"""
     file_path: str
     total_blocks: int = 0
     chart_count: int = 0
@@ -102,10 +102,10 @@ class IRValidator:
 
         Args:
             document: IR 文档数据
-            file_path: 文件路径（用于报告）
+            file_path: ArquivoCaminho（用于relatorio）
 
         Returns:
-            DocumentReport: 验证报告
+            DocumentReport: 验证relatorio
         """
         report = DocumentReport(file_path=file_path)
 
@@ -235,9 +235,9 @@ class IRValidator:
                 is_fixable=result.nested_cells_detected or result.has_critical_errors(),
             )
 
-            # 添加嵌套 cells 警告
+            # 添加嵌套 cells Aviso(s)
             if result.nested_cells_detected:
-                issue.warnings.insert(0, "检测到嵌套 cells 结构（LLM 常见错误）")
+                issue.warnings.insert(0, "检测到嵌套 cells 结构（LLM 常见Erro(s)）")
 
             # 添加空单元格信息
             if result.empty_cells_count > 0:
@@ -265,7 +265,7 @@ class IRValidator:
         words_found = False
         words_count = 0
 
-        # 检查各种可能的词云数据路径
+        # 检查各种可能的词云数据Caminho
         data_paths = [
             ("data.words", data.get("words") if isinstance(data, dict) else None),
             ("data.items", data.get("items") if isinstance(data, dict) else None),
@@ -295,7 +295,7 @@ class IRValidator:
                 break
 
         if not words_found:
-            errors.append("词云数据缺失：未在 data.words, data.items, props.words 等路径找到有效数据")
+            errors.append("词云数据缺失：未在 data.words, data.items, props.words 等CaminhoEncontrado(s)有效数据")
         elif words_count == 0:
             warnings.append("词云数据为空")
 
@@ -320,7 +320,7 @@ class IRValidator:
 
         Args:
             document: IR 文档数据
-            report: 验证报告
+            report: 验证relatorio
 
         Returns:
             Tuple[Dict[str, Any], int]: (修复后的文档, 修复数量)
@@ -407,26 +407,26 @@ class IRValidator:
 
 
 def print_report(report: DocumentReport, verbose: bool = False):
-    """打印验证报告"""
+    """打印验证relatorio"""
     print(f"\n{'=' * 60}")
-    print(f"文件: {report.file_path}")
+    print(f"Arquivo: {report.file_path}")
     print(f"{'=' * 60}")
 
-    print(f"\n📊 统计:")
-    print(f"  - 总 blocks: {report.total_blocks}")
-    print(f"  - 图表数量: {report.chart_count}")
-    print(f"  - 表格数量: {report.table_count}")
-    print(f"  - 词云数量: {report.wordcloud_count}")
+    print(f"\n📊 Estatisticas:")
+    print(f"  - Total de blocks: {report.total_blocks}")
+    print(f"  - Quantidade de graficos: {report.chart_count}")
+    print(f"  - Quantidade de tabelas: {report.table_count}")
+    print(f"  - Quantidade de nuvens de palavras: {report.wordcloud_count}")
 
     if report.has_issues:
-        print(f"\n⚠️  发现 {len(report.issues)} 个问题:")
-        print(f"  - 错误: {report.error_count}")
-        print(f"  - 警告: {report.warning_count}")
+        print(f"\n⚠️  Encontrado {len(report.issues)}  problema(s):")
+        print(f"  - Erro(s): {report.error_count}")
+        print(f"  - Aviso(s): {report.warning_count}")
 
         if verbose:
             for issue in report.issues:
                 print(f"\n  [{issue.block_type}] {issue.block_id}")
-                print(f"    路径: {issue.path}")
+                print(f"    Caminho: {issue.path}")
                 if issue.errors:
                     for error in issue.errors:
                         print(f"    ❌ {error}")
@@ -434,12 +434,12 @@ def print_report(report: DocumentReport, verbose: bool = False):
                     for warning in issue.warnings:
                         print(f"    ⚠️  {warning}")
                 if issue.is_fixable:
-                    print(f"    🔧 可自动修复")
+                    print(f"    🔧 Pode ser corrigido automaticamente")
     else:
-        print(f"\n✅ 未发现问题")
+        print(f"\n✅ Nenhum problema encontrado")
 
     if report.fixed_count > 0:
-        print(f"\n🔧 已修复 {report.fixed_count} 个问题")
+        print(f"\n🔧 Corrigido(s) {report.fixed_count}  problema(s)")
 
 
 def validate_file(
@@ -448,28 +448,28 @@ def validate_file(
     fix: bool = False,
     verbose: bool = False,
 ) -> DocumentReport:
-    """验证单个文件"""
+    """验证单 arquivo(s)"""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             document = json.load(f)
     except json.JSONDecodeError as e:
-        logger.error(f"JSON 解析错误: {file_path}: {e}")
+        logger.error(f"JSON 解析Erro(s): {file_path}: {e}")
         report = DocumentReport(file_path=str(file_path))
         report.issues.append(BlockIssue(
             block_type="document",
             block_id="root",
             path="",
-            errors=[f"JSON 解析错误: {e}"],
+            errors=[f"JSON 解析Erro(s): {e}"],
         ))
         return report
     except Exception as e:
-        logger.error(f"读取文件错误: {file_path}: {e}")
+        logger.error(f"读取ArquivoErro(s): {file_path}: {e}")
         report = DocumentReport(file_path=str(file_path))
         report.issues.append(BlockIssue(
             block_type="document",
             block_id="root",
             path="",
-            errors=[f"读取文件错误: {e}"],
+            errors=[f"读取ArquivoErro(s): {e}"],
         ))
         return report
 
@@ -480,36 +480,36 @@ def validate_file(
     if fix and report.has_issues:
         fixable_issues = [i for i in report.issues if i.is_fixable]
         if fixable_issues:
-            logger.info(f"尝试修复 {len(fixable_issues)} 个问题...")
+            logger.info(f"Tentando reparar {len(fixable_issues)}  problema(s)...")
             document, fixed_count = validator.repair_document(document, report)
             report.fixed_count = fixed_count
 
             if fixed_count > 0:
-                # 保存修复后的文件
+                # 保存修复后的Arquivo
                 backup_path = file_path.with_suffix(f".bak{file_path.suffix}")
                 try:
                     # 创建备份
                     import shutil
                     shutil.copy(file_path, backup_path)
-                    logger.info(f"已创建备份: {backup_path}")
+                    logger.info(f"Backup criado: {backup_path}")
 
-                    # 保存修复后的文件
+                    # 保存修复后的Arquivo
                     with open(file_path, "w", encoding="utf-8") as f:
                         json.dump(document, f, ensure_ascii=False, indent=2)
-                    logger.info(f"已保存修复后的文件: {file_path}")
+                    logger.info(f"Arquivo reparado salvo: {file_path}")
                 except Exception as e:
-                    logger.error(f"保存文件失败: {e}")
+                    logger.error(f"Falha ao salvar arquivo: {e}")
 
     return report
 
 
 def main():
-    """主函数"""
+    """Funcao principal"""
     parser = argparse.ArgumentParser(
         description="IR 文档验证工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-示例:
+Exemplos:
   %(prog)s chapter-030-section-3-0.json
   %(prog)s *.json --fix
   %(prog)s ./output/ --recursive --fix --verbose
@@ -518,12 +518,12 @@ def main():
     parser.add_argument(
         "paths",
         nargs="+",
-        help="要验证的 JSON 文件或目录",
+        help="要验证的 JSON Arquivo或Sumario",
     )
     parser.add_argument(
         "-r", "--recursive",
         action="store_true",
-        help="递归处理目录",
+        help="递归处理Sumario",
     )
     parser.add_argument(
         "-f", "--fix",
@@ -550,7 +550,7 @@ def main():
     else:
         logger.add(sys.stderr, level="INFO")
 
-    # 收集文件
+    # 收集Arquivo
     files: List[Path] = []
     for path_str in args.paths:
         path = Path(path_str)
@@ -572,15 +572,15 @@ def main():
                     files.append(mp)
 
     if not files:
-        print("未找到 JSON 文件")
+        print("Nenhum arquivo JSON encontrado")
         sys.exit(1)
 
-    print(f"找到 {len(files)} 个文件")
+    print(f"Encontrado(s) {len(files)}  arquivo(s)")
 
     # 创建验证器
     validator = IRValidator()
 
-    # 验证文件
+    # 验证Arquivo
     total_issues = 0
     total_fixed = 0
     reports: List[DocumentReport] = []
@@ -594,14 +594,14 @@ def main():
         if args.verbose or report.has_issues:
             print_report(report, args.verbose)
 
-    # 打印总结
+    # 打印Resumo
     print(f"\n{'=' * 60}")
-    print("总结")
+    print("Resumo")
     print(f"{'=' * 60}")
-    print(f"  - 文件数: {len(files)}")
-    print(f"  - 问题总数: {total_issues}")
+    print(f"  - Numero de arquivos: {len(files)}")
+    print(f"  - Total de problemas: {total_issues}")
     if args.fix:
-        print(f"  - 已修复: {total_fixed}")
+        print(f"  - Corrigido(s): {total_fixed}")
 
     # 返回适当的退出码
     if total_issues > 0 and total_fixed < total_issues:
