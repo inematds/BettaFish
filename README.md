@@ -24,7 +24,20 @@
 </div>
 
 > [!NOTE]
-> **Fork BR/LATAM** — Este é um fork adaptado para o mercado brasileiro e latino-americano. Consulte o [Relatório Completo do Projeto](./RELATORIO_PROJETO.md) para detalhes sobre configuração, uso, o que foi alterado e o plano de evolução.
+> ### Fork BR/LATAM — Adaptado para o mercado brasileiro e latino-americano
+>
+> | Documento | Descrição |
+> |-----------|-----------|
+> | [Relatório Completo do Projeto](./RELATORIO_PROJETO.md) | Tudo sobre o que foi feito, arquitetura, configuração, uso e plano de evolução |
+> | [Configuração Rápida](#%EF%B8%8F-infraestrutura-para-deploy) | Como subir o sistema com Docker + Ollama |
+> | [.env.example](./.env.example) | Modelo de configuração com todas as variáveis documentadas |
+>
+> **Destaques desta versão:**
+> - Interface, logs e prompts 100% em português
+> - Busca web global via Tavily (substituindo APIs chinesas)
+> - 24 fontes de notícias RSS (Brasil, EUA, Europa, América do Sul)
+> - Análise de sentimento multilíngue com suporte nativo a português
+> - Docker local com Ollama (sem dependência de APIs pagas de LLM)
 
 > [!IMPORTANT]
 > Confira nosso motor de previsão recém-lançado: [MiroFish - Motor de inteligência coletiva simples e universal para prever tudo](https://github.com/666ghj/MiroFish)
