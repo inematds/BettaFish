@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     # Tavily API (endereco de solicitacao: https://www.tavily.com/)
     TAVILY_API_KEY: Optional[str] = Field(None, description="Tavily API (endereco de solicitacao: https://www.tavily.com/) chave API, usada para busca web Tavily")
 
-    SEARCH_TOOL_TYPE: Literal["AnspireAPI", "BochaAPI"] = Field("AnspireAPI", description="Tipo de ferramenta de busca web, suporta BochaAPI ou AnspireAPI, padrao AnspireAPI")
+    SEARCH_TOOL_TYPE: Literal["TavilyAPI", "AnspireAPI", "BochaAPI"] = Field("TavilyAPI", description="Tipo de ferramenta de busca web, suporta TavilyAPI, BochaAPI ou AnspireAPI, padrao TavilyAPI")
     # Bocha API (endereco de solicitacao: https://open.bochaai.com/)
     BOCHA_BASE_URL: Optional[str] = Field("https://api.bocha.cn/v1/ai-search", description="BaseUrl de busca AI Bocha ou busca web Bocha")
     BOCHA_WEB_SEARCH_API_KEY: Optional[str] = Field(None, description="Bocha API (endereco de solicitacao: https://open.bochaai.com/) chave API, usada para busca Bocha")

@@ -23,6 +23,9 @@
 
 </div>
 
+> [!NOTE]
+> **Fork BR/LATAM** — Este é um fork adaptado para o mercado brasileiro e latino-americano. Consulte o [Relatório Completo do Projeto](./RELATORIO_PROJETO.md) para detalhes sobre configuração, uso, o que foi alterado e o plano de evolução.
+
 > [!IMPORTANT]
 > Confira nosso motor de previsão recém-lançado: [MiroFish - Motor de inteligência coletiva simples e universal para prever tudo](https://github.com/666ghj/MiroFish)
 >

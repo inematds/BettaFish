@@ -104,11 +104,33 @@ def main():
 
         # Usar automaticamente a chave de API do arquivo de configuracao
         engine_key = settings.MEDIA_ENGINE_API_KEY
+        tavily_key = settings.TAVILY_API_KEY
         bocha_key = settings.BOCHA_WEB_SEARCH_API_KEY
         ansire_key = settings.ANSPIRE_API_KEY
 
         # Construir Settings (estilo pydantic_settings, priorizando variaveis de ambiente em maiusculas)
-        if settings.SEARCH_TOOL_TYPE == "BochaAPI":
+        # Detectar automaticamente qual API de busca usar
+        search_type = settings.SEARCH_TOOL_TYPE
+        if search_type == "TavilyAPI" or (tavily_key and not bocha_key and not ansire_key):
+            search_type = "TavilyAPI"
+
+        if search_type == "TavilyAPI":
+            if not tavily_key:
+                st.error("Por favor, defina TAVILY_API_KEY nas suas variaveis de ambiente")
+                logger.error("Por favor, defina TAVILY_API_KEY nas suas variaveis de ambiente")
+                return
+            logger.info("Usando chave de API de busca Tavily")
+            config = Settings(
+                MEDIA_ENGINE_API_KEY=engine_key,
+                MEDIA_ENGINE_BASE_URL=settings.MEDIA_ENGINE_BASE_URL,
+                MEDIA_ENGINE_MODEL_NAME=model_name,
+                SEARCH_TOOL_TYPE="TavilyAPI",
+                TAVILY_API_KEY=tavily_key,
+                MAX_REFLECTIONS=max_reflections,
+                SEARCH_CONTENT_MAX_LENGTH=max_content_length,
+                OUTPUT_DIR="media_engine_streamlit_reports",
+            )
+        elif search_type == "BochaAPI":
             if not bocha_key:
                 st.error("Por favor, defina BOCHA_WEB_SEARCH_API_KEY nas suas variaveis de ambiente")
                 logger.error("Por favor, defina BOCHA_WEB_SEARCH_API_KEY nas suas variaveis de ambiente")
@@ -124,7 +146,7 @@ def main():
                 SEARCH_CONTENT_MAX_LENGTH=max_content_length,
                 OUTPUT_DIR="media_engine_streamlit_reports",
             )
-        elif settings.SEARCH_TOOL_TYPE == "AnspireAPI":
+        elif search_type == "AnspireAPI":
             if not ansire_key:
                 st.error("Por favor, defina ANSPIRE_API_KEY nas suas variaveis de ambiente")
                 logger.error("Por favor, defina ANSPIRE_API_KEY nas suas variaveis de ambiente")
@@ -141,8 +163,8 @@ def main():
                 OUTPUT_DIR="media_engine_streamlit_reports",
             )
         else:
-            st.error(f"Tipo de ferramenta de busca desconhecido: {settings.SEARCH_TOOL_TYPE}")
-            logger.error(f"Tipo de ferramenta de busca desconhecido: {settings.SEARCH_TOOL_TYPE}")
+            st.error(f"Tipo de ferramenta de busca desconhecido: {search_type}")
+            logger.error(f"Tipo de ferramenta de busca desconhecido: {search_type}")
             return
 
         # Executar pesquisa
@@ -158,7 +180,7 @@ def execute_research(query: str, config: Settings):
 
         # Inicializar Agent
         status_text.text("Inicializando Agent...")
-        if config.SEARCH_TOOL_TYPE == "BochaAPI":
+        if config.SEARCH_TOOL_TYPE in ("BochaAPI", "TavilyAPI"):
             agent = DeepSearchAgent(config)
         elif config.SEARCH_TOOL_TYPE == "AnspireAPI":
             agent = AnspireSearchAgent(config)
