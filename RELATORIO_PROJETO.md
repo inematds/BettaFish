@@ -255,7 +255,48 @@ BettaFish/
 
 ---
 
-## 8. Repositório
+## 8. Custo de tokens e comparativo de LLMs
+
+Cada relatório completo consome aproximadamente **620.000 tokens** (~430K input + ~190K output) distribuídos em ~110-120 chamadas LLM entre os engines.
+
+### Distribuição de tokens por componente
+
+| Componente | Chamadas LLM | Tokens estimados |
+|-----------|-------------|-----------------|
+| InsightEngine | ~32 | ~144.000 |
+| QueryEngine | ~32 | ~144.000 |
+| MediaEngine | ~32 | ~144.000 |
+| ReportEngine | ~15-20 | ~160.000 |
+| ForumEngine | ~5-10 | ~30.000 |
+| **Total** | **~110-120** | **~620.000** |
+
+### Custo por relatório em APIs comerciais
+
+| Modelo | Custo/relatório | Tempo | Qualidade |
+|--------|----------------|-------|-----------|
+| Ollama local (qwen2.5:32b) | $0.00 | 3-4 horas | Média |
+| DeepSeek Chat | $0.11 | 8-12 min | Boa |
+| GPT-4o-mini | $0.17 | 5-8 min | Boa |
+| Claude Haiku 3.5 | $1.10 | 8-12 min | Boa |
+| GPT-4o | $2.98 | 10-15 min | Muito boa |
+| Claude Sonnet 4 | $4.14 | 10-15 min | Excelente |
+
+### Projeção de custo mensal (100 relatórios/mês)
+
+| Modelo | Custo mensal |
+|--------|-------------|
+| Ollama local | $0 (só energia elétrica) |
+| DeepSeek Chat | ~$11 |
+| GPT-4o-mini | ~$17 |
+| Claude Haiku 3.5 | ~$110 |
+| GPT-4o | ~$298 |
+| Claude Sonnet 4 | ~$414 |
+
+> **Nota:** Todos os modelos usam formato OpenAI-compatible. Basta trocar `API_KEY`, `BASE_URL` e `MODEL_NAME` no `.env` para alternar entre provedores. Pode usar modelos diferentes por engine (ex: DeepSeek para engines de busca, GPT-4o para o ReportEngine).
+
+---
+
+## 9. Repositório
 
 - **Origem**: [666ghj/BettaFish](https://github.com/666ghj/BettaFish) (chinês)
 - **Fork adaptado**: [inematds/BettaFish](https://github.com/inematds/BettaFish) (português brasileiro)

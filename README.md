@@ -872,6 +872,21 @@ playwright install chromium
 python app.py
 ```
 
+## 💰 Custo por Relatório
+
+Cada relatório consome ~620K tokens. Comparativo de custo e velocidade:
+
+| Modelo | Custo/relatório | Tempo | 100 relatórios/mês |
+|--------|----------------|-------|---------------------|
+| Ollama local (qwen2.5:32b) | $0.00 | 3-4 horas | $0 |
+| DeepSeek Chat | $0.11 | 8-12 min | ~$11 |
+| GPT-4o-mini | $0.17 | 5-8 min | ~$17 |
+| Claude Haiku 3.5 | $1.10 | 8-12 min | ~$110 |
+| GPT-4o | $2.98 | 10-15 min | ~$298 |
+| Claude Sonnet 4 | $4.14 | 10-15 min | ~$414 |
+
+> Todos os modelos usam formato OpenAI-compatible. Basta trocar `API_KEY`, `BASE_URL` e `MODEL_NAME` no `.env`. Pode usar modelos diferentes por engine. Detalhes completos no [Relatório do Projeto](./RELATORIO_PROJETO.md#8-custo-de-tokens-e-comparativo-de-llms).
+
 ## 📈 Estatísticas do Projeto
 
 <a href="https://www.star-history.com/#666ghj/BettaFish&type=date&legend=top-left">
