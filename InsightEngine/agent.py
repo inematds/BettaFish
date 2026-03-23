@@ -198,6 +198,7 @@ class DeepSearchAgent:
                 - "get_comments_for_topic": Obter comentários de um tópico
                 - "search_topic_on_platform": Busca direcionada por plataforma
                 - "analyze_sentiment": Realizar análise de sentimentos nos resultados da consulta
+                - "search_daily_news": Buscar notícias coletadas de fontes RSS
             query: Palavras-chave de busca/tópico
             **kwargs: Parâmetros adicionais (como start_date, end_date, platform, limit, enable_sentiment etc.)
                      enable_sentiment: Se deve realizar análise de sentimentos automaticamente nos resultados de busca (padrão True)
@@ -311,6 +312,15 @@ class DeepSearchAgent:
                         start_date=start_date,
                         end_date=end_date,
                         limit=limit,
+                    )
+                elif tool_name == "search_daily_news":
+                    # Usar valor padrão do arquivo de configuração, distribuir por número de palavras-chave, mas garantir valor mínimo
+                    limit = self.config.DEFAULT_SEARCH_DAILY_NEWS_LIMIT // len(
+                        optimized_response.optimized_keywords
+                    )
+                    limit = max(limit, 10)
+                    response = self.search_agency.search_daily_news(
+                        topic=keyword, limit=limit
                     )
                 else:
                     logger.info(f"    Ferramenta de busca desconhecida: {tool_name}, usando busca global padrão")
@@ -665,6 +675,9 @@ class DeepSearchAgent:
             else:  # search_topic_on_platform
                 limit = self.config.DEFAULT_SEARCH_TOPIC_ON_PLATFORM_LIMIT
             search_kwargs["limit"] = limit
+        elif search_tool == "search_daily_news":
+            limit = self.config.DEFAULT_SEARCH_DAILY_NEWS_LIMIT
+            search_kwargs["limit"] = limit
 
         search_response = self.execute_search_tool(
             search_tool, search_query, **search_kwargs
@@ -825,6 +838,9 @@ class DeepSearchAgent:
                     limit = self.config.DEFAULT_GET_COMMENTS_FOR_TOPIC_LIMIT
                 else:  # search_topic_on_platform
                     limit = self.config.DEFAULT_SEARCH_TOPIC_ON_PLATFORM_LIMIT
+                search_kwargs["limit"] = limit
+            elif search_tool == "search_daily_news":
+                limit = self.config.DEFAULT_SEARCH_DAILY_NEWS_LIMIT
                 search_kwargs["limit"] = limit
 
             search_response = self.execute_search_tool(

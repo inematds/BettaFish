@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     DEFAULT_SEARCH_TOPIC_BY_DATE_LIMIT_PER_TABLE: int = Field(100, description="按日期话题最大数")
     DEFAULT_GET_COMMENTS_FOR_TOPIC_LIMIT: int = Field(500, description="单话题评论最大数")
     DEFAULT_SEARCH_TOPIC_ON_PLATFORM_LIMIT: int = Field(200, description="平台搜索话题最大数")
+    DEFAULT_SEARCH_DAILY_NEWS_LIMIT: int = Field(50, description="每日新闻搜索默认最大数")
     MAX_SEARCH_RESULTS_FOR_LLM: int = Field(0, description="供LLM用搜索结果最大数")
     MAX_HIGH_CONFIDENCE_SENTIMENT_RESULTS: int = Field(0, description="高置信度情感分析最大数")
     OUTPUT_DIR: str = Field("reports", description="输出路径")

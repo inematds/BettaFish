@@ -6,21 +6,25 @@
 from .search import (
     BochaMultimodalSearch,
     AnspireAISearch,
+    TavilyMultimodalSearch,
     WebpageResult,
     ImageResult,
     ModalCardResult,
     BochaResponse,
     AnspireResponse,
-    print_response_summary
+    print_response_summary,
+    load_agent_from_config
 )
 
 __all__ = [
     "BochaMultimodalSearch",
     "AnspireAISearch",
-    "WebpageResult", 
+    "TavilyMultimodalSearch",
+    "WebpageResult",
     "ImageResult",
     "ModalCardResult",
     "BochaResponse",
     "AnspireResponse",
-    "print_response_summary"
+    "print_response_summary",
+    "load_agent_from_config"
 ]

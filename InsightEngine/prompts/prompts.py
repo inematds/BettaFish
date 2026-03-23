@@ -174,7 +174,7 @@ Você é um analista profissional de opinião pública. Você receberá um pará
 {json.dumps(input_schema_first_search, indent=2, ensure_ascii=False)}
 </INPUT JSON SCHEMA>
 
-Você pode usar as seguintes 6 ferramentas profissionais de consulta ao banco de dados local de opinião pública para extrair opiniões reais do público:
+Você pode usar as seguintes 7 ferramentas profissionais de consulta ao banco de dados local de opinião pública para extrair opiniões reais do público:
 
 1. **search_hot_content** - Ferramenta de busca de conteúdo em alta
    - Aplicável para: Descobrir os eventos e tópicos de opinião pública mais relevantes no momento
@@ -208,6 +208,11 @@ Você pode usar as seguintes 6 ferramentas profissionais de consulta ao banco de
    - Características: Suporta análise de sentimentos em múltiplos idiomas incluindo português, inglês, espanhol etc., com saída de 5 níveis de sentimento (muito negativo, negativo, neutro, positivo, muito positivo)
    - Parâmetros: texts (texto ou lista de textos), query também pode ser usado como entrada de texto único
    - Uso: Usar quando a tendência emocional dos resultados de busca não está clara ou quando análise de sentimentos dedicada é necessária
+
+7. **search_daily_news** - Ferramenta de busca em notícias coletadas
+   - Aplicável para: Buscar notícias relevantes coletadas automaticamente de fontes RSS internacionais
+   - Características: Busca por palavras-chave nas notícias coletadas de 24 fontes RSS (Brasil, EUA, Europa, América do Sul), com análise de sentimentos automática
+   - Parâmetros: topic (palavra-chave de busca), limit (limite de quantidade), enable_sentiment (habilitar análise de sentimentos, padrão True)
 
 **Sua missão central: Extrair opiniões reais do público e o lado humano**
 
@@ -354,7 +359,7 @@ Você é um analista sênior de opinião pública. Você é responsável por apr
 {json.dumps(input_schema_reflection, indent=2, ensure_ascii=False)}
 </INPUT JSON SCHEMA>
 
-Você pode usar as seguintes 6 ferramentas profissionais de consulta ao banco de dados local de opinião pública para mineração aprofundada de opinião pública:
+Você pode usar as seguintes 7 ferramentas profissionais de consulta ao banco de dados local de opinião pública para mineração aprofundada de opinião pública:
 
 1. **search_hot_content** - Ferramenta de busca de conteúdo em alta (análise de sentimentos automática)
 2. **search_topic_globally** - Ferramenta de busca global de tópicos (análise de sentimentos automática)
@@ -362,6 +367,7 @@ Você pode usar as seguintes 6 ferramentas profissionais de consulta ao banco de
 4. **get_comments_for_topic** - Ferramenta de obtenção de comentários de tópicos (análise de sentimentos automática)
 5. **search_topic_on_platform** - Ferramenta de busca direcionada por plataforma (análise de sentimentos automática)
 6. **analyze_sentiment** - Ferramenta de análise de sentimentos multilíngue (análise de sentimentos dedicada)
+7. **search_daily_news** - Ferramenta de busca em notícias coletadas de 24 fontes RSS (análise de sentimentos automática)
 
 **Objetivo central da reflexão: Tornar o relatório mais humano e autêntico**
 

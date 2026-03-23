@@ -91,6 +91,13 @@ class Settings(BaseSettings):
     ANSPIRE_API_KEY: Optional[str] = Field(None, description="Anspire AI Search API (endereco de solicitacao: https://open.anspire.cn/?share_code=3E1FUOUH) chave API, usada para busca Anspire")
 
 
+    # ================== Credenciais de Plataformas Ocidentais (Phase 4) ====================
+    REDDIT_CLIENT_ID: Optional[str] = Field(None, description="Reddit API client ID (grátis em reddit.com/prefs/apps)")
+    REDDIT_CLIENT_SECRET: Optional[str] = Field(None, description="Reddit API client secret")
+    REDDIT_USER_AGENT: str = Field("BettaFish/1.0", description="Reddit API user agent")
+    YOUTUBE_API_KEY: Optional[str] = Field(None, description="YouTube Data API v3 key (grátis em console.cloud.google.com)")
+    APIFY_API_TOKEN: Optional[str] = Field(None, description="Apify API token para Twitter, Instagram e TikTok (apify.com)")
+
     # ================== Configuracao de Busca do Insight Engine ====================
     DEFAULT_SEARCH_HOT_CONTENT_LIMIT: int = Field(100, description="Numero maximo padrao de conteudo em alta")
     DEFAULT_SEARCH_TOPIC_GLOBALLY_LIMIT_PER_TABLE: int = Field(50, description="Numero maximo de topicos globais por tabela")

@@ -399,6 +399,48 @@ class MediaCrawlerDB:
 
         return DBResponse("search_topic_on_platform", params_for_log, results=all_results, results_count=len(all_results))
 
+    def search_daily_news(self, topic: str, limit: int = 50) -> DBResponse:
+        """
+        [Ferramenta] Busca em notícias coletadas: Buscar por palavras-chave nas notícias coletadas de 24 fontes RSS
+        (Brasil, EUA, Europa, América do Sul).
+
+        Args:
+            topic (str): Palavra-chave a ser buscada no título das notícias.
+            limit (int): Número máximo de resultados retornados, padrão 50.
+
+        Returns:
+            DBResponse: Lista contendo as notícias correspondentes.
+        """
+        params_for_log = {'topic': topic, 'limit': limit}
+        logger.info(f"--- FERRAMENTA: Busca em notícias coletadas (params: {params_for_log}) ---")
+
+        search_term = f"%{topic}%"
+        param_dict = {
+            'term_0': search_term,
+            'limit': limit,
+        }
+        query = (
+            f'SELECT * FROM {self._wrap_query_field_with_dialect("daily_news")} '
+            f'WHERE {self._wrap_query_field_with_dialect("title")} LIKE :term_0 '
+            f'ORDER BY id DESC LIMIT :limit'
+        )
+        raw_results = self._execute_query(query, param_dict)
+
+        formatted_results = []
+        for row in raw_results:
+            formatted_results.append(QueryResult(
+                platform=row.get('source_platform', 'rss'),
+                content_type='news',
+                title_or_content=row.get('title', ''),
+                author_nickname=row.get('source_platform'),
+                url=row.get('url'),
+                publish_time=self._to_datetime(row.get('crawl_date')),
+                engagement={},
+                source_keyword=topic,
+                source_table='daily_news',
+            ))
+        return DBResponse("search_daily_news", params_for_log, results=formatted_results, results_count=len(formatted_results))
+
 # --- 3. Testes e exemplos de uso ---
 def print_response_summary(response: DBResponse):
     """Função simplificada de impressão para exibir resultados de teste"""

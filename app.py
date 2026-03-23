@@ -1367,6 +1367,35 @@ def news_status():
         logger.exception(f"Erro ao obter status de notícias: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/report/history', methods=['GET'])
+def report_history():
+    """Lista todos os relatórios gerados"""
+    import glob
+    reports = []
+    for filepath in sorted(glob.glob('final_reports/final_report_*.html'), reverse=True):
+        filename = os.path.basename(filepath)
+        stat = os.stat(filepath)
+        # Extract query from filename
+        name_part = filename.replace('final_report_', '').replace('.html', '')
+        parts = name_part.rsplit('_', 2)  # split off date and time
+        query_part = parts[0] if len(parts) >= 3 else name_part
+        query_display = query_part.replace('_', ' ')
+
+        reports.append({
+            'filename': filename,
+            'query': query_display,
+            'date': f"{parts[-2][:4]}-{parts[-2][4:6]}-{parts[-2][6:8]} {parts[-1][:2]}:{parts[-1][2:4]}:{parts[-1][4:6]}" if len(parts) >= 3 else '',
+            'size_kb': round(stat.st_size / 1024, 1),
+            'url': f'/api/report/view/{filename}'
+        })
+    return jsonify({'success': True, 'reports': reports})
+
+@app.route('/api/report/view/<filename>')
+def view_report(filename):
+    """Serve um relatório HTML"""
+    from flask import send_from_directory
+    return send_from_directory('final_reports', filename)
+
 @socketio.on('connect')
 def handle_connect():
     """Conexão do cliente"""

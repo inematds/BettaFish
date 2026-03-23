@@ -1,9 +1,9 @@
 """
 Ferramenta de fatiamento de template Markdown.
 
-LLM需要“按章调用”，因此必须把Markdown模板解析为结构化章节队列。
-这里通过轻量正则和缩进启发式，兼容“# 标题”与
-“- **1.0 标题** /   - 1.1 子标题”等多种写法。
+O LLM precisa de “chamadas por capitulo”, portanto e necessario analisar o template Markdown em uma fila estruturada de capitulos.
+Aqui, atraves de regex leve e heuristica de indentacao, compativel com “# Titulo” e
+“- **1.0 Titulo** /   - 1.1 Subtitulo” e outras formas de escrita.
 """
 
 from __future__ import annotations
@@ -90,7 +90,7 @@ def parse_template_sections(template_md: str) -> List[TemplateSection]:
 
     Cada TemplateSection retornado carrega slug/order/numero do capitulo,
     facilitando chamadas por capitulo e geracao de ancoras. A analise e compativel com
-    “# 标题”“无符号编号”“列表提纲”等不同写法。
+    “# Titulo”, “numeracao sem simbolo”, “esboco em lista” e outras formas de escrita.
 
     Parametros:
         template_md: Texto completo do template Markdown.

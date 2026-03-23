@@ -19,7 +19,7 @@ from .nodes import (
     ReportFormattingNode
 )
 from .state import State
-from .tools import BochaMultimodalSearch, BochaResponse, AnspireAISearch, AnspireResponse
+from .tools import BochaMultimodalSearch, BochaResponse, AnspireAISearch, AnspireResponse, load_agent_from_config
 from .utils import settings, Settings, format_search_results_for_prompt
 
 
@@ -38,8 +38,8 @@ class DeepSearchAgent:
         # Inicializar cliente LLM
         self.llm_client = self._initialize_llm()
 
-        # Inicializar conjunto de ferramentas de busca
-        self.search_agency = BochaMultimodalSearch(api_key=(self.config.BOCHA_API_KEY or self.config.BOCHA_WEB_SEARCH_API_KEY))
+        # Inicializar conjunto de ferramentas de busca (Tavily > Bocha > Anspire)
+        self.search_agency = load_agent_from_config()
 
         # Inicializar nós
         self._initialize_nodes()
@@ -52,7 +52,7 @@ class DeepSearchAgent:
 
         logger.info(f"Media Agent inicializado")
         logger.info(f"Usando LLM: {self.llm_client.get_model_info()}")
-        logger.info(f"Ferramentas de busca: BochaMultimodalSearch (suporta 5 ferramentas de busca multimodal)")
+        logger.info(f"Ferramentas de busca: {type(self.search_agency).__name__}")
 
     def _initialize_llm(self) -> LLMClient:
         """Inicializar cliente LLM"""
